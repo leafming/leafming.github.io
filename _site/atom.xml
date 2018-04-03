@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-04-03T18:50:19+08:00</updated><id>http://localhost:4000/</id><title type="html">iLeaf</title><subtitle>Yesterday you said tomorrow.</subtitle><author><name>Liv Yeh</name></author><entry><title type="html">Spark Streaming写数据到Kafka-Kafka连接池的使用</title><link href="http://localhost:4000/bigdata/2018/04/02/SparkStreaming%E5%86%99%E6%95%B0%E6%8D%AE%E5%88%B0Kafka-Kafka%E8%BF%9E%E6%8E%A5%E6%B1%A0%E7%9A%84%E4%BD%BF%E7%94%A8/" rel="alternate" type="text/html" title="Spark Streaming写数据到Kafka-Kafka连接池的使用" /><published>2018-04-02T00:00:00+08:00</published><updated>2018-04-02T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/04/02/SparkStreaming%E5%86%99%E6%95%B0%E6%8D%AE%E5%88%B0Kafka-Kafka%E8%BF%9E%E6%8E%A5%E6%B1%A0%E7%9A%84%E4%BD%BF%E7%94%A8</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/04/02/SparkStreaming%E5%86%99%E6%95%B0%E6%8D%AE%E5%88%B0Kafka-Kafka%E8%BF%9E%E6%8E%A5%E6%B1%A0%E7%9A%84%E4%BD%BF%E7%94%A8/">&lt;blockquote&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-04-03T19:06:14+08:00</updated><id>http://localhost:4000/</id><title type="html">iLeaf</title><subtitle>Yesterday you said tomorrow.</subtitle><author><name>Liv Yeh</name></author><entry><title type="html">Spark Streaming写数据到Kafka-Kafka连接池的使用</title><link href="http://localhost:4000/bigdata/2018/04/02/SparkStreaming%E5%86%99%E6%95%B0%E6%8D%AE%E5%88%B0Kafka-Kafka%E8%BF%9E%E6%8E%A5%E6%B1%A0%E7%9A%84%E4%BD%BF%E7%94%A8/" rel="alternate" type="text/html" title="Spark Streaming写数据到Kafka-Kafka连接池的使用" /><published>2018-04-02T00:00:00+08:00</published><updated>2018-04-02T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/04/02/SparkStreaming%E5%86%99%E6%95%B0%E6%8D%AE%E5%88%B0Kafka-Kafka%E8%BF%9E%E6%8E%A5%E6%B1%A0%E7%9A%84%E4%BD%BF%E7%94%A8</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/04/02/SparkStreaming%E5%86%99%E6%95%B0%E6%8D%AE%E5%88%B0Kafka-Kafka%E8%BF%9E%E6%8E%A5%E6%B1%A0%E7%9A%84%E4%BD%BF%E7%94%A8/">&lt;blockquote&gt;
   &lt;p&gt;最近把spark实时流处理的信令处理程序，由原来的向kafka0.8.2.1中写入数据，改成了向带ACL权限认证的kafka0.10.1.1中写入数据，因此在之前的基础上创建连接前会多一个认证过程，因此导致写入效率有些低下，所以使用Kafka连接池来优化之前程序。&lt;/p&gt;
 &lt;/blockquote&gt;
 
@@ -200,4 +200,84 @@ end&lt;/p&gt;
 &lt;p&gt;使用Kafka连接池更改程序之前以及之后的处理速度对比如下图所示，写入90W条数据由原来的17953ms变为了1966ms，效率大大提高。&lt;br /&gt;
 &lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/2018-04-02SparkStreamingKafka.png?raw=true&quot; alt=&quot;compare&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;内容即以上，会在下篇文章解决spark streaming中checkpoint和广播变量使用冲突的问题，敬请期待。&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="Spark" /><category term="Kafka" /><summary type="html">最近把spark实时流处理的信令处理程序，由原来的向kafka0.8.2.1中写入数据，改成了向带ACL权限认证的kafka0.10.1.1中写入数据，因此在之前的基础上创建连接前会多一个认证过程，因此导致写入效率有些低下，所以使用Kafka连接池来优化之前程序。</summary></entry></feed>
+&lt;p&gt;内容即以上，会在下篇文章解决spark streaming中checkpoint和广播变量使用冲突的问题，敬请期待。&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="Spark" /><category term="Kafka" /><summary type="html">最近把spark实时流处理的信令处理程序，由原来的向kafka0.8.2.1中写入数据，改成了向带ACL权限认证的kafka0.10.1.1中写入数据，因此在之前的基础上创建连接前会多一个认证过程，因此导致写入效率有些低下，所以使用Kafka连接池来优化之前程序。</summary></entry><entry><title type="html">MathJax with Jekyll</title><link href="http://localhost:4000/opinion/2014/02/16/Mathjax-with-jekyll/" rel="alternate" type="text/html" title="MathJax with Jekyll" /><published>2014-02-16T00:00:00+08:00</published><updated>2014-02-16T00:00:00+08:00</updated><id>http://localhost:4000/opinion/2014/02/16/Mathjax-with-jekyll</id><content type="html" xml:base="http://localhost:4000/opinion/2014/02/16/Mathjax-with-jekyll/">&lt;p&gt;One of the rewards of switching my website to &lt;a href=&quot;http://jekyllrb.com/&quot;&gt;Jekyll&lt;/a&gt; is the
+ability to support &lt;strong&gt;MathJax&lt;/strong&gt;, which means I can write LaTeX-like equations that get
+nicely displayed in a web browser, like this one \( \sqrt{\frac{n!}{k!(n-k)!}} \) or
+this one \( x^2 + y^2 = r^2 \).&lt;/p&gt;
+
+&lt;!--more--&gt;
+
+&lt;p&gt;&lt;img class=&quot;centered&quot; src=&quot;https://www.mathjax.org/badge/mj-logo.svg&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;whats-mathjax&quot;&gt;What’s MathJax?&lt;/h3&gt;
+
+&lt;p&gt;If you check MathJax website &lt;a href=&quot;http://www.mathjax.org/&quot;&gt;(www.mathjax.org)&lt;/a&gt; you’ll see
+that it &lt;em&gt;is an open source JavaScript display engine for mathematics that works in all
+browsers&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;how-to-implement-mathjax-with-jekyll&quot;&gt;How to implement MathJax with Jekyll&lt;/h3&gt;
+
+&lt;p&gt;I followed the instructions described by Dason Kurkiewicz for
+&lt;a href=&quot;http://dasonk.github.io/blog/2012/10/09/Using-Jekyll-and-Mathjax/&quot;&gt;using Jekyll and Mathjax&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Here are some important details. I had to modify the Ruby library for Markdown in
+my &lt;code class=&quot;highlighter-rouge&quot;&gt;_config.yml&lt;/code&gt; file. Now I’m using redcarpet so the corresponding line in the
+configuration file is: &lt;code class=&quot;highlighter-rouge&quot;&gt;markdown: redcarpet&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;To load the MathJax javascript, I added the following lines in my layout &lt;code class=&quot;highlighter-rouge&quot;&gt;page.html&lt;/code&gt;
+(located in my folder &lt;code class=&quot;highlighter-rouge&quot;&gt;_layouts&lt;/code&gt;)&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-r&quot; data-lang=&quot;r&quot;&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;script&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;text/javascript&quot;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+    &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;src&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;script&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Of course you can choose a different file location in your jekyll layouts.&lt;/p&gt;
+
+&lt;h3 id=&quot;a-couple-of-examples&quot;&gt;A Couple of Examples&lt;/h3&gt;
+
+&lt;p&gt;Here’s a short list of examples. To know more about the details behind MathJax, you can
+always checked the provided documentation available at
+&lt;a href=&quot;http://docs.mathjax.org/en/latest/&quot;&gt;http://docs.mathjax.org/en/latest/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;I’m assuming you are familiar with LaTeX. However, you should know that MathJax does not
+have the exactly same behavior as LaTeX. By default, the &lt;strong&gt;tex2jax&lt;/strong&gt; preprocessor defines the
+LaTeX math delimiters, which are &lt;code class=&quot;highlighter-rouge&quot;&gt;\\(...\\)&lt;/code&gt; for in-line math, and &lt;code class=&quot;highlighter-rouge&quot;&gt;\\[...\\]&lt;/code&gt; for
+displayed equations. It also defines the TeX delimiters &lt;code class=&quot;highlighter-rouge&quot;&gt;$$...$$&lt;/code&gt; for displayed
+equations, but it does not define &lt;code class=&quot;highlighter-rouge&quot;&gt;$...$&lt;/code&gt; as in-line math delimiters. Fortunately,
+you can change these predefined specifications if you want to do so.&lt;/p&gt;
+
+&lt;p&gt;Let’s try a first example. Here’s a dummy equation:&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;a^2 + b^2 = c^2&lt;/script&gt;
+
+&lt;p&gt;How do you write such expression? Very simple: using &lt;strong&gt;double dollar&lt;/strong&gt; signs&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-r&quot; data-lang=&quot;r&quot;&gt;&lt;span class=&quot;o&quot;&gt;$$&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;$$&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;To display inline math use &lt;code class=&quot;highlighter-rouge&quot;&gt;\\( ... \\)&lt;/code&gt; like this &lt;code class=&quot;highlighter-rouge&quot;&gt;\\( sin(x^2) \\)&lt;/code&gt; which gets
+rendered as \( sin(x^2) \)&lt;/p&gt;
+
+&lt;p&gt;Here’s another example using type &lt;code class=&quot;highlighter-rouge&quot;&gt;\mathsf&lt;/code&gt;&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-r&quot; data-lang=&quot;r&quot;&gt;&lt;span class=&quot;o&quot;&gt;$$&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mathsf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Data&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;PCs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;times&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mathsf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Loadings&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;$$&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;which gets displayed as&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;\mathsf{Data = PCs} \times \mathsf{Loadings}&lt;/script&gt;
+
+&lt;p&gt;Or even better:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-r&quot; data-lang=&quot;r&quot;&gt;&lt;span class=&quot;err&quot;&gt;\\&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mathbf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mathbf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mathbf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;P&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mathsf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;\\&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;is displayed as&lt;/p&gt;
+
+&lt;p&gt;\[ \mathbf{X} = \mathbf{Z} \mathbf{P^\mathsf{T}} \]&lt;/p&gt;
+
+&lt;p&gt;If you want to use subscripts like this \( \mathbf{X}_{n,p} \) you need to scape the
+underscores with a backslash like so &lt;code class=&quot;highlighter-rouge&quot;&gt;\mathbf{X}\_{n,p}&lt;/code&gt;:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-r&quot; data-lang=&quot;r&quot;&gt;&lt;span class=&quot;o&quot;&gt;$$&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mathbf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;\_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mathbf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;A&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;\_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;k&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mathbf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;B&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;\_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;k&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;$$&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;will be displayed as&lt;/p&gt;
+
+&lt;p&gt;\[ \mathbf{X}_{n,p} = \mathbf{A}_{n,k} \mathbf{B}_{k,p} \]&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="resources" /><category term="jekyll" /><summary type="html">One of the rewards of switching my website to Jekyll is the ability to support MathJax, which means I can write LaTeX-like equations that get nicely displayed in a web browser, like this one \( \sqrt{\frac{n!}{k!(n-k)!}} \) or this one \( x^2 + y^2 = r^2 \).</summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="http://gastonsanchez.com/images/blog/mathjax_logo.png" /></entry></feed>
