@@ -1,4 +1,226 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   
+    <entry>
+      <title>Spark Streaming写数据到Kafka-Kafka连接池的使用</title>
+      <url>/bigdata/2018/04/02/SparkStreaming%E5%86%99%E6%95%B0%E6%8D%AE%E5%88%B0Kafka-Kafka%E8%BF%9E%E6%8E%A5%E6%B1%A0%E7%9A%84%E4%BD%BF%E7%94%A8/</url>
+      <content type="text">
+  最近把spark实时流处理的信令处理程序，由原来的向kafka0.8.2.1中写入数据，改成了向带ACL权限认证的kafka0.10.1.1中写入数据，因此在之前的基础上创建连接前会多一个认证过程，因此导致写入效率有些低下，所以使用Kafka连接池来优化之前程序。
+
+
+注意: 本文中使用的版本是spark2.2.1和kafka0.10.1.1
+
+原写入方式描述
+使用Spark Streaming从Kafka中接收数据时，可以使用Spark提供的统一的接口来接收数据，但是写入数据的时候，并没有spark官方提供的写入接口，需要自己写使用底层的kafka方法，使用producer写入。
+Spark Streaming主程序部分
+    writeDStrem.foreachRDD(rdd =&amp;gt; {
+      if (rdd.isEmpty) {
+        logInfo(&quot; No Data in this batchInterval --------&quot;)
+      } else {
+        val start_time = System.currentTimeMillis()
+        // 不能在这里创建KafkaProducer
+	rdd.foreachPartition(iter=&amp;gt;{
+          process.writeAsPartitionToKafka(proKafkaTopicName,iter,cacheNum,props)
+        })
+        competeTime(start_time, &quot;Processed data write to KAFKA&quot;)
+      }
+    })
+
+
+在每个partation中调用ProcessData类中的writeAsPartitionToKafka方法来向kafka写入数据。
+
+  特别说明：这里是通过调用ProcessData类中的方法，在ProcessData类中的方法中创建KafkaProducer来向kafka里写入的，如果直接写创建KafkaProducer，不能把将KafkaProducer的创建放在foreachPartition外边，因为KafkaProducer是不可序列化的（not serializable）。
+
+
+主程序在rdd.foreachPartition中调用以下类中的方法把数据写入kafka中
+    final class ProcessData extends Logging{
+      /**
+        * 数据发送
+        * @param topic
+        * @param messages
+        * @param props
+        */
+      def sendMessages(topic: String, messages: String, props: Properties) {
+        System.setProperty(&quot;java.security.auth.login.config&quot;,&quot;kafka_client_jaas.conf&quot;)
+        val producer: Producer[String, String] = new KafkaProducer[String, String](props)
+        try{
+          val msg: ProducerRecord[String, String] = new ProducerRecord[String,String](topic,messages)
+          producer.send(msg)
+        }catch{
+          case e: IOException =&amp;gt;
+            logError(&quot;partition write data to  kafka exception : &quot; + e.getMessage + &quot;\n&quot;)
+        } finally {
+          producer.close
+        }
+      }
+      /**
+        * 处理数据，按N条写入一次
+        * @param topicName
+        * @param iter
+        * @param cache 缓存数
+        * @param props
+        * @return
+        */
+      def writeAsPartitionToKafka(topicName: String,iter: Iterator[String], cache: Int,props:Properties): Try[Unit] = Try {
+        var record_sum=&quot;&quot;   //初始化空串
+        var count_sum=0     //计数器
+        var record=&quot;&quot;
+        while (iter.hasNext) {
+          record = iter.next()
+          record_sum += record+&quot;\n&quot;
+          count_sum = count_sum + 1
+          if (count_sum == cache) {
+            sendMessages(topicName,record_sum,props)
+            record_sum = &quot;&quot;
+            count_sum = 0
+          }
+        }
+        if (!record_sum.isEmpty) {
+          sendMessages(topicName,record_sum,props)
+        }
+      }
+    }
+
+
+此类中主要2个方法，writeAsPartitionToKafka是用于处理数据，sendMessages用来创建KafkaProducer来向kafka生产消息。
+writeAsPartitionToKafka方法为了“提高”写入效率，设置了一个cacheNum值，这个方法会&amp;gt;将每个patation中的数据以cacheNum条和并成一条数据来向Kafka中写入，因此是cacheNum&amp;gt;条数据以“\n”来分割合并成一条在Kafka里的消息，所以对下游数据处理也造成了麻烦。
+并且使用此方式，相当于对于每个partation的每cacheNum条记录（即每次调用sendMessages方法，发送1条kafka消息）都需要创建KafkaProducer，然后再利用producer进行输出操作
+。还是需要较频繁的建立连接，因此使用kafka连接池来更改程序。
+
+新写入方式描述:使用Kafka连接池更改程序
+包装KafkaProducer-创建Kafka连接池
+创建class KafkaPool 以及object KafkaPool，将KafkaProducer以lazy val的方式进行包装。
+    import java.util.concurrent.Future
+    import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord, RecordMetadata}
+    //scala中，类名之后的括号中是构造函数的参数列表，() =&amp;gt;是传值传参，KafkaProducer
+    class KafkaPool[K, V]( createProducer: () =&amp;gt; KafkaProducer[K,V])  extends Serializable{
+      //使用lazy关键字修饰变量后，只有在使用该变量时，才会调用其实例化方法
+      //后续在spark主程序中使用时，将kafkapool广播出去到每个executor里面了，然后到每个executor中，当用到的时候，会实例化一个producer，这样就不会有NotSerializableExceptions的问题了。
+      lazy val producer = createProducer()
+      def send(topic: String, key: K, value: V): Future[RecordMetadata] = 
+        producer.send(new ProducerRecord[K, V](topic, key, value))
+      def send(topic: String, value: V): Future[RecordMetadata] = 
+        producer.send(new ProducerRecord[K, V](topic, value))
+    }
+    object KafkaPool{
+      import scala.collection.JavaConversions._
+      def apply[K, V](config: Map[String, Object]): KafkaPool[K, V] = {
+          val createProducerFunc = () =&amp;gt; {
+            System.setProperty(&quot;java.security.auth.login.config&quot;,&quot;kafka_client_jaas.conf&quot;)
+            val producer = new KafkaProducer[K, V](config)
+            sys.addShutdownHook {
+	      //当发送ececutor中的jvm shutdown时，kafka能够将缓冲区的消息发送出去。
+              producer.close()
+            }
+            producer
+          }
+          new KafkaPool(createProducerFunc)
+      }
+      def apply[K, V](config: java.util.Properties): KafkaPool[K, V] = apply(config.toMap)
+    }
+
+
+
+  补充说明：
+传值传参和传名的区别（()=&amp;gt;和:=&amp;gt;的区别）
+  
+    传值
+        def test1(code: ()=&amp;gt;Unit){
+    println(&quot;start&quot;)
+    code() //要想调用传入的代码块，必须写成code()，否则不会调用。  
+    println(&quot;end&quot;)
+  }
+  test1 {//此代码块，传入后立即执行。  
+    println(&quot;when evaluated&quot;) //传入就打印
+    ()=&amp;gt;{println(&quot;bb&quot;)} // 执行code()才打印
+  }
+
+      
+      结果: 
+when evaluated 
+start
+bb
+end
+    
+    传名
+        def test2(code : =&amp;gt; Unit){  
+    println(&quot;start&quot;)  
+    code // 这行才会调用传入的代码块，写成code()亦可  
+    println(&quot;end&quot;)  
+  }  
+  test2{// 此处的代码块不会马上被调用  
+    println(&quot;when evaluated&quot;)  //执行code的时候才调用
+    println(&quot;bb&quot;) //执行code的时候才调用  
+  }
+
+      
+      结果:
+start
+when evaluated
+bb
+end
+    
+  
+
+
+利用广播变量下发KafkaProducer
+利用广播变量，给每一个executor自己的KafkaProducer，将KafkaProducer广播到每一个executor中。  
+注意：这里暂留一个问题，此种方式只可以Spark Streaming程序不用checkpoint的时候使用，否则会出现 “java.lang.ClassCastException:B cannot be cast to KafkaPool” 的问题，即使用这种方式直接做广播变量不可以，具体解决方式见下篇文章。现在先说明这种方式。
+在spark主程序中加入如下代码：
+    //利用广播变量的形式，将后端写入KafkaProducer广播到每一个executor 注意：这里写广播变量的话，与checkpoint一起用会有问题
+    val kafkaProducer: Broadcast[KafkaPool[String, String]] = {
+      val kafkaProducerConfig = {
+        val props = new Properties()
+        //这个需要写绝对路径，提交的时候，从文件系统里获取的
+        //System.setProperty(&quot;java.security.auth.login.config&quot;,&quot;/usr/tools/spark_234gsignalling/kafka_client_jaas.conf&quot;)
+        props.put(&quot;metadata.broker.list&quot;,proKafkaBrokerAddr)
+        props.put(&quot;security.protocol&quot;,&quot;SASL_PLAINTEXT&quot;)
+        props.put(&quot;sasl.mechanism&quot;,&quot;PLAIN&quot;)
+        props.put(&quot;key.serializer&quot;, &quot;org.apache.kafka.common.serialization.StringSerializer&quot;)
+        props.put(&quot;value.serializer&quot;, &quot;org.apache.kafka.common.serialization.StringSerializer&quot;)
+        props.put(&quot;bootstrap.servers&quot;,proKafkaBrokerAddr)
+        props
+      }
+      log.warn(&quot;kafka producer init done!&quot;)
+      ssc.sparkContext.broadcast(KafkaPool[String, String](kafkaProducerConfig))
+    }
+
+
+使用广播变量
+spark 主程序中，在每个executor中使用广播变量。
+    writeDStrem.foreachRDD(rdd =&amp;gt; {
+      if (rdd.isEmpty) {
+        logInfo(&quot; No Data in this batchInterval --------&quot;)
+      } else {
+        val start_time = System.currentTimeMillis()
+        rdd.foreach(record=&amp;gt;{
+           kafkaProducer.value.send(proKafkaTopicName,record)
+        })
+        competeTime(start_time, &quot;Processed data write to KAFKA&quot;)
+      }
+    })
+
+
+至此，更改完毕。
+结果对比
+使用Kafka连接池更改程序之前以及之后的处理速度对比如下图所示，写入90W条数据由原来的17953ms变为了1966ms，效率大大提高。
+
+
+内容即以上，会在下篇文章解决spark streaming中checkpoint和广播变量使用冲突的问题，敬请期待。
+</content>
+      <categories>
+        
+          <category> BigData </category>
+        
+      </categories>
+      <tags>
+        
+          <tag> Spark </tag>
+        
+          <tag> Kafka </tag>
+        
+      </tags>
+      <tags></tags>
+    </entry>
+  
 </search>

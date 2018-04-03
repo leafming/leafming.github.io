@@ -89,7 +89,7 @@
 
 
 
-  <link rel="alternate" href="/atom.xml" title="Leaf's Blog" type="application/atom+xml" />
+  <link rel="alternate" href="/atom.xml" title="iLeaf" type="application/atom+xml" />
 
 
 
@@ -114,13 +114,13 @@
 <meta name="description" content="Yesterday you said tomorrow.">
 <meta name="keywords" content="Jekyll, NexT">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Leaf's Blog">
+<meta property="og:title" content="iLeaf">
 <meta property="og:url" content="http://localhost:4000/tag/">
-<meta property="og:site_name" content="Leaf's Blog">
+<meta property="og:site_name" content="iLeaf">
 <meta property="og:description" content="Yesterday you said tomorrow.">
 <meta property="og:locale" content="zh-Hans">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Leaf's Blog">
+<meta name="twitter:title" content="iLeaf">
 <meta name="twitter:description" content="Yesterday you said tomorrow.">
 
 
@@ -154,7 +154,7 @@
 
 
 
-  <title>标签 | Leaf's Blog</title>
+  <title>标签 | iLeaf</title>
   
 
 
@@ -200,12 +200,12 @@
     <div class="custom-logo-site-title">
       <a href="/"  class="brand" rel="start">
         <span class="logo-line-before"><i></i></span>
-        <span class="site-title">Leaf's Blog</span>
+        <span class="site-title">iLeaf</span>
         <span class="logo-line-after"><i></i></span>
       </a>
     </div>
       
-        <p class="site-subtitle"></p>
+        <p class="site-subtitle">Leaf's Blog</p>
       
   </div>
 
@@ -233,6 +233,18 @@
               <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
             
             首页
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
           </a>
         </li>
       
@@ -324,6 +336,72 @@
   
 
   
+    
+    
+
+    
+      
+
+      
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article" route="/Spark">
+    <header class="post-header">
+
+      <h2 class="post-title">
+        
+            <a class="post-title-link" href="/bigdata/2018/04/02/SparkStreaming%E5%86%99%E6%95%B0%E6%8D%AE%E5%88%B0Kafka-Kafka%E8%BF%9E%E6%8E%A5%E6%B1%A0%E7%9A%84%E4%BD%BF%E7%94%A8/" itemprop="url">
+              
+                <span itemprop="name">Spark Streaming写数据到Kafka-Kafka连接池的使用</span>
+              
+            </a>
+        
+      </h2>
+
+      <div class="post-meta">
+        <time class="post-time" itemprop="dateCreated"
+              datetime="2018-04-02T00:00:00+08:00"
+              content="2018-04-02" >
+          04-02
+        </time>
+      </div>
+
+    </header>
+  </article>
+
+    
+  
+    
+    
+
+    
+      
+
+      
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article" route="/Kafka">
+    <header class="post-header">
+
+      <h2 class="post-title">
+        
+            <a class="post-title-link" href="/bigdata/2018/04/02/SparkStreaming%E5%86%99%E6%95%B0%E6%8D%AE%E5%88%B0Kafka-Kafka%E8%BF%9E%E6%8E%A5%E6%B1%A0%E7%9A%84%E4%BD%BF%E7%94%A8/" itemprop="url">
+              
+                <span itemprop="name">Spark Streaming写数据到Kafka-Kafka连接池的使用</span>
+              
+            </a>
+        
+      </h2>
+
+      <div class="post-meta">
+        <time class="post-time" itemprop="dateCreated"
+              datetime="2018-04-02T00:00:00+08:00"
+              content="2018-04-02" >
+          04-02
+        </time>
+      </div>
+
+    </header>
+  </article>
+
+    
+  
 </div>
 
 <nav class="pagination"></nav>
@@ -369,14 +447,32 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">0</span>
+                <span class="site-state-item-count">1</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
           
 
           
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/">
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
 
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/">
+                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
           
 
         </nav>
@@ -393,6 +489,19 @@
         
 
         <div class="links-of-author motion-element">
+          
+            
+              
+              
+              <span class="links-of-author-item">
+                <a href="mailto:leafming@foxmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                  E-Mail
+                </a>
+              </span>
+            
           
         </div>
 
@@ -578,7 +687,7 @@
         
         
 
-        var maps = {  };
+        var maps = { 'Spark': 1, 'Kafka': 1, };
         var dirs = hash.split("/");
         var collection = decodeURIComponent(dirs[1]);
         dirs.splice(0, 2);
@@ -590,7 +699,7 @@
         }
 
         $('.collection-title')[0].childNodes[1].childNodes[0].nodeValue = collection;
-        document.title = "标签: " + collection + " | Leaf's Blog";
+        document.title = "标签: " + collection + " | iLeaf";
 
         var sizes = maps[collection];
         var base = "#" + "/" + collection;
