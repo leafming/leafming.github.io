@@ -162,7 +162,7 @@ writeAsPartitionToKafka方法为了“提高”写入效率，设置了一个cac
  
 ## 第二步：利用广播变量下发KafkaProducer    
 利用广播变量，给每一个executor自己的KafkaProducer，将KafkaProducer广播到每一个executor中。    
-**注意：这里暂留一个问题，此种方式只可以Spark Streaming程序不用checkpoint的时候使用，否则，如果程序中断而重启程序，广播变量无法从checkpoint中恢复，会出现 `“java.lang.ClassCastException:B cannot be cast to KafkaPool”` 的问题，即使用这种方式直接做广播变量不可以，具体解决方式见下篇文章([SparkStreaming程序中checkpoint与广播变量兼容处理](https://leafming.github.io/bigdata/2018/04/04/SparkStreaming程序中checkpoint与广播变量兼容处理/))。现在先说明这种不用checkpoint的方式。**  
+**注意：这里暂留一个问题，此种方式只可以Spark Streaming程序不用checkpoint的时候使用，否则，如果程序中断而重启程序，广播变量无法从checkpoint中恢复，会出现 `“java.lang.ClassCastException:B cannot be cast to KafkaPool”` 的问题，具体解决方式见下篇文章([SparkStreaming程序中checkpoint与广播变量兼容处理](https://leafming.github.io/bigdata/2018/04/04/SparkStreaming程序中checkpoint与广播变量兼容处理/))。现在先说明这种不用checkpoint的方式。**  
 在spark主程序中加入如下代码：  
 ```scala  
     //利用广播变量的形式，将后端写入KafkaProducer广播到每一个executor 注意：这里写广播变量的话，与checkpoint一起用会有问题
