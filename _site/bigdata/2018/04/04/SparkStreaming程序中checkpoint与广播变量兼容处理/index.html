@@ -1,0 +1,1433 @@
+
+<!doctype html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/assets/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/assets/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/assets/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Spark,Kafka," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="iLeaf" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/assets/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="本文主要关于Spark Streaming程序中同时使用checkpoint与广播变量的方法，此文中代码在上文“SparkStreaming输出数据到Kafka--Kafka连接池的使用”的基础上进行优化，使其能够同时使用checkpoint记录读取上游kafka的offset以及kafkaPool广播变量。">
+<meta name="keywords" content="Spark, Kafka">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SparkStreaming程序中checkpoint与广播变量兼容处理">
+<meta property="og:url" content="http://localhost:4000/bigdata/2018/04/04/SparkStreaming%E7%A8%8B%E5%BA%8F%E4%B8%ADcheckpoint%E4%B8%8E%E5%B9%BF%E6%92%AD%E5%8F%98%E9%87%8F%E5%85%BC%E5%AE%B9%E5%A4%84%E7%90%86/">
+<meta property="og:site_name" content="iLeaf">
+<meta property="og:description" content="本文主要关于Spark Streaming程序中同时使用checkpoint与广播变量的方法，此文中代码在上文“SparkStreaming输出数据到Kafka--Kafka连接池的使用”的基础上进行优化，使其能够同时使用checkpoint记录读取上游kafka的offset以及kafkaPool广播变量。">
+<meta property="og:locale" content="zh-Hans">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="SparkStreaming程序中checkpoint与广播变量兼容处理">
+<meta name="twitter:description" content="本文主要关于Spark Streaming程序中同时使用checkpoint与广播变量的方法，此文中代码在上文“SparkStreaming输出数据到Kafka--Kafka连接池的使用”的基础上进行优化，使其能够同时使用checkpoint记录读取上游kafka的offset以及kafkaPool广播变量。">
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://localhost:4000/"/>
+
+
+
+
+
+  <title>SparkStreaming程序中checkpoint与广播变量兼容处理 | iLeaf</title>
+  
+
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?d509d2d894059ebd8e784708e52dcdc7";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"> <div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">iLeaf</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Leaf's Blog</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+<div id="posts" class="posts-expand">
+  
+  
+
+  
+
+  
+  
+  
+
+  <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/bigdata/2018/04/04/SparkStreaming%E7%A8%8B%E5%BA%8F%E4%B8%ADcheckpoint%E4%B8%8E%E5%B9%BF%E6%92%AD%E5%8F%98%E9%87%8F%E5%85%BC%E5%AE%B9%E5%A4%84%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Liv Yeh">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/assets/images/IMG_8739.GIF">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="iLeaf">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+          
+          
+            SparkStreaming程序中checkpoint与广播变量兼容处理
+          
+        </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-04T00:00:00+08:00">
+                2018-04-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/BigData" itemprop="url" rel="index">
+                    <span itemprop="name">BigData</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+            
+                <div class="post-description">
+                    本文主要关于Spark Streaming程序中同时使用checkpoint与广播变量的方法，此文中代码在上文“SparkStreaming输出数据到Kafka--Kafka连接池的使用”的基础上进行优化，使其能够同时使用checkpoint记录读取上游kafka的offset以及kafkaPool广播变量。
+                </div>
+            
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+  <p>上文中说明了如何使用kafka连接池来优化程序，但是在上文中预留了一个问题，就是当使用上文的方式下发KafkaPool广播变量时，如果Spark Streaming程序中也使用了checkpoint，则如果程序中断而重启程序，广播变量无法从checkpoint中恢复，会出现“java.lang.ClassCastException:B cannot be cast to KafkaPool”问题，所以在此篇文章中，对此问题进行解决。<br />
+<strong>注意: 本文中使用的版本是spark2.2.1和kafka0.10.1.1</strong></p>
+</blockquote>
+
+<h1 id="背景">背景</h1>
+<p>在spark信令处理程序中使用checkpoint主要是因为从源头读取kafka数据的时候记录offset，防止数据丢失；并且目前是做的是容器化的集群，如果集群down了，会自动重启容器并且也能把程序恢复。<br />
+不过对于Spark Streaming中防止数据丢失可以有两种方式:</p>
+<ol>
+  <li>使用Spark Streaming的checkpoint机制</li>
+  <li>自己维护kafka offset</li>
+</ol>
+
+<p>但是，有人说checkpoint有弊端，并且我也遇到了序列化的这个问题。在查资料的过程中，看到有评论说checkpoint与广播变量就是不能同时使用（这是不对的），所以也思考过要不要改成自己手动维护offset，而且发现有好多人也这么做了。不过我们代码更新迭代并不频繁，不会被checkpoint影响太大，所以还是决定再试试使用checkpoint，终于好不容易也让我找到了解决方法，真是巨开心,下面就说下怎么解决的。</p>
+
+<h1 id="解决-示例说明">解决-示例说明</h1>
+<h2 id="参考例子">参考例子</h2>
+<p>在Spark Streaming中，目前为止累加器和广播变量确实是无法从checkpoint恢复的。但是如果在程序中既使用到checkpoint又使用了累加器和广播变量的话，最好对累加器和广播变量做懒实例化操作，这样可以使累加器和广播变量在driver失败重启时能够重新实例化。<br />
+解决方法其实就在spark官方的项目的examples中，访问请戳: <a href="https://github.com/apache/spark/blob/master/examples/src/main/scala/org/apache/spark/examples/streaming/RecoverableNetworkWordCount.scala">RecoverableNetworkWordCount</a> ，它是广播变量和累加器与checkpoint兼容的一个例子。下面我就把代码摘出来记录一下。</p>
+<h3 id="第一步用单例模式来获取或生成广播变量和累加器">第一步：用单例模式来获取或生成广播变量和累加器</h3>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="cm">/**
+ * Use this singleton to get or register a Broadcast variable.
+ * 单例模式获取广播变量wordBlacklist
+ */</span>
+<span class="k">object</span> <span class="nc">WordBlacklist</span> <span class="o">{</span>
+  <span class="nd">@volatile</span> <span class="k">private</span> <span class="k">var</span> <span class="n">instance</span><span class="k">:</span> <span class="kt">Broadcast</span><span class="o">[</span><span class="kt">Seq</span><span class="o">[</span><span class="kt">String</span><span class="o">]]</span> <span class="k">=</span> <span class="kc">null</span>
+  <span class="k">def</span> <span class="n">getInstance</span><span class="o">(</span><span class="n">sc</span><span class="k">:</span> <span class="kt">SparkContext</span><span class="o">)</span><span class="k">:</span> <span class="kt">Broadcast</span><span class="o">[</span><span class="kt">Seq</span><span class="o">[</span><span class="kt">String</span><span class="o">]]</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">instance</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">synchronized</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">instance</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+          <span class="k">val</span> <span class="n">wordBlacklist</span> <span class="k">=</span> <span class="nc">Seq</span><span class="o">(</span><span class="s">"a"</span><span class="o">,</span> <span class="s">"b"</span><span class="o">,</span> <span class="s">"c"</span><span class="o">)</span>
+          <span class="n">instance</span> <span class="k">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">broadcast</span><span class="o">(</span><span class="n">wordBlacklist</span><span class="o">)</span>
+        <span class="o">}</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+    <span class="n">instance</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+<span class="cm">/**
+ * Use this singleton to get or register an Accumulator.
+ * 累加器
+ */</span>
+<span class="k">object</span> <span class="nc">DroppedWordsCounter</span> <span class="o">{</span>
+  <span class="nd">@volatile</span> <span class="k">private</span> <span class="k">var</span> <span class="n">instance</span><span class="k">:</span> <span class="kt">LongAccumulator</span> <span class="o">=</span> <span class="kc">null</span>
+  <span class="k">def</span> <span class="n">getInstance</span><span class="o">(</span><span class="n">sc</span><span class="k">:</span> <span class="kt">SparkContext</span><span class="o">)</span><span class="k">:</span> <span class="kt">LongAccumulator</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">instance</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">synchronized</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">instance</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+          <span class="n">instance</span> <span class="k">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">longAccumulator</span><span class="o">(</span><span class="s">"WordsInBlacklistCounter"</span><span class="o">)</span>
+        <span class="o">}</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+    <span class="n">instance</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+<h3 id="第二步在spark主程序中使用">第二步：在Spark主程序中使用</h3>
+<p>在主程序的driver端位置使用，懒实例化操作，这样可以使累加器和广播变量在driver失败重启时能够重新实例化。</p>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">object</span> <span class="nc">RecoverableNetworkWordCount</span> <span class="o">{</span>
+  <span class="c1">// 这个是用来生成StreamingContext对象的用户自定义的方法
+</span>  <span class="k">def</span> <span class="n">createContext</span><span class="o">(</span><span class="n">ip</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">port</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">outputPath</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">checkpointDirectory</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span>
+    <span class="k">:</span> <span class="kt">StreamingContext</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="c1">// If you do not see this printed, that means the StreamingContext has been loaded from the new checkpoint
+</span>    <span class="c1">// 如果没有打印出这句话，说明是使用检查点元数据恢复一个StreamingContext
+</span>    <span class="n">println</span><span class="o">(</span><span class="s">"Creating new context"</span><span class="o">)</span>
+    <span class="k">val</span> <span class="n">outputFile</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">File</span><span class="o">(</span><span class="n">outputPath</span><span class="o">)</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">outputFile</span><span class="o">.</span><span class="n">exists</span><span class="o">())</span> <span class="n">outputFile</span><span class="o">.</span><span class="n">delete</span><span class="o">()</span>
+    <span class="k">val</span> <span class="n">sparkConf</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SparkConf</span><span class="o">().</span><span class="n">setAppName</span><span class="o">(</span><span class="s">"RecoverableNetworkWordCount"</span><span class="o">)</span>
+    <span class="c1">// 创建sparkContext，1秒一个批次
+</span>    <span class="k">val</span> <span class="n">ssc</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">StreamingContext</span><span class="o">(</span><span class="n">sparkConf</span><span class="o">,</span> <span class="nc">Seconds</span><span class="o">(</span><span class="mi">1</span><span class="o">))</span>
+    <span class="c1">// 设置checkpoint
+</span>    <span class="n">ssc</span><span class="o">.</span><span class="n">checkpoint</span><span class="o">(</span><span class="n">checkpointDirectory</span><span class="o">)</span>
+    <span class="c1">// Create a socket stream on target ip:port and count the words in input stream of \n delimited text (eg. generated by 'nc')
+</span>    <span class="c1">// 这里是测试的socket stream
+</span>    <span class="k">val</span> <span class="n">lines</span> <span class="k">=</span> <span class="n">ssc</span><span class="o">.</span><span class="n">socketTextStream</span><span class="o">(</span><span class="n">ip</span><span class="o">,</span> <span class="n">port</span><span class="o">)</span>
+    <span class="k">val</span> <span class="n">words</span> <span class="k">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">flatMap</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="s">" "</span><span class="o">))</span>
+    <span class="k">val</span> <span class="n">wordCounts</span> <span class="k">=</span> <span class="n">words</span><span class="o">.</span><span class="n">map</span><span class="o">((</span><span class="k">_</span><span class="o">,</span> <span class="mi">1</span><span class="o">)).</span><span class="n">reduceByKey</span><span class="o">(</span><span class="k">_</span> <span class="o">+</span> <span class="k">_</span><span class="o">)</span>
+    <span class="n">wordCounts</span><span class="o">.</span><span class="n">foreachRDD</span> <span class="o">{</span> <span class="o">(</span><span class="n">rdd</span><span class="k">:</span> <span class="kt">RDD</span><span class="o">[(</span><span class="kt">String</span>, <span class="kt">Int</span><span class="o">)],</span> <span class="n">time</span><span class="k">:</span> <span class="kt">Time</span><span class="o">)</span> <span class="k">=&gt;</span>
+      <span class="c1">// Get or register the blacklist Broadcast 广播变量
+</span>      <span class="k">val</span> <span class="n">blacklist</span> <span class="k">=</span> <span class="nc">WordBlacklist</span><span class="o">.</span><span class="n">getInstance</span><span class="o">(</span><span class="n">rdd</span><span class="o">.</span><span class="n">sparkContext</span><span class="o">)</span>
+      <span class="c1">// Get or register the droppedWordsCounter Accumulator 累加器
+</span>      <span class="k">val</span> <span class="n">droppedWordsCounter</span> <span class="k">=</span> <span class="nc">DroppedWordsCounter</span><span class="o">.</span><span class="n">getInstance</span><span class="o">(</span><span class="n">rdd</span><span class="o">.</span><span class="n">sparkContext</span><span class="o">)</span>
+      <span class="c1">// Use blacklist to drop words and use droppedWordsCounter to count them 使用广播变量和累加器
+</span>      <span class="k">val</span> <span class="n">counts</span> <span class="k">=</span> <span class="n">rdd</span><span class="o">.</span><span class="n">filter</span> <span class="o">{</span> <span class="k">case</span> <span class="o">(</span><span class="n">word</span><span class="o">,</span> <span class="n">count</span><span class="o">)</span> <span class="k">=&gt;</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">blacklist</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">contains</span><span class="o">(</span><span class="n">word</span><span class="o">))</span> <span class="o">{</span>
+          <span class="n">droppedWordsCounter</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="n">count</span><span class="o">)</span>
+          <span class="kc">false</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+          <span class="kc">true</span>
+        <span class="o">}</span>
+      <span class="o">}.</span><span class="n">collect</span><span class="o">().</span><span class="n">mkString</span><span class="o">(</span><span class="s">"["</span><span class="o">,</span> <span class="s">", "</span><span class="o">,</span> <span class="s">"]"</span><span class="o">)</span>
+      <span class="k">val</span> <span class="n">output</span> <span class="k">=</span> <span class="n">s</span><span class="s">"Counts at time $time $counts"</span>
+      <span class="n">println</span><span class="o">(</span><span class="n">output</span><span class="o">)</span>
+      <span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">"Dropped ${droppedWordsCounter.value} word(s) totally"</span><span class="o">)</span>
+      <span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">"Appending to ${outputFile.getAbsolutePath}"</span><span class="o">)</span>
+      <span class="nc">Files</span><span class="o">.</span><span class="n">append</span><span class="o">(</span><span class="n">output</span> <span class="o">+</span> <span class="s">"\n"</span><span class="o">,</span> <span class="n">outputFile</span><span class="o">,</span> <span class="nc">Charset</span><span class="o">.</span><span class="n">defaultCharset</span><span class="o">())</span>
+    <span class="o">}</span>
+    <span class="n">ssc</span>
+  <span class="o">}</span>
+  <span class="k">def</span> <span class="n">main</span><span class="o">(</span><span class="n">args</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">String</span><span class="o">])</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">args</span><span class="o">.</span><span class="n">length</span> <span class="o">!=</span> <span class="mi">4</span><span class="o">)</span> <span class="o">{</span>
+      <span class="nc">System</span><span class="o">.</span><span class="n">err</span><span class="o">.</span><span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">"Your arguments were ${args.mkString("</span><span class="o">[</span><span class="err">"</span>, <span class="err">"</span>, <span class="err">"</span>, <span class="err">"</span><span class="o">]</span><span class="s">")}"</span><span class="o">)</span>
+      <span class="nc">System</span><span class="o">.</span><span class="n">err</span><span class="o">.</span><span class="n">println</span><span class="o">(</span>
+        <span class="s">"""
+          |Usage: RecoverableNetworkWordCount &lt;hostname&gt; &lt;port&gt; &lt;checkpoint-directory&gt;
+          |     &lt;output-file&gt;. &lt;hostname&gt; and &lt;port&gt; describe the TCP server that Spark
+          |     Streaming would connect to receive data. &lt;checkpoint-directory&gt; directory to
+          |     HDFS-compatible file system which checkpoint data &lt;output-file&gt; file to which the
+          |     word counts will be appended
+          |In local mode, &lt;master&gt; should be 'local[n]' with n &gt; 1
+          |Both &lt;checkpoint-directory&gt; and &lt;output-file&gt; must be absolute paths
+        """</span><span class="o">.</span><span class="n">stripMargin</span>
+      <span class="o">)</span>
+      <span class="nc">System</span><span class="o">.</span><span class="n">exit</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span>
+    <span class="o">}</span>
+    <span class="k">val</span> <span class="nc">Array</span><span class="o">(</span><span class="n">ip</span><span class="o">,</span> <span class="nc">IntParam</span><span class="o">(</span><span class="n">port</span><span class="o">),</span> <span class="n">checkpointDirectory</span><span class="o">,</span> <span class="n">outputPath</span><span class="o">)</span> <span class="k">=</span> <span class="n">args</span>
+    <span class="c1">// 使用StreamingContext.getOrCreate来创建StreamingContext对象，传入的第一个参数是checkpoint的存放目录，第二参数是生成StreamingContext对象的用户自定义方法。
+</span>    <span class="k">val</span> <span class="n">ssc</span> <span class="k">=</span> <span class="nc">StreamingContext</span><span class="o">.</span><span class="n">getOrCreate</span><span class="o">(</span><span class="n">checkpointDirectory</span><span class="o">,</span>
+      <span class="o">()</span> <span class="k">=&gt;</span> <span class="n">createContext</span><span class="o">(</span><span class="n">ip</span><span class="o">,</span> <span class="n">port</span><span class="o">,</span> <span class="n">outputPath</span><span class="o">,</span> <span class="n">checkpointDirectory</span><span class="o">))</span>
+    <span class="n">ssc</span><span class="o">.</span><span class="n">start</span><span class="o">()</span>
+    <span class="n">ssc</span><span class="o">.</span><span class="n">awaitTermination</span><span class="o">()</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+<h1 id="解决-sparkstreamingkafkapool程序修改兼容checkpoint和广播变量kafkapool">解决-SparkStreaming+kafkaPool程序修改(兼容checkpoint和广播变量kafkaPool)</h1>
+<p>上述内容即如何将checkpoint与广播变量或累加器兼容的例子，下面则结合上述例子，对上文(<a href="https://leafming.github.io/bigdata/2018/04/02/SparkStreaming写数据到Kafka-Kafka连接池的使用/">SparkStreaming写数据到Kafka</a>)的程序做修改来解决“java.lang.ClassCastException:B cannot be cast to KafkaPool”的问题。</p>
+<h2 id="第一步包装kafkaproducer-创建kafka连接池不变">第一步：包装KafkaProducer-创建Kafka连接池（不变）</h2>
+<p>对于上文(<a href="https://leafming.github.io/bigdata/2018/04/02/SparkStreaming写数据到Kafka-Kafka连接池的使用/">SparkStreaming写数据到Kafka</a>)中的程序，第一步保持不变，创建class KafkaPool 以及object KafkaPool，将KafkaProducer以lazy val的方式进行包装。</p>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">java.util.concurrent.Future</span>
+<span class="k">import</span> <span class="nn">org.apache.kafka.clients.producer.</span><span class="o">{</span><span class="nc">KafkaProducer</span><span class="o">,</span> <span class="nc">ProducerRecord</span><span class="o">,</span> <span class="nc">RecordMetadata</span><span class="o">}</span>
+<span class="c1">//scala中，类名之后的括号中是构造函数的参数列表，() =&gt;是传值传参，KafkaProducer
+</span><span class="k">class</span> <span class="nc">KafkaPool</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">V</span><span class="o">](</span> <span class="n">createProducer</span><span class="k">:</span> <span class="o">()</span> <span class="o">=&gt;</span> <span class="nc">KafkaProducer</span><span class="o">[</span><span class="kt">K</span>,<span class="kt">V</span><span class="o">])</span>  <span class="k">extends</span> <span class="nc">Serializable</span><span class="o">{</span>
+  <span class="c1">//使用lazy关键字修饰变量后，只有在使用该变量时，才会调用其实例化方法
+</span>  <span class="c1">//后续在spark主程序中使用时，将kafkapool广播出去到每个executor里面了，然后到每个executor中，当用到的时候，会实例化一个producer，这样就不会有NotSerializableExceptions的问题了。
+</span>  <span class="k">lazy</span> <span class="k">val</span> <span class="n">producer</span> <span class="k">=</span> <span class="n">createProducer</span><span class="o">()</span>
+  <span class="k">def</span> <span class="n">send</span><span class="o">(</span><span class="n">topic</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">key</span><span class="k">:</span> <span class="kt">K</span><span class="o">,</span> <span class="n">value</span><span class="k">:</span> <span class="kt">V</span><span class="o">)</span><span class="k">:</span> <span class="kt">Future</span><span class="o">[</span><span class="kt">RecordMetadata</span><span class="o">]</span> <span class="k">=</span>
+    <span class="n">producer</span><span class="o">.</span><span class="n">send</span><span class="o">(</span><span class="k">new</span> <span class="nc">ProducerRecord</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">V</span><span class="o">](</span><span class="n">topic</span><span class="o">,</span> <span class="n">key</span><span class="o">,</span> <span class="n">value</span><span class="o">))</span>
+  <span class="k">def</span> <span class="n">send</span><span class="o">(</span><span class="n">topic</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">value</span><span class="k">:</span> <span class="kt">V</span><span class="o">)</span><span class="k">:</span> <span class="kt">Future</span><span class="o">[</span><span class="kt">RecordMetadata</span><span class="o">]</span> <span class="k">=</span>
+    <span class="n">producer</span><span class="o">.</span><span class="n">send</span><span class="o">(</span><span class="k">new</span> <span class="nc">ProducerRecord</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">V</span><span class="o">](</span><span class="n">topic</span><span class="o">,</span> <span class="n">value</span><span class="o">))</span>
+<span class="o">}</span>
+<span class="k">object</span> <span class="nc">KafkaPool</span><span class="o">{</span>
+  <span class="k">import</span> <span class="nn">scala.collection.JavaConversions._</span>
+  <span class="k">def</span> <span class="n">apply</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">V</span><span class="o">](</span><span class="n">config</span><span class="k">:</span> <span class="kt">Map</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">Object</span><span class="o">])</span><span class="k">:</span> <span class="kt">KafkaPool</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">V</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+      <span class="k">val</span> <span class="n">createProducerFunc</span> <span class="k">=</span> <span class="o">()</span> <span class="k">=&gt;</span> <span class="o">{</span>
+        <span class="nc">System</span><span class="o">.</span><span class="n">setProperty</span><span class="o">(</span><span class="s">"java.security.auth.login.config"</span><span class="o">,</span><span class="s">"kafka_client_jaas.conf"</span><span class="o">)</span>
+        <span class="k">val</span> <span class="n">producer</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">KafkaProducer</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">V</span><span class="o">](</span><span class="n">config</span><span class="o">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">addShutdownHook</span> <span class="o">{</span>
+          <span class="c1">//当发送ececutor中的jvm shutdown时，kafka能够将缓冲区的消息发送出去。
+</span>          <span class="n">producer</span><span class="o">.</span><span class="n">close</span><span class="o">()</span>
+        <span class="o">}</span>
+        <span class="n">producer</span>
+      <span class="o">}</span>
+      <span class="k">new</span> <span class="nc">KafkaPool</span><span class="o">(</span><span class="n">createProducerFunc</span><span class="o">)</span>
+  <span class="o">}</span>
+  <span class="k">def</span> <span class="n">apply</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">V</span><span class="o">](</span><span class="n">config</span><span class="k">:</span> <span class="kt">java.util.Properties</span><span class="o">)</span><span class="k">:</span> <span class="kt">KafkaPool</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">V</span><span class="o">]</span> <span class="k">=</span> <span class="n">apply</span><span class="o">(</span><span class="n">config</span><span class="o">.</span><span class="n">toMap</span><span class="o">)</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+<h2 id="第二步对广播变量懒实例化操作使用单例模式来获取广播变量kafkapool">第二步：对广播变量懒实例化操作，使用单例模式来获取广播变量KafkaPool</h2>
+<p>这里较上文(<a href="https://leafming.github.io/bigdata/2018/04/02/SparkStreaming写数据到Kafka-Kafka连接池的使用/">SparkStreaming写数据到Kafka</a>)第一种方式中的直接下发广播变量有所区别，而是创建来一个GetKafkaPoolBroadcast的getKafkaPool方法，用于在主程序中driver端调用此方法时再获取或生成广播变量。</p>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">java.util.Properties</span>
+<span class="k">import</span> <span class="nn">org.apache.spark.SparkContext</span>
+<span class="k">import</span> <span class="nn">org.apache.spark.internal.Logging</span>
+<span class="k">import</span> <span class="nn">org.apache.spark.broadcast.Broadcast</span>
+
+<span class="k">object</span> <span class="nc">GetKafkaPoolBroadcast</span> <span class="k">extends</span> <span class="nc">Logging</span> <span class="o">{</span>
+  <span class="nd">@volatile</span> <span class="k">private</span> <span class="k">var</span> <span class="n">kafkapool</span><span class="k">:</span> <span class="kt">Broadcast</span><span class="o">[</span><span class="kt">KafkaPool</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">String</span><span class="o">]]</span>  <span class="k">=</span> <span class="kc">null</span>
+  <span class="k">def</span> <span class="n">getKafkaPool</span><span class="o">(</span><span class="n">sc</span><span class="k">:</span> <span class="kt">SparkContext</span><span class="o">,</span><span class="n">proKafkaBrokerAddr</span><span class="k">:</span><span class="kt">String</span><span class="o">)</span><span class="k">:</span> <span class="kt">Broadcast</span><span class="o">[</span><span class="kt">KafkaPool</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">String</span><span class="o">]]</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">kafkapool</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">synchronized</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">kafkapool</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+          <span class="k">val</span> <span class="n">kafkaProducerConfig</span> <span class="k">=</span> <span class="o">{</span>
+            <span class="k">val</span> <span class="n">props</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Properties</span><span class="o">()</span>
+            <span class="n">props</span><span class="o">.</span><span class="n">put</span><span class="o">(</span><span class="s">"metadata.broker.list"</span><span class="o">,</span><span class="n">proKafkaBrokerAddr</span><span class="o">)</span>
+            <span class="n">props</span><span class="o">.</span><span class="n">put</span><span class="o">(</span><span class="s">"security.protocol"</span><span class="o">,</span><span class="s">"SASL_PLAINTEXT"</span><span class="o">)</span>
+            <span class="n">props</span><span class="o">.</span><span class="n">put</span><span class="o">(</span><span class="s">"sasl.mechanism"</span><span class="o">,</span><span class="s">"PLAIN"</span><span class="o">)</span>
+            <span class="n">props</span><span class="o">.</span><span class="n">put</span><span class="o">(</span><span class="s">"key.serializer"</span><span class="o">,</span> <span class="s">"org.apache.kafka.common.serialization.StringSerializer"</span><span class="o">)</span>
+            <span class="n">props</span><span class="o">.</span><span class="n">put</span><span class="o">(</span><span class="s">"value.serializer"</span><span class="o">,</span> <span class="s">"org.apache.kafka.common.serialization.StringSerializer"</span><span class="o">)</span>
+            <span class="n">props</span><span class="o">.</span><span class="n">put</span><span class="o">(</span><span class="s">"bootstrap.servers"</span><span class="o">,</span><span class="n">proKafkaBrokerAddr</span><span class="o">)</span>
+            <span class="n">props</span>
+          <span class="o">}</span>
+          <span class="n">log</span><span class="o">.</span><span class="n">warn</span><span class="o">(</span><span class="s">"kafka producer init done!"</span><span class="o">)</span>
+          <span class="n">kafkapool</span> <span class="k">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">broadcast</span><span class="o">(</span><span class="nc">KafkaPool</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">String</span><span class="o">](</span><span class="n">kafkaProducerConfig</span><span class="o">))</span>
+        <span class="o">}</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+    <span class="n">kafkapool</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+<h2 id="第三步在主程序中使用getkafkapoolbroadcast的getkafkapool获取或生成广播变量">第三步：在主程序中使用GetKafkaPoolBroadcast的getKafkaPool获取或生成广播变量</h2>
+<p>在主程序中，driver端的位置调用此方法，这样可以使广播变量在driver失败重启时能够重新示例化。</p>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code>    <span class="c1">//保存处理后的数据到kafka
+</span>    <span class="n">writeDStrem</span><span class="o">.</span><span class="n">foreachRDD</span><span class="o">(</span><span class="n">rdd</span> <span class="k">=&gt;</span> <span class="o">{</span>
+      <span class="c1">// driver端运行，涉及操作：广播变量的初始化和更新
+</span>      <span class="k">if</span> <span class="o">(</span><span class="n">rdd</span><span class="o">.</span><span class="n">isEmpty</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">logInfo</span><span class="o">(</span><span class="s">" No Data in this batchInterval --------"</span><span class="o">)</span>
+      <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+        <span class="k">val</span> <span class="n">start_time</span> <span class="k">=</span> <span class="nc">System</span><span class="o">.</span><span class="n">currentTimeMillis</span><span class="o">()</span>
+        <span class="c1">// Get or register the kafkaPool Broadcast 获取或生成广播变量kafkaPool
+</span>        <span class="k">val</span> <span class="n">kafkaProducer</span><span class="k">:</span> <span class="kt">Broadcast</span><span class="o">[</span><span class="kt">KafkaPool</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">String</span><span class="o">]]</span><span class="k">=</span><span class="nc">GetKafkaPoolBroadcast</span><span class="o">.</span><span class="n">getKafkaPool</span><span class="o">(</span><span class="n">rdd</span><span class="o">.</span><span class="n">sparkContext</span><span class="o">,</span><span class="n">proKafkaBrokerAddr</span><span class="o">)</span>
+        <span class="n">rdd</span><span class="o">.</span><span class="n">foreach</span><span class="o">(</span><span class="n">record</span><span class="o">=&gt;{</span>
+          <span class="n">kafkaProducer</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">send</span><span class="o">(</span><span class="n">proKafkaTopicName</span><span class="o">,</span><span class="n">record</span><span class="o">)</span>
+        <span class="o">})</span>
+        <span class="n">competeTime</span><span class="o">(</span><span class="n">start_time</span><span class="o">,</span> <span class="s">"Processed data write to KAFKA"</span><span class="o">)</span>
+      <span class="o">}</span>
+    <span class="o">})</span>
+</code></pre>
+</div>
+<p>这样，就不会再尝试从checkpoint中恢复广播变量，而可以避免“java.lang.ClassCastException:B cannot be cast to KafkaPool”这个问题啦。<br />
+至此，本篇内容完成。<br />
+如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～<br />
+©转载请注明</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            
+            <a href="/tag/#/Spark" rel="tag"># Spark</a>
+          
+            
+            <a href="/tag/#/Kafka" rel="tag"># Kafka</a>
+          
+        </div>
+      
+
+      
+      
+      
+      
+      
+
+      
+      
+        <div class="post-nav" id="post-nav-id">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/bigdata/2018/04/02/SparkStreaming%E5%86%99%E6%95%B0%E6%8D%AE%E5%88%B0Kafka-Kafka%E8%BF%9E%E6%8E%A5%E6%B1%A0%E7%9A%84%E4%BD%BF%E7%94%A8/" rel="prev" title="SparkStreaming输出数据到Kafka--Kafka连接池的使用">
+                SparkStreaming输出数据到Kafka--Kafka连接池的使用 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+      
+
+      
+    </footer>
+  </article>
+
+  <div class="post-spread">
+    
+  </div>
+</div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        
+        
+        
+
+
+
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/assets/images/IMG_8739.GIF"
+               alt="Liv Yeh" />
+          <p class="site-author-name" itemprop="name">Liv Yeh</p>
+           
+              <p class="site-description motion-element" itemprop="description">Yesterday you said tomorrow.</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/">
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/">
+                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+        
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              
+              
+              <span class="links-of-author-item">
+                <a href="mailto:leafming@foxmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                  E-Mail
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+
+
+
+
+            
+              <div class="post-toc-content">
+    <ol class=nav>
+      <li class="nav-item nav-level-1"> <a class="nav-link" href="#背景"> <span class="nav-number">1</span> <span class="nav-text">背景</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#解决-示例说明"> <span class="nav-number">2</span> <span class="nav-text">解决-示例说明</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#参考例子"> <span class="nav-number">2.1</span> <span class="nav-text">参考例子</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#第一步用单例模式来获取或生成广播变量和累加器"> <span class="nav-number">2.1.1</span> <span class="nav-text">第一步：用单例模式来获取或生成广播变量和累加器</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#第二步在spark主程序中使用"> <span class="nav-number">2.1.2</span> <span class="nav-text">第二步：在Spark主程序中使用</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#解决-sparkstreamingkafkapool程序修改兼容checkpoint和广播变量kafkapool"> <span class="nav-number">3</span> <span class="nav-text">解决-SparkStreaming+kafkaPool程序修改(兼容checkpoint和广播变量kafkaPool)</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#第一步包装kafkaproducer-创建kafka连接池不变"> <span class="nav-number">3.1</span> <span class="nav-text">第一步：包装KafkaProducer-创建Kafka连接池（不变）</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#第二步对广播变量懒实例化操作使用单例模式来获取广播变量kafkapool"> <span class="nav-number">3.2</span> <span class="nav-text">第二步：对广播变量懒实例化操作，使用单例模式来获取广播变量KafkaPool</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#第三步在主程序中使用getkafkapoolbroadcast的getkafkapool获取或生成广播变量"> <span class="nav-number">3.3</span> <span class="nav-text">第三步：在主程序中使用GetKafkaPoolBroadcast的getKafkaPool获取或生成广播变量</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child">
+    </ol>
+  </div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liv Yeh</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://jekyllrb.com">Jekyll</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/simpleyyt/jekyll-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+   
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/assets/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/assets/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/assets/js/src/post-details.js?v=5.1.1"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+    
+
+  
+
+
+
+
+
+  
+
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+  
+
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+</body>
+</html>
+
