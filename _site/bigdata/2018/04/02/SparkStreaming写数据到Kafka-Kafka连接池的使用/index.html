@@ -598,7 +598,7 @@ end</p>
 
 <h2 id="第二步利用广播变量下发kafkaproducer">第二步：利用广播变量下发KafkaProducer</h2>
 <p>利用广播变量，给每一个executor自己的KafkaProducer，将KafkaProducer广播到每一个executor中。  <br />
-<strong>注意：这里暂留一个问题，此种方式只可以Spark Streaming程序不用checkpoint的时候使用，否则会出现 <code class="highlighter-rouge">“java.lang.ClassCastException:B cannot be cast to KafkaPool”</code> 的问题，即使用这种方式直接做广播变量不可以，具体解决方式见下篇文章。现在先说明这种方式。</strong><br />
+<strong>注意：这里暂留一个问题，此种方式只可以Spark Streaming程序不用checkpoint的时候使用，否则会出现 <code class="highlighter-rouge">“java.lang.ClassCastException:B cannot be cast to KafkaPool”</code> 的问题，即使用这种方式直接做广播变量不可以，具体解决方式见下篇文章(<a href="https://leafming.github.io/bigdata/2018/04/04/SparkStreaming程序中checkpoint与广播变量兼容处理/">SparkStreaming程序中checkpoint与广播变量兼容处理</a>)。现在先说明这种不用checkpoint的方式。</strong><br />
 在spark主程序中加入如下代码：</p>
 <div class="language-scala highlighter-rouge"><pre class="highlight"><code>    <span class="c1">//利用广播变量的形式，将后端写入KafkaProducer广播到每一个executor 注意：这里写广播变量的话，与checkpoint一起用会有问题
 </span>    <span class="k">val</span> <span class="n">kafkaProducer</span><span class="k">:</span> <span class="kt">Broadcast</span><span class="o">[</span><span class="kt">KafkaPool</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">String</span><span class="o">]]</span> <span class="k">=</span> <span class="o">{</span>
@@ -637,7 +637,7 @@ end</p>
 <p>使用Kafka连接池更改程序之前以及之后的处理速度对比如下图所示，写入90W条数据由原来的17953ms变为了1966ms，效率大大提高。<br />
 <img src="https://github.com/leafming/bak/blob/master/images/2018-04-02SparkStreamingKafka.png?raw=true" alt="compare" /></p>
 
-<p>内容即以上，会在下篇文章解决spark streaming中checkpoint和广播变量使用冲突的问题，敬请期待。<br />
+<p>内容即以上，会在下篇文章(<a href="https://leafming.github.io/bigdata/2018/04/04/SparkStreaming程序中checkpoint与广播变量兼容处理/">SparkStreaming程序中checkpoint与广播变量兼容处理</a>)解决spark streaming中checkpoint和广播变量使用冲突的问题，敬请期待。<br />
 如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～<br />
 ©转载请注明</p>
 
