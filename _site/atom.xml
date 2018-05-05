@@ -1,4 +1,422 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-04-04T17:35:28+08:00</updated><id>http://localhost:4000/</id><title type="html">iLeaf</title><subtitle>Yesterday you said tomorrow.</subtitle><author><name>Liv Yeh</name></author><entry><title type="html">SparkStreaming程序中checkpoint与广播变量兼容处理</title><link href="http://localhost:4000/bigdata/2018/04/04/SparkStreaming%E7%A8%8B%E5%BA%8F%E4%B8%ADcheckpoint%E4%B8%8E%E5%B9%BF%E6%92%AD%E5%8F%98%E9%87%8F%E5%85%BC%E5%AE%B9%E5%A4%84%E7%90%86/" rel="alternate" type="text/html" title="SparkStreaming程序中checkpoint与广播变量兼容处理" /><published>2018-04-04T00:00:00+08:00</published><updated>2018-04-04T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/04/04/SparkStreaming%E7%A8%8B%E5%BA%8F%E4%B8%ADcheckpoint%E4%B8%8E%E5%B9%BF%E6%92%AD%E5%8F%98%E9%87%8F%E5%85%BC%E5%AE%B9%E5%A4%84%E7%90%86</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/04/04/SparkStreaming%E7%A8%8B%E5%BA%8F%E4%B8%ADcheckpoint%E4%B8%8E%E5%B9%BF%E6%92%AD%E5%8F%98%E9%87%8F%E5%85%BC%E5%AE%B9%E5%A4%84%E7%90%86/">&lt;blockquote&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-05-06T00:15:55+08:00</updated><id>http://localhost:4000/</id><title type="html">iLeaf</title><subtitle>Yesterday you said tomorrow.</subtitle><author><name>Liv Yeh</name></author><entry><title type="html">Kerberos具体实践1-Kerberos环境准备及安装</title><link href="http://localhost:4000/bigdata/2018/05/05/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B51-Kerberos%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%E5%8F%8A%E5%AE%89%E8%A3%85/" rel="alternate" type="text/html" title="Kerberos具体实践1-Kerberos环境准备及安装" /><published>2018-05-05T00:00:00+08:00</published><updated>2018-05-05T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/05/05/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B51-Kerberos%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%E5%8F%8A%E5%AE%89%E8%A3%85</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/05/05/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B51-Kerberos%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%E5%8F%8A%E5%AE%89%E8%A3%85/">&lt;blockquote&gt;
+  &lt;p&gt;本文属于Kerberos具体实践整理的第一部分，主要涉及到Kerberos集群的安装以及基本命令的使用。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+&lt;h2 id=&quot;为什么要将hdfs和kerberos整合&quot;&gt;为什么要将HDFS和Kerberos整合&lt;/h2&gt;
+&lt;p&gt;HDFS权限控制过于简单，直接使用hadoop的acl进行权限控制，可能会出现在程序中使用&lt;strong&gt;System.setProperty(“HADOOP_USER_NAME”,”root”);&lt;/strong&gt;直接更改用户，伪装成任意用户使用。因此，需要加强HDFS权限控制，则采用进行kerberos认证的方式。&lt;br /&gt;
+hadoop的用户鉴权是基于JAAS的，其中hadoop.security.authentication属性有simple 和kerberos 等方式。如果hadoop.security.authentication等于”kerberos”,那么是“hadoop-user-kerberos”或者“hadoop-keytab-kerberos”，否则是“hadoop-simple”。在使用了kerberos的情况下，从javax.security.auth.kerberos.KerberosPrincipal的实例获取username。在没有使用kerberos时，首先读取hadoop的系统环境变量，如果没有的话，对于windows 从com.sun.security.auth.NTUserPrincipal获取用户名，对于类unix 从com.sun.security.auth.UnixPrincipal中获得用户名，然后再看该用户属于哪个group，从而完成登陆认证。&lt;/p&gt;
+&lt;h2 id=&quot;kerberos原理&quot;&gt;Kerberos原理&lt;/h2&gt;
+&lt;h3 id=&quot;术语说明&quot;&gt;术语说明&lt;/h3&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;术语&lt;/th&gt;
+      &lt;th&gt;简述&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;KDC&lt;/td&gt;
+      &lt;td&gt;在启用Kerberos的环境中，KDC用于验证各个模块&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Kerberos KDC Server&lt;/td&gt;
+      &lt;td&gt;KDC所在的机器&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Kerberos Client&lt;/td&gt;
+      &lt;td&gt;任何一个需要通过KDC认证的机器（或模块）&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Principal&lt;/td&gt;
+      &lt;td&gt;用于验证一个用户或者一个Service的唯一的标识，相当于一个账号，需要为其设置密码（这个密码也被称之为Key）&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Keytab&lt;/td&gt;
+      &lt;td&gt;包含有一个或多个Principal以及其密码的文件&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Relam&lt;/td&gt;
+      &lt;td&gt;由KDC以及多个Kerberos Client组成的网络&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;KDC Admin Account&lt;/td&gt;
+      &lt;td&gt;KDC中拥有管理权限的账户（例如添加、修改、删除Principal）&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Authentication Server (AS)&lt;/td&gt;
+      &lt;td&gt;用于初始化认证，并生成Ticket Granting Ticket (TGT)&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Ticket Granting Server (TGS)&lt;/td&gt;
+      &lt;td&gt;在TGT的基础上生成Service Ticket。一般情况下AS和TGS都在KDC的Server上&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;Kerberos原理则不在此处进行说明，以后再做补充@TODO。本文直接先说明测试部署过程。&lt;/p&gt;
+&lt;h1 id=&quot;部署操作&quot;&gt;部署操作&lt;/h1&gt;
+&lt;p&gt;本文中部署操作首先先进行Kerberos单节点KDC部署，之后将单节点KDC的基础上结合HDFS进行配置，最后对整体集群进行优化，部署主从KDC防止Kerberos单点故障。&lt;br /&gt;
+全部部署过程均在RHEL 7.1系统上进行。&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;参考链接：&lt;br /&gt;
+&lt;a href=&quot;https://ieevee.com/tech/2016/06/07/kerberos-1.html&quot;&gt;Kerberos从入门到放弃（一）：HDFS使用kerberos&lt;/a&gt;&lt;br /&gt;
+&lt;a href=&quot;https://yq.aliyun.com/articles/25636?spm=5176.100240.searchblog.8.wbY2wv&quot;&gt;HDFS配置Kerberos认证&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;环境说明&quot;&gt;环境说明&lt;/h2&gt;
+&lt;p&gt;系统环境：&lt;br /&gt;
+操作系统：RHEL 7.1
+Hadoop版本：2.6.0-cdh5.11.0
+JDK版本：jdk1.8.0&lt;br /&gt;
+运行用户：hadoop&lt;/p&gt;
+&lt;h2 id=&quot;kerberos单节点kdc部署&quot;&gt;Kerberos单节点KDC部署&lt;/h2&gt;
+&lt;p&gt;节点规划:&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;hosts&lt;/th&gt;
+      &lt;th&gt;角色&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;node1&lt;/td&gt;
+      &lt;td&gt;kerberos server、AS、TGS、agent、namenode、datanode、zk&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;node2&lt;/td&gt;
+      &lt;td&gt;kerberos client、SecondaryNameNode 、datanode、zk&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;node3&lt;/td&gt;
+      &lt;td&gt;kerberos client、datanode、zk&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&quot;1添加主机名解析到etchosts文件或配置dns&quot;&gt;(1)添加主机名解析到/etc/hosts文件或配置DNS&lt;/h3&gt;
+&lt;p&gt;在Kerberos中，Principal中需各主机的FQDN名，所以集群中需要有DNS。&lt;br /&gt;
+但在本次测试中，未进行DNS配置，直接使用配置hosts进行测试。&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[root@node1 ~]# cat /etc/hosts
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+10.211.55.10 node1
+10.211.55.11 node2
+10.211.55.12 node3
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;注意：hostname 请使用小写，要不然在集成 kerberos 时会出现一些错误。&lt;/strong&gt;&lt;/p&gt;
+&lt;h3 id=&quot;2配置ntp&quot;&gt;(2)配置NTP&lt;/h3&gt;
+&lt;p&gt;Kerberos集群对时间同步敏感度较高，默认时间相差超过5分钟就会出现问题，所以最好是在集群中增加NTP服务器。不过我的集群机器比较少，先跳过NTP吧。&lt;/p&gt;
+&lt;h3 id=&quot;3安装kerberos&quot;&gt;(3)安装Kerberos&lt;/h3&gt;
+&lt;p&gt;Kerberos有不同的实现，如MIT KDC、Microsoft Active Directory等。我这里采用的是MIT KDC。&lt;br /&gt;
+在 KDC (这里是 node1 ) 上安装包 krb5、krb5-server 和 krb5-client：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ yum install krb5-server krb5-libs krb5-workstation  -y 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;在其他节点（node1、node2、node3）安装 krb5-devel、krb5-workstation：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ yum install krb5-libs krb5-workstation  -y
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h3 id=&quot;4修改配置文件&quot;&gt;(4).修改配置文件&lt;/h3&gt;
+&lt;p&gt;kdc 服务器涉及到三个配置文件：&lt;br /&gt;
+/etc/krb5.conf&lt;br /&gt;
+/var/kerberos/krb5kdc/kdc.conf&lt;br /&gt;
+/var/kerberos/krb5kdc/kadm5.acl&lt;/p&gt;
+&lt;h4 id=&quot;akrb5conf配置&quot;&gt;a).krb5.conf配置&lt;/h4&gt;
+&lt;p&gt;/etc/krb5.conf:包含Kerberos的配置信息。例如，KDC的位置，Kerberos的admin的realms 等。需要所有使用的Kerberos的机器上的配置文件都同步。这里仅列举需要的基本配置。详细参考&lt;a href=&quot;http://web.mit.edu/kerberos/krb5-latest/doc/admin/conf_files/krb5_conf.html&quot;&gt;krb5.conf&lt;/a&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[root@node1 etc]# cat krb5.conf
+# Configuration snippets may be placed in this directory as well
+includedir /etc/krb5.conf.d/
+[logging] #[logging]：表示 server 端的日志的打印位置
+ default = FILE:/var/log/krb5libs.log
+ kdc = FILE:/var/log/krb5kdc.log
+ admin_server = FILE:/var/log/kadmind.log
+
+[libdefaults] #[libdefaults]：每种连接的默认配置，需要注意以下几个关键的小配置
+ default_realm = HADOOP.COM #设置Kerberos应用程序的默认领域。如果您有多个领域，只需向[realms]节添加其他的语句
+ dns_lookup_realm = false
+ #clockskew = 120 #时钟偏差是不完全符合主机系统时钟的票据时戳的容差，超过此容差将不接受此票据。通常，将时钟扭斜设置为 300 秒（5 分钟）。这意味着从服务器的角度看，票证的时间戳与它的偏差可以是在前后 5 分钟内。~~
+ ticket_lifetime = 24h #表明凭证生效的时限，一般为24小时
+ renew_lifetime = 7d #表明凭证最长可以被延期的时限，一般为一个礼拜。当凭证过期之后，对安全认证的服务的后续访问则会失败
+ forwardable = true #允许转发解析请求  
+ rdns = false
+ udp_preference_limit = 1 #禁止使用udp可以防止一个Hadoop中的错误
+
+[realms] #列举使用的realm
+HADOOP.COM = {
+  kdc = node1:88 #代表要kdc的位置。格式是机器:端口。测试过程中也可不加端口。
+  admin_server = node1:749 #代表admin的位置。格式是机器:端口。测试过程中也可不加端口。
+  default_domain = HADOOP.COM #代表默认的域名。
+ }
+
+[kdc]
+ profile=/var/kerberos/krb5kdc/kdc.conf
+ 
+#[domain_realm] 
+#.hadoop.com = HADOOP.COM
+#hadoop.com = HADOOP.COM
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;总结：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;这个文件可以用include和includedir引入其他文件或文件夹，但必须是绝对路径&lt;/li&gt;
+  &lt;li&gt;realms:包含kerberos realm的名字（部分键控），显示关于realm的特殊信息，包括该realm内的主机要从哪里寻找kerberos的server。&lt;/li&gt;
+  &lt;li&gt;domain realm：将domain名和子domain名映射到realm名上&lt;/li&gt;
+  &lt;li&gt;必须填的有以下几项：&lt;/li&gt;
+  &lt;li&gt;default-realm：在libdefault部分&lt;/li&gt;
+  &lt;li&gt;admin_server：在realm部分&lt;/li&gt;
+  &lt;li&gt;domain_realm：当domain名和realm名不同的时候要设置&lt;/li&gt;
+  &lt;li&gt;logging：当该机器作为KDC时要设置&lt;/li&gt;
+  &lt;li&gt;[appdefaults]：可以设定一些针对特定应用的配置，覆盖默认配置。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;bkdcconf配置&quot;&gt;b).kdc.conf配置&lt;/h4&gt;
+&lt;p&gt;/var/kerberos/krb5kdc/kdc.conf:包括KDC的配置信息。默认放在 /usr/local/var/krb5kdc。或者通过覆盖KRB5_KDC_PROFILE环境变量修改配置文件位置。详细参考&lt;a href=&quot;http://web.mit.edu/kerberos/krb5-latest/doc/admin/conf_files/kdc_conf.html&quot;&gt;kdc.conf&lt;/a&gt;。&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[root@node1 ~]# cat /var/kerberos/krb5kdc/kdc.conf
+[kdcdefaults]
+ kdc_ports = 88
+ kdc_tcp_ports = 88
+
+[realms]
+ HADOOP.COM = { #是设定的 realms。名字随意。Kerberos 可以支持多个 realms，会增加复杂度。大小写敏感，一般为了识别使用全部大写。这个realms跟机器的host没有大关系。
+  #master_key_type = aes256-cts
+  #和supported_enctypes默认使用aes256-cts。由于，JAVA使用aes256-cts验证方式需要安装额外的jar包（后面再做说明）。推荐不使用，并且删除aes256-cts。
+  kadmind_port = 749
+  acl_file = /var/kerberos/krb5kdc/kadm5.acl #标注了admin的用户权限，需要用户自己创建。文件格式是：Kerberos_principal permissions [target_principal] [restrictions] 支持通配符等。最简单的写法是*/admin@HADOOP.COM *,代表名称匹配*/admin@HADOOP.COM 都认为是admin，权限是 *。代表全部权限。
+  dict_file = /usr/share/dict/words
+  database_name = /var/kerberos/krb5kdc/principal
+  key_stash_file =  /var/kerberos/krb5kdc/.k5.HADOOP.COM
+  admin_keytab = /var/kerberos/krb5kdc/kadm5.keytab #KDC 进行校验的 keytab
+  max_life = 24h
+  max_renewable_life = 10d #涉及到是否能进行ticket的renwe必须配置
+  default_principal_flags = +renewable, +forwardable
+  supported_enctypes = des3-hmac-sha1:normal arcfour-hmac:normal camellia256-cts:normal camellia128-cts:normal des-hmac-sha1:normal des-cbc-md5:normal des-cbc-crc:normal #支持的校验方式.注意把aes256-cts去掉
+ }
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;总结：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;HADOOP.COM： 是设定的 realms。名字随意。Kerberos可以支持多个。&lt;/li&gt;
+  &lt;li&gt;realms，会增加复杂度。大小写敏感，一般为了识别使用全部大写。这个 realms 跟机器的 host 没有大关系。&lt;/li&gt;
+  &lt;li&gt;master_key_type：和 supported_enctypes 默认使用 aes256-cts。JAVA 使用 aes256-cts 验证方式需要安装 JCE 包，见下面的说明。为了简便，你可以不使用aes256-cts 算法，这样就不需要安装 JCE 。&lt;/li&gt;
+  &lt;li&gt;acl_file：标注了 admin 的用户权限，需要用户自己创建。文件格式是：Kerberos_principal permissions [target_principal] [restrictions]&lt;/li&gt;
+  &lt;li&gt;supported_enctypes：支持的校验方式。&lt;/li&gt;
+  &lt;li&gt;admin_keytab：KDC 进行校验的 keytab。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;补充说明-关于AES-256加密（未测试，参考&lt;a href=&quot;https://yq.aliyun.com/articles/25636?spm=5176.100240.searchblog.8.wbY2wv&quot;&gt;HDFS配置Kerberos认证&lt;/a&gt;）： &lt;br /&gt;
+对于使用 centos5. 6 及以上的系统，默认使用 AES-256 来加密的。这就需要集群中的所有节点上安装 JCE，如果你使用的是 JDK1.6 ，则到 Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files for JDK/JRE 6 页面下载，如果是 JDK1.7，则到 Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files for JDK/JRE 7 下载。下载的文件是一个 zip 包，解开后，将里面的两个文件放到下面的目录中：$JAVA_HOME/jre/lib/security&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h4 id=&quot;ckadm5acl配置&quot;&gt;c).kadm5.acl配置&lt;/h4&gt;
+&lt;p&gt;为了能够不直接访问KDC控制台而从Kerberos数据库添加和删除主体，请对Kerberos管理服务器指示允许哪些主体执行哪些操作。通过编辑文件 /var/kerberos/krb5kdc/kadm5.acl完成此操作。ACL（访问控制列表）允许您精确指定特权。&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[root@node1 ~]# cat /var/kerberos/krb5kdc/kadm5.acl
+*/admin@HADOOP.COM	*
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;5同步配置文件&quot;&gt;(5)同步配置文件&lt;/h3&gt;
+&lt;p&gt;将 kdc 中的 /etc/krb5.conf 拷贝到集群中其他服务器即可。&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ scp /etc/krb5.conf node2:/etc/krb5.conf
+$ scp /etc/krb5.conf node3:/etc/krb5.conf
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;请确认集群如果关闭了 selinux。&lt;/p&gt;
+
+&lt;h3 id=&quot;6创建数据库&quot;&gt;(6)创建数据库&lt;/h3&gt;
+&lt;p&gt;在node1上运行初始化数据库命令。其中 -r 指定对应 realm。&lt;br /&gt;
+该命令会在 /var/kerberos/krb5kdc/ 目录下创建 principal 数据库。&lt;br /&gt;
+如果遇到数据库已经存在的提示，可以把/var/kerberos/krb5kdc/目录下的principal的相关文件都删除掉。默认的数据库名字都是 principal。可以使用 -d 指定数据库名字。&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ kdb5_util create -r JAVACHEN.COM -s
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;补充小技巧-（未测试，其他帖子看到的）：出现Loading random data的时候另开个终端执行点消耗CPU的命令如cat /dev/sda &amp;gt; /dev/urandom 可以加快随机数采集。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;操作结果小例子：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[root@node1 etc]# kdb5_util create -r HADOOP.COM -s
+Loading random data
+Initializing database '/var/kerberos/krb5kdc/principal' for realm 'HADOOP.COM',
+master key name 'K/M@HADOOP.COM'
+You will be prompted for the database Master Password.    #在此处输入的是root@1234
+It is important that you NOT FORGET this password.
+Enter KDC database master key:
+Re-enter KDC database master key to verify:
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;7启动服务&quot;&gt;(7)启动服务&lt;/h3&gt;
+&lt;p&gt;在node1节点上运行：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[root@node1 etc]# service krb5kdc start
+Redirecting to /bin/systemctl start krb5kdc.service
+[root@node1 etc]# service kadmin start
+Redirecting to /bin/systemctl start kadmin.service
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;至此kerberos，搭建完毕。&lt;/p&gt;
+
+&lt;h2 id=&quot;kerberos基本环境创建及简单命令测试&quot;&gt;Kerberos基本环境创建及简单命令测试&lt;/h2&gt;
+&lt;h3 id=&quot;1创建kerberos管理员&quot;&gt;(1)创建Kerberos管理员&lt;/h3&gt;
+&lt;p&gt;关于 kerberos 的管理，可以使用 kadmin.local 或 kadmin，至于使用哪个，取决于账户和访问权限：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;如果有访问 kdc 服务器的 root 权限，但是没有 kerberos admin 账户，使用 kadmin.local&lt;/li&gt;
+  &lt;li&gt;如果没有访问 kdc 服务器的 root 权限，但是用 kerberos admin 账户，使用 kadmin&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;在node1上创建远程管理的管理员，系统会提示输入密码，密码不能为空，且需妥善保存。：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;#手动输入两次密码，这里密码为 root
+$ kadmin.local -q &quot;addprinc root/admin&quot;
+# 也可以不用手动输入密码，通过echo将密码引入
+$ echo -e &quot;root\nroot&quot; | kadmin.local -q &quot;addprinc root/admin&quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;建议：&lt;br /&gt;
+最好把username设为root，会提示输入密码，可以输入一个密码。&lt;br /&gt;
+创建第一个principal，必须在KDC自身的终端上进行，而且需要以root登录，这样才可以执行kadmin.local命令。&lt;/p&gt;
+
+&lt;p&gt;操作结果小例子：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[root@node1 etc]# kadmin.local -q &quot;addprinc root/admin&quot;
+Authenticating as principal root/admin@HADOOP.COM with password.
+WARNING: no policy specified for root/admin@HADOOP.COM; defaulting to no policy
+Enter password for principal &quot;root/admin@HADOOP.COM&quot;:
+Re-enter password for principal &quot;root/admin@HADOOP.COM&quot;:
+Principal &quot;root/admin@HADOOP.COM&quot; created.
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;2添加更多主体-创建host主体并将自己的host主题添加到自己密钥表文件&quot;&gt;(2)添加更多主体-创建host主体并将自己的host主题添加到自己密钥表文件&lt;/h3&gt;
+&lt;h4 id=&quot;a基于kerberos-的应用程序例如-kprop将使用主机主体将变更传播到从kdc服务器也可以通过该主体提供对使用应用程序如ssh的kdc服务器的安全远程访问&quot;&gt;a).基于Kerberos 的应用程序(例如 kprop)将使用主机主体将变更传播到从KDC服务器。也可以通过该主体提供对使用应用程序(如ssh)的KDC服务器的安全远程访问。&lt;/h4&gt;
+&lt;p&gt;请注意，当主体实例为主机名时，无论名称服务中的域名是大写还是小写，都必须以小写字母指定FQDN。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kadmin: addprinc -randkey host/node1
+Principal &quot;host/node1@HADOOP.COM&quot; created. 
+kadmin:
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;或用命令（创建了node1、node2、node3的host主体）：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kadmin.local -q &quot;addprinc -randkey host/node1@HADOOP.COM&quot;
+kadmin.local -q &quot;addprinc -randkey host/node2@HADOOP.COM&quot;
+kadmin.local -q &quot;addprinc -randkey host/node3@HADOOP.COM&quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h4 id=&quot;b将kdc服务器的host主体添加到kdc服务器的密钥表文件&quot;&gt;b).将KDC服务器的host主体添加到KDC服务器的密钥表文件。&lt;/h4&gt;
+&lt;p&gt;通过将主机主体添加到密钥表文件，允许应用服务器(如sshd)自动使用该主体。&lt;br /&gt;
+&lt;strong&gt;注意：将自己的host主体添加到自己的密钥表文件。&lt;/strong&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;#在node1上执行
+kadmin: ktadd host/node1
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;3kerberos简单命令测试&quot;&gt;(3)Kerberos简单命令测试&lt;/h3&gt;
+&lt;p&gt;输入kadmin或者kadmin.local命令进入kerberos的shell(登录到管理员账户:如果在本机上，可以通过kadmin.local直接登录。其它机器的，先使用kinit进行验证)，如下：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;1、其他机器上先使用kinit进行验证：
+echo root@1234|kinit root/admin  
+2、之后再使用kadmin或者kadmin.local命令进入kerberos的shell
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h4 id=&quot;aprincipals操作&quot;&gt;a).principals操作&lt;/h4&gt;
+&lt;p&gt;查看principals&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ kadmin: list_principals
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;添加一个新的 principal&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ kadmin:  addprinc user1  
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;删除 principal&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ kadmin:  delprinc user1  
+$ kadmin: exit
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;也可以直接通过下面的命令来执行：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;#提示需要输入密码
+$ kadmin -p root/admin -q &quot;list_principals&quot;
+$ kadmin -p root/admin -q &quot;addprinc user2&quot;
+$ kadmin -p root/admin -q &quot;delprinc user2&quot;
+
+#不用输入密码
+$ kadmin.local -q &quot;list_principals&quot;
+$ kadmin.local -q &quot;addprinc user2&quot;
+$ kadmin.local -q &quot;delprinc user2&quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;bticket操作创建一个测试用户test密码设置为test&quot;&gt;b).ticket操作:创建一个测试用户test，密码设置为test&lt;/h4&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ echo -e &quot;test\ntest&quot; | kadmin.local -q &quot;addprinc test&quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;获取 test 用户的 ticket：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;#通过用户名和密码进行登录
+[root@node2 ~]# kinit test
+Password for test@HADOOP.COM:
+[root@node2 ~]# klist  -e
+Ticket cache: KEYRING:persistent:0:krb_ccache_CGo77JQ
+Default principal: test@HADOOP.COM
+Valid starting       Expires              Service principal
+09/06/2017 16:06:57  09/07/2017 16:06:57  krbtgt/HADOOP.COM@HADOOP.COM
+	renew until 09/13/2017 16:06:57, Etype (skey, tkt): des3-cbc-sha1, des3-cbc-sha1
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;销毁该 test 用户的 ticket:&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[root@node2 ~]# kdestroy
+Other credential caches present, use -A to destroy all
+[root@node2 ~]# kdestroy -A
+[root@node2 ~]# klist  -e
+klist: Credentials cache keyring 'persistent:0:krb_ccache_CGo77JQ' not found
+[root@node2 ~]# klist
+klist: Credentials cache keyring 'persistent:0:krb_ccache_CGo77JQ' not found
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;更新 ticket:&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ kinit root/admin
+  Password for root/admin@HADOOP.COM:
+$  klist
+  Ticket cache: FILE:/tmp/krb5cc_0
+  Default principal: root/admin@JAVACHEN.COM
+  Valid starting     Expires            Service principal
+  11/07/14 15:33:57  11/08/14 15:33:57  krbtgt/JAVACHEN.COM@JAVACHEN.COM
+    renew until 11/17/14 15:33:57
+  Kerberos 4 ticket cache: /tmp/tkt0
+  klist: You have no tickets cached
+$ kinit -R
+$ klist
+  Ticket cache: FILE:/tmp/krb5cc_0
+  Default principal: root/admin@JAVACHEN.COM
+  Valid starting     Expires            Service principal
+  11/07/14 15:34:05  11/08/14 15:34:05  krbtgt/JAVACHEN.COM@JAVACHEN.COM
+    renew until 11/17/14 15:33:57
+  Kerberos 4 ticket cache: /tmp/tkt0
+  klist: You have no tickets cached
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h4 id=&quot;c-抽取密钥到在本地keytab文件&quot;&gt;c). 抽取密钥到在本地keytab文件&lt;/h4&gt;
+&lt;p&gt;抽取密钥并将其储存在本地keytab文件/etc/krb5.keytab中。这个文件由超级用户拥有，所以您必须是root用户才能在kadmin shell 中执行以下命令:&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ kadmin.local -q &quot;ktadd kadmin/admin&quot;
+$ klist -k /etc/krb5.keytab
+  Keytab name: FILE:/etc/krb5.keytab
+  KVNO Principal
+  ---- ----------------------------------------------------------------------
+     3 kadmin/admin@LASHOU-INC.COM
+     3 kadmin/admin@LASHOU-INC.COM
+     3 kadmin/admin@LASHOU-INC.COM
+     3 kadmin/admin@LASHOU-INC.COM
+     3 kadmin/admin@LASHOU-INC.COM
+   -----------------
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;至此，本篇内容完成。以上为Kerberos单KDC版搭建过程，下面进行HDFS和Kerberos整合操作。&lt;br /&gt;
+如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～&lt;br /&gt;
+©商业转载请联系作者获得授权，非商业转载请注明出处。&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="Kerberos" /><summary type="html">本文属于Kerberos具体实践整理的第一部分，主要涉及到Kerberos集群的安装以及基本命令的使用。</summary></entry><entry><title type="html">SparkStreaming程序中checkpoint与广播变量兼容处理</title><link href="http://localhost:4000/bigdata/2018/04/04/SparkStreaming%E7%A8%8B%E5%BA%8F%E4%B8%ADcheckpoint%E4%B8%8E%E5%B9%BF%E6%92%AD%E5%8F%98%E9%87%8F%E5%85%BC%E5%AE%B9%E5%A4%84%E7%90%86/" rel="alternate" type="text/html" title="SparkStreaming程序中checkpoint与广播变量兼容处理" /><published>2018-04-04T00:00:00+08:00</published><updated>2018-04-04T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/04/04/SparkStreaming%E7%A8%8B%E5%BA%8F%E4%B8%ADcheckpoint%E4%B8%8E%E5%B9%BF%E6%92%AD%E5%8F%98%E9%87%8F%E5%85%BC%E5%AE%B9%E5%A4%84%E7%90%86</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/04/04/SparkStreaming%E7%A8%8B%E5%BA%8F%E4%B8%ADcheckpoint%E4%B8%8E%E5%B9%BF%E6%92%AD%E5%8F%98%E9%87%8F%E5%85%BC%E5%AE%B9%E5%A4%84%E7%90%86/">&lt;blockquote&gt;
   &lt;p&gt;上文中说明了如何使用kafka连接池来优化程序，但是在上文中预留了一个问题，就是当使用上文的方式下发KafkaPool广播变量时，如果Spark Streaming程序中也使用了checkpoint，则如果程序中断而重启程序，广播变量无法从checkpoint中恢复，会出现“java.lang.ClassCastException:B cannot be cast to KafkaPool”问题，所以在此篇文章中，对此问题进行解决。&lt;br /&gt;
 &lt;strong&gt;注意: 本文中使用的版本是spark2.2.1和kafka0.10.1.1&lt;/strong&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
@@ -213,7 +631,7 @@
 &lt;p&gt;这样，就不会再尝试从checkpoint中恢复广播变量，而可以避免“java.lang.ClassCastException:B cannot be cast to KafkaPool”这个问题啦。&lt;br /&gt;
 至此，本篇内容完成。&lt;br /&gt;
 如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～&lt;br /&gt;
-©转载请注明&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="Spark" /><category term="Kafka" /><summary type="html">上文中说明了如何使用kafka连接池来优化程序，但是在上文中预留了一个问题，就是当使用上文的方式下发KafkaPool广播变量时，如果Spark Streaming程序中也使用了checkpoint，则如果程序中断而重启程序，广播变量无法从checkpoint中恢复，会出现“java.lang.ClassCastException:B cannot be cast to KafkaPool”问题，所以在此篇文章中，对此问题进行解决。 注意: 本文中使用的版本是spark2.2.1和kafka0.10.1.1 背景 在spark信令处理程序中使用checkpoint主要是因为从源头读取kafka数据的时候记录offset，防止数据丢失；并且目前是做的是容器化的集群，如果集群down了，会自动重启容器并且也能把程序恢复。 不过对于Spark Streaming中防止数据丢失可以有两种方式: 使用Spark Streaming的checkpoint机制 自己维护kafka offset 但是，有人说checkpoint有弊端，并且我也遇到了序列化的这个问题。在查资料的过程中，看到有评论说checkpoint与广播变量就是不能同时使用（这是不对的），所以也思考过要不要改成自己手动维护offset，而且发现有好多人也这么做了。不过我们代码更新迭代并不频繁，不会被checkpoint影响太大，所以还是决定再试试使用checkpoint，终于好不容易也让我找到了解决方法，真是巨开心,下面就说下怎么解决的。 解决-示例说明 参考例子 在Spark Streaming中，目前为止累加器和广播变量确实是无法从checkpoint恢复的。但是如果在程序中既使用到checkpoint又使用了累加器和广播变量的话，最好对累加器和广播变量做懒实例化操作，这样可以使累加器和广播变量在driver失败重启时能够重新实例化。 解决方法其实就在spark官方的项目的examples中，访问请戳: RecoverableNetworkWordCount ，它是广播变量和累加器与checkpoint兼容的一个例子。下面我就把代码摘出来记录一下。 第一步：用单例模式来获取或生成广播变量和累加器 /** * Use this singleton to get or register a Broadcast variable. * 单例模式获取广播变量wordBlacklist */ object WordBlacklist { @volatile private var instance: Broadcast[Seq[String]] = null def getInstance(sc: SparkContext): Broadcast[Seq[String]] = { if (instance == null) { synchronized { if (instance == null) { val wordBlacklist = Seq(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;) instance = sc.broadcast(wordBlacklist) } } } instance } } /** * Use this singleton to get or register an Accumulator. * 累加器 */ object DroppedWordsCounter { @volatile private var instance: LongAccumulator = null def getInstance(sc: SparkContext): LongAccumulator = { if (instance == null) { synchronized { if (instance == null) { instance = sc.longAccumulator(&quot;WordsInBlacklistCounter&quot;) } } } instance } } 第二步：在Spark主程序中使用 在主程序的driver端位置使用，懒实例化操作，这样可以使累加器和广播变量在driver失败重启时能够重新实例化。 object RecoverableNetworkWordCount { // 这个是用来生成StreamingContext对象的用户自定义的方法 def createContext(ip: String, port: Int, outputPath: String, checkpointDirectory: String) : StreamingContext = { // If you do not see this printed, that means the StreamingContext has been loaded from the new checkpoint // 如果没有打印出这句话，说明是使用检查点元数据恢复一个StreamingContext println(&quot;Creating new context&quot;) val outputFile = new File(outputPath) if (outputFile.exists()) outputFile.delete() val sparkConf = new SparkConf().setAppName(&quot;RecoverableNetworkWordCount&quot;) // 创建sparkContext，1秒一个批次 val ssc = new StreamingContext(sparkConf, Seconds(1)) // 设置checkpoint ssc.checkpoint(checkpointDirectory) // Create a socket stream on target ip:port and count the words in input stream of \n delimited text (eg. generated by 'nc') // 这里是测试的socket stream val lines = ssc.socketTextStream(ip, port) val words = lines.flatMap(_.split(&quot; &quot;)) val wordCounts = words.map((_, 1)).reduceByKey(_ + _) wordCounts.foreachRDD { (rdd: RDD[(String, Int)], time: Time) =&amp;gt; // Get or register the blacklist Broadcast 广播变量 val blacklist = WordBlacklist.getInstance(rdd.sparkContext) // Get or register the droppedWordsCounter Accumulator 累加器 val droppedWordsCounter = DroppedWordsCounter.getInstance(rdd.sparkContext) // Use blacklist to drop words and use droppedWordsCounter to count them 使用广播变量和累加器 val counts = rdd.filter { case (word, count) =&amp;gt; if (blacklist.value.contains(word)) { droppedWordsCounter.add(count) false } else { true } }.collect().mkString(&quot;[&quot;, &quot;, &quot;, &quot;]&quot;) val output = s&quot;Counts at time $time $counts&quot; println(output) println(s&quot;Dropped ${droppedWordsCounter.value} word(s) totally&quot;) println(s&quot;Appending to ${outputFile.getAbsolutePath}&quot;) Files.append(output + &quot;\n&quot;, outputFile, Charset.defaultCharset()) } ssc } def main(args: Array[String]) { if (args.length != 4) { System.err.println(s&quot;Your arguments were ${args.mkString(&quot;[&quot;, &quot;, &quot;, &quot;]&quot;)}&quot;) System.err.println( &quot;&quot;&quot; |Usage: RecoverableNetworkWordCount &amp;lt;hostname&amp;gt; &amp;lt;port&amp;gt; &amp;lt;checkpoint-directory&amp;gt; | &amp;lt;output-file&amp;gt;. &amp;lt;hostname&amp;gt; and &amp;lt;port&amp;gt; describe the TCP server that Spark | Streaming would connect to receive data. &amp;lt;checkpoint-directory&amp;gt; directory to | HDFS-compatible file system which checkpoint data &amp;lt;output-file&amp;gt; file to which the | word counts will be appended |In local mode, &amp;lt;master&amp;gt; should be 'local[n]' with n &amp;gt; 1 |Both &amp;lt;checkpoint-directory&amp;gt; and &amp;lt;output-file&amp;gt; must be absolute paths &quot;&quot;&quot;.stripMargin ) System.exit(1) } val Array(ip, IntParam(port), checkpointDirectory, outputPath) = args // 使用StreamingContext.getOrCreate来创建StreamingContext对象，传入的第一个参数是checkpoint的存放目录，第二参数是生成StreamingContext对象的用户自定义方法。 val ssc = StreamingContext.getOrCreate(checkpointDirectory, () =&amp;gt; createContext(ip, port, outputPath, checkpointDirectory)) ssc.start() ssc.awaitTermination() } } 解决-SparkStreaming+kafkaPool程序修改(兼容checkpoint和广播变量kafkaPool) 上述内容即如何将checkpoint与广播变量或累加器兼容的例子，下面则结合上述例子，对上文(SparkStreaming写数据到Kafka)的程序做修改来解决“java.lang.ClassCastException:B cannot be cast to KafkaPool”的问题。 第一步：包装KafkaProducer-创建Kafka连接池（不变） 对于上文(SparkStreaming写数据到Kafka)中的程序，第一步保持不变，创建class KafkaPool 以及object KafkaPool，将KafkaProducer以lazy val的方式进行包装。 import java.util.concurrent.Future import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord, RecordMetadata} //scala中，类名之后的括号中是构造函数的参数列表，() =&amp;gt;是传值传参，KafkaProducer class KafkaPool[K, V]( createProducer: () =&amp;gt; KafkaProducer[K,V]) extends Serializable{ //使用lazy关键字修饰变量后，只有在使用该变量时，才会调用其实例化方法 //后续在spark主程序中使用时，将kafkapool广播出去到每个executor里面了，然后到每个executor中，当用到的时候，会实例化一个producer，这样就不会有NotSerializableExceptions的问题了。 lazy val producer = createProducer() def send(topic: String, key: K, value: V): Future[RecordMetadata] = producer.send(new ProducerRecord[K, V](topic, key, value)) def send(topic: String, value: V): Future[RecordMetadata] = producer.send(new ProducerRecord[K, V](topic, value)) } object KafkaPool{ import scala.collection.JavaConversions._ def apply[K, V](config: Map[String, Object]): KafkaPool[K, V] = { val createProducerFunc = () =&amp;gt; { System.setProperty(&quot;java.security.auth.login.config&quot;,&quot;kafka_client_jaas.conf&quot;) val producer = new KafkaProducer[K, V](config) sys.addShutdownHook { //当发送ececutor中的jvm shutdown时，kafka能够将缓冲区的消息发送出去。 producer.close() } producer } new KafkaPool(createProducerFunc) } def apply[K, V](config: java.util.Properties): KafkaPool[K, V] = apply(config.toMap) } 第二步：对广播变量懒实例化操作，使用单例模式来获取广播变量KafkaPool 这里较上文(SparkStreaming写数据到Kafka)第一种方式中的直接下发广播变量有所区别，而是创建来一个GetKafkaPoolBroadcast的getKafkaPool方法，用于在主程序中driver端调用此方法时再获取或生成广播变量。 ```scala import java.util.Properties import org.apache.spark.SparkContext import org.apache.spark.internal.Logging import org.apache.spark.broadcast.Broadcast</summary></entry><entry><title type="html">SparkStreaming输出数据到Kafka–Kafka连接池的使用</title><link href="http://localhost:4000/bigdata/2018/04/02/SparkStreaming%E5%86%99%E6%95%B0%E6%8D%AE%E5%88%B0Kafka-Kafka%E8%BF%9E%E6%8E%A5%E6%B1%A0%E7%9A%84%E4%BD%BF%E7%94%A8/" rel="alternate" type="text/html" title="SparkStreaming输出数据到Kafka--Kafka连接池的使用" /><published>2018-04-02T00:00:00+08:00</published><updated>2018-04-02T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/04/02/SparkStreaming%E5%86%99%E6%95%B0%E6%8D%AE%E5%88%B0Kafka-Kafka%E8%BF%9E%E6%8E%A5%E6%B1%A0%E7%9A%84%E4%BD%BF%E7%94%A8</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/04/02/SparkStreaming%E5%86%99%E6%95%B0%E6%8D%AE%E5%88%B0Kafka-Kafka%E8%BF%9E%E6%8E%A5%E6%B1%A0%E7%9A%84%E4%BD%BF%E7%94%A8/">&lt;blockquote&gt;
+©商业转载请联系作者获得授权，非商业转载请注明出处。&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="Spark" /><category term="Kafka" /><summary type="html">上文中说明了如何使用kafka连接池来优化程序，但是在上文中预留了一个问题，就是当使用上文的方式下发KafkaPool广播变量时，如果Spark Streaming程序中也使用了checkpoint，则如果程序中断而重启程序，广播变量无法从checkpoint中恢复，会出现“java.lang.ClassCastException:B cannot be cast to KafkaPool”问题，所以在此篇文章中，对此问题进行解决。 注意: 本文中使用的版本是spark2.2.1和kafka0.10.1.1 背景 在spark信令处理程序中使用checkpoint主要是因为从源头读取kafka数据的时候记录offset，防止数据丢失；并且目前是做的是容器化的集群，如果集群down了，会自动重启容器并且也能把程序恢复。 不过对于Spark Streaming中防止数据丢失可以有两种方式: 使用Spark Streaming的checkpoint机制 自己维护kafka offset 但是，有人说checkpoint有弊端，并且我也遇到了序列化的这个问题。在查资料的过程中，看到有评论说checkpoint与广播变量就是不能同时使用（这是不对的），所以也思考过要不要改成自己手动维护offset，而且发现有好多人也这么做了。不过我们代码更新迭代并不频繁，不会被checkpoint影响太大，所以还是决定再试试使用checkpoint，终于好不容易也让我找到了解决方法，真是巨开心,下面就说下怎么解决的。 解决-示例说明 参考例子 在Spark Streaming中，目前为止累加器和广播变量确实是无法从checkpoint恢复的。但是如果在程序中既使用到checkpoint又使用了累加器和广播变量的话，最好对累加器和广播变量做懒实例化操作，这样可以使累加器和广播变量在driver失败重启时能够重新实例化。 解决方法其实就在spark官方的项目的examples中，访问请戳: RecoverableNetworkWordCount ，它是广播变量和累加器与checkpoint兼容的一个例子。下面我就把代码摘出来记录一下。 第一步：用单例模式来获取或生成广播变量和累加器 /** * Use this singleton to get or register a Broadcast variable. * 单例模式获取广播变量wordBlacklist */ object WordBlacklist { @volatile private var instance: Broadcast[Seq[String]] = null def getInstance(sc: SparkContext): Broadcast[Seq[String]] = { if (instance == null) { synchronized { if (instance == null) { val wordBlacklist = Seq(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;) instance = sc.broadcast(wordBlacklist) } } } instance } } /** * Use this singleton to get or register an Accumulator. * 累加器 */ object DroppedWordsCounter { @volatile private var instance: LongAccumulator = null def getInstance(sc: SparkContext): LongAccumulator = { if (instance == null) { synchronized { if (instance == null) { instance = sc.longAccumulator(&quot;WordsInBlacklistCounter&quot;) } } } instance } } 第二步：在Spark主程序中使用 在主程序的driver端位置使用，懒实例化操作，这样可以使累加器和广播变量在driver失败重启时能够重新实例化。 object RecoverableNetworkWordCount { // 这个是用来生成StreamingContext对象的用户自定义的方法 def createContext(ip: String, port: Int, outputPath: String, checkpointDirectory: String) : StreamingContext = { // If you do not see this printed, that means the StreamingContext has been loaded from the new checkpoint // 如果没有打印出这句话，说明是使用检查点元数据恢复一个StreamingContext println(&quot;Creating new context&quot;) val outputFile = new File(outputPath) if (outputFile.exists()) outputFile.delete() val sparkConf = new SparkConf().setAppName(&quot;RecoverableNetworkWordCount&quot;) // 创建sparkContext，1秒一个批次 val ssc = new StreamingContext(sparkConf, Seconds(1)) // 设置checkpoint ssc.checkpoint(checkpointDirectory) // Create a socket stream on target ip:port and count the words in input stream of \n delimited text (eg. generated by 'nc') // 这里是测试的socket stream val lines = ssc.socketTextStream(ip, port) val words = lines.flatMap(_.split(&quot; &quot;)) val wordCounts = words.map((_, 1)).reduceByKey(_ + _) wordCounts.foreachRDD { (rdd: RDD[(String, Int)], time: Time) =&amp;gt; // Get or register the blacklist Broadcast 广播变量 val blacklist = WordBlacklist.getInstance(rdd.sparkContext) // Get or register the droppedWordsCounter Accumulator 累加器 val droppedWordsCounter = DroppedWordsCounter.getInstance(rdd.sparkContext) // Use blacklist to drop words and use droppedWordsCounter to count them 使用广播变量和累加器 val counts = rdd.filter { case (word, count) =&amp;gt; if (blacklist.value.contains(word)) { droppedWordsCounter.add(count) false } else { true } }.collect().mkString(&quot;[&quot;, &quot;, &quot;, &quot;]&quot;) val output = s&quot;Counts at time $time $counts&quot; println(output) println(s&quot;Dropped ${droppedWordsCounter.value} word(s) totally&quot;) println(s&quot;Appending to ${outputFile.getAbsolutePath}&quot;) Files.append(output + &quot;\n&quot;, outputFile, Charset.defaultCharset()) } ssc } def main(args: Array[String]) { if (args.length != 4) { System.err.println(s&quot;Your arguments were ${args.mkString(&quot;[&quot;, &quot;, &quot;, &quot;]&quot;)}&quot;) System.err.println( &quot;&quot;&quot; |Usage: RecoverableNetworkWordCount &amp;lt;hostname&amp;gt; &amp;lt;port&amp;gt; &amp;lt;checkpoint-directory&amp;gt; | &amp;lt;output-file&amp;gt;. &amp;lt;hostname&amp;gt; and &amp;lt;port&amp;gt; describe the TCP server that Spark | Streaming would connect to receive data. &amp;lt;checkpoint-directory&amp;gt; directory to | HDFS-compatible file system which checkpoint data &amp;lt;output-file&amp;gt; file to which the | word counts will be appended |In local mode, &amp;lt;master&amp;gt; should be 'local[n]' with n &amp;gt; 1 |Both &amp;lt;checkpoint-directory&amp;gt; and &amp;lt;output-file&amp;gt; must be absolute paths &quot;&quot;&quot;.stripMargin ) System.exit(1) } val Array(ip, IntParam(port), checkpointDirectory, outputPath) = args // 使用StreamingContext.getOrCreate来创建StreamingContext对象，传入的第一个参数是checkpoint的存放目录，第二参数是生成StreamingContext对象的用户自定义方法。 val ssc = StreamingContext.getOrCreate(checkpointDirectory, () =&amp;gt; createContext(ip, port, outputPath, checkpointDirectory)) ssc.start() ssc.awaitTermination() } } 解决-SparkStreaming+kafkaPool程序修改(兼容checkpoint和广播变量kafkaPool) 上述内容即如何将checkpoint与广播变量或累加器兼容的例子，下面则结合上述例子，对上文(SparkStreaming写数据到Kafka)的程序做修改来解决“java.lang.ClassCastException:B cannot be cast to KafkaPool”的问题。 第一步：包装KafkaProducer-创建Kafka连接池（不变） 对于上文(SparkStreaming写数据到Kafka)中的程序，第一步保持不变，创建class KafkaPool 以及object KafkaPool，将KafkaProducer以lazy val的方式进行包装。 import java.util.concurrent.Future import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord, RecordMetadata} //scala中，类名之后的括号中是构造函数的参数列表，() =&amp;gt;是传值传参，KafkaProducer class KafkaPool[K, V]( createProducer: () =&amp;gt; KafkaProducer[K,V]) extends Serializable{ //使用lazy关键字修饰变量后，只有在使用该变量时，才会调用其实例化方法 //后续在spark主程序中使用时，将kafkapool广播出去到每个executor里面了，然后到每个executor中，当用到的时候，会实例化一个producer，这样就不会有NotSerializableExceptions的问题了。 lazy val producer = createProducer() def send(topic: String, key: K, value: V): Future[RecordMetadata] = producer.send(new ProducerRecord[K, V](topic, key, value)) def send(topic: String, value: V): Future[RecordMetadata] = producer.send(new ProducerRecord[K, V](topic, value)) } object KafkaPool{ import scala.collection.JavaConversions._ def apply[K, V](config: Map[String, Object]): KafkaPool[K, V] = { val createProducerFunc = () =&amp;gt; { System.setProperty(&quot;java.security.auth.login.config&quot;,&quot;kafka_client_jaas.conf&quot;) val producer = new KafkaProducer[K, V](config) sys.addShutdownHook { //当发送ececutor中的jvm shutdown时，kafka能够将缓冲区的消息发送出去。 producer.close() } producer } new KafkaPool(createProducerFunc) } def apply[K, V](config: java.util.Properties): KafkaPool[K, V] = apply(config.toMap) } 第二步：对广播变量懒实例化操作，使用单例模式来获取广播变量KafkaPool 这里较上文(SparkStreaming写数据到Kafka)第一种方式中的直接下发广播变量有所区别，而是创建来一个GetKafkaPoolBroadcast的getKafkaPool方法，用于在主程序中driver端调用此方法时再获取或生成广播变量。 ```scala import java.util.Properties import org.apache.spark.SparkContext import org.apache.spark.internal.Logging import org.apache.spark.broadcast.Broadcast</summary></entry><entry><title type="html">SparkStreaming输出数据到Kafka–Kafka连接池的使用</title><link href="http://localhost:4000/bigdata/2018/04/02/SparkStreaming%E5%86%99%E6%95%B0%E6%8D%AE%E5%88%B0Kafka-Kafka%E8%BF%9E%E6%8E%A5%E6%B1%A0%E7%9A%84%E4%BD%BF%E7%94%A8/" rel="alternate" type="text/html" title="SparkStreaming输出数据到Kafka--Kafka连接池的使用" /><published>2018-04-02T00:00:00+08:00</published><updated>2018-04-02T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/04/02/SparkStreaming%E5%86%99%E6%95%B0%E6%8D%AE%E5%88%B0Kafka-Kafka%E8%BF%9E%E6%8E%A5%E6%B1%A0%E7%9A%84%E4%BD%BF%E7%94%A8</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/04/02/SparkStreaming%E5%86%99%E6%95%B0%E6%8D%AE%E5%88%B0Kafka-Kafka%E8%BF%9E%E6%8E%A5%E6%B1%A0%E7%9A%84%E4%BD%BF%E7%94%A8/">&lt;blockquote&gt;
   &lt;p&gt;最近把spark实时流处理的信令处理程序，由原来的向kafka0.8.2.1中写入数据，改成了向带ACL权限认证的kafka0.10.1.1中写入数据，因此在之前的基础上创建连接前会多一个认证过程，因此导致写入效率有些低下，所以使用Kafka连接池来优化之前程序。&lt;br /&gt;
 &lt;strong&gt;注意: 本文中使用的版本是spark2.2.1和kafka0.10.1.1&lt;/strong&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
@@ -375,7 +793,7 @@ end&lt;/p&gt;
 
 &lt;h2 id=&quot;第二步利用广播变量下发kafkaproducer&quot;&gt;第二步：利用广播变量下发KafkaProducer&lt;/h2&gt;
 &lt;p&gt;利用广播变量，给每一个executor自己的KafkaProducer，将KafkaProducer广播到每一个executor中。  &lt;br /&gt;
-&lt;strong&gt;注意：这里暂留一个问题，此种方式只可以Spark Streaming程序不用checkpoint的时候使用，否则会出现 &lt;code class=&quot;highlighter-rouge&quot;&gt;“java.lang.ClassCastException:B cannot be cast to KafkaPool”&lt;/code&gt; 的问题，即使用这种方式直接做广播变量不可以，具体解决方式见下篇文章(&lt;a href=&quot;https://leafming.github.io/bigdata/2018/04/04/SparkStreaming程序中checkpoint与广播变量兼容处理/&quot;&gt;SparkStreaming程序中checkpoint与广播变量兼容处理&lt;/a&gt;)。现在先说明这种不用checkpoint的方式。&lt;/strong&gt;&lt;br /&gt;
+&lt;strong&gt;注意：这里暂留一个问题，此种方式只可以Spark Streaming程序不用checkpoint的时候使用，否则，如果程序中断而重启程序，广播变量无法从checkpoint中恢复，会出现 &lt;code class=&quot;highlighter-rouge&quot;&gt;“java.lang.ClassCastException:B cannot be cast to KafkaPool”&lt;/code&gt; 的问题，具体解决方式见下篇文章(&lt;a href=&quot;https://leafming.github.io/bigdata/2018/04/04/SparkStreaming程序中checkpoint与广播变量兼容处理/&quot;&gt;SparkStreaming程序中checkpoint与广播变量兼容处理&lt;/a&gt;)。现在先说明这种不用checkpoint的方式。&lt;/strong&gt;&lt;br /&gt;
 在spark主程序中加入如下代码：&lt;/p&gt;
 &lt;div class=&quot;language-scala highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;    &lt;span class=&quot;c1&quot;&gt;//利用广播变量的形式，将后端写入KafkaProducer广播到每一个executor 注意：这里写广播变量的话，与checkpoint一起用会有问题
 &lt;/span&gt;    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kafkaProducer&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Broadcast&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;KafkaPool&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
@@ -416,4 +834,4 @@ end&lt;/p&gt;
 
 &lt;p&gt;内容即以上，会在下篇文章(&lt;a href=&quot;https://leafming.github.io/bigdata/2018/04/04/SparkStreaming程序中checkpoint与广播变量兼容处理/&quot;&gt;SparkStreaming程序中checkpoint与广播变量兼容处理&lt;/a&gt;)解决spark streaming中checkpoint和广播变量使用冲突的问题，敬请期待。&lt;br /&gt;
 如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～&lt;br /&gt;
-©转载请注明&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="Spark" /><category term="Kafka" /><summary type="html">最近把spark实时流处理的信令处理程序，由原来的向kafka0.8.2.1中写入数据，改成了向带ACL权限认证的kafka0.10.1.1中写入数据，因此在之前的基础上创建连接前会多一个认证过程，因此导致写入效率有些低下，所以使用Kafka连接池来优化之前程序。 注意: 本文中使用的版本是spark2.2.1和kafka0.10.1.1</summary></entry></feed>
+©商业转载请联系作者获得授权，非商业转载请注明出处。&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="Spark" /><category term="Kafka" /><summary type="html">最近把spark实时流处理的信令处理程序，由原来的向kafka0.8.2.1中写入数据，改成了向带ACL权限认证的kafka0.10.1.1中写入数据，因此在之前的基础上创建连接前会多一个认证过程，因此导致写入效率有些低下，所以使用Kafka连接池来优化之前程序。 注意: 本文中使用的版本是spark2.2.1和kafka0.10.1.1</summary></entry></feed>
