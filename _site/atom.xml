@@ -1,4 +1,129 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-05-06T00:18:30+08:00</updated><id>http://localhost:4000/</id><title type="html">iLeaf</title><subtitle>Yesterday you said tomorrow.</subtitle><author><name>Liv Yeh</name></author><entry><title type="html">Kerberos具体实践1-Kerberos环境准备及安装</title><link href="http://localhost:4000/bigdata/2018/05/05/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B51-Kerberos%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%E5%8F%8A%E5%AE%89%E8%A3%85/" rel="alternate" type="text/html" title="Kerberos具体实践1-Kerberos环境准备及安装" /><published>2018-05-05T00:00:00+08:00</published><updated>2018-05-05T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/05/05/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B51-Kerberos%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%E5%8F%8A%E5%AE%89%E8%A3%85</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/05/05/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B51-Kerberos%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%E5%8F%8A%E5%AE%89%E8%A3%85/">&lt;blockquote&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-05-11T18:20:44+08:00</updated><id>http://localhost:4000/</id><title type="html">iLeaf</title><subtitle>Yesterday you said tomorrow.</subtitle><author><name>Liv Yeh</name></author><entry><title type="html">机器学习入门自学-描述统计学入门</title><link href="http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/10/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A8/" rel="alternate" type="text/html" title="机器学习入门自学-描述统计学入门" /><published>2018-05-10T00:00:00+08:00</published><updated>2018-05-10T00:00:00+08:00</updated><id>http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/10/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A8</id><content type="html" xml:base="http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/10/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A8/">&lt;blockquote&gt;
+  &lt;p&gt;本文关于自学udacity机器学习课程的自学笔记，为第一部分，描述统计学入门。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h1 id=&quot;2018-05-08-研究方法入门&quot;&gt;2018-05-08-研究方法入门&lt;/h1&gt;
+&lt;h2 id=&quot;基本概念&quot;&gt;基本概念&lt;/h2&gt;
+&lt;p&gt;抽象概念（constructs）  &lt;br /&gt;
+&lt;strong&gt;操作性定义：&lt;/strong&gt;一种将构造（constructs）转变为我们可衡量的变量的方式；一种用我们衡量它的方式描述变量的方式。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;总体参数&lt;/strong&gt;μ：描述整个总体的平均值&lt;br /&gt;
+&lt;strong&gt;样本统计量&lt;/strong&gt;&lt;script type=&quot;math/tex&quot;&gt;\bar{x}&lt;/script&gt;：样本的平均值&lt;br /&gt;
+&lt;strong&gt;样本大小&lt;/strong&gt;n&lt;br /&gt;
+&lt;strong&gt;抽样误差&lt;/strong&gt;μ-&lt;script type=&quot;math/tex&quot;&gt;\bar{x}&lt;/script&gt;：样本平均值和总体平均值之间的差异。在使用一个样本对一个总体进行推理时，样本的平均值可能不会完全等于总体的平均值。 &lt;br /&gt;
+用&lt;script type=&quot;math/tex&quot;&gt;\bar{x}&lt;/script&gt;来估计μ，估计值是对μ的最佳猜测。&lt;/p&gt;
+
+&lt;p&gt;好样本：大、随机无偏差&lt;br /&gt;
+&lt;strong&gt;随机样本：&lt;/strong&gt;每个对象被选中的概率都是一样的。&lt;br /&gt;
+可视化关系-eg 散点图&lt;br /&gt;
+&lt;strong&gt;散点图：&lt;/strong&gt;&lt;br /&gt;
+1.x轴上变量：自变量（independent variable）或预测变量（predictor variable）&lt;br /&gt;
+2.y轴上变量：因变量（dependent variable）即结果（outcome）&lt;/p&gt;
+
+&lt;h2 id=&quot;基本概念-变量&quot;&gt;基本概念-变量&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;在试验中，研究人员操纵 (自) 变量，测量 (因) 变量的变化，然后尝试控制(潜伏)变量。&lt;/strong&gt;&lt;br /&gt;
+简单点说，自变量是“原因”，而因变量就是“结果”。在实验中，自变量是由实验者操纵、掌握的变量。因变量是因为自变量的变化而产生的现象变化或结果。因此自变量和因变量的相互依存的，没有自变量就无所谓因变量，没有因变量也无所谓自变量。&lt;br /&gt;
+1.&lt;strong&gt;自变量&lt;/strong&gt;:&lt;br /&gt;
+自变量（Independent variable）一词来自数学。在数学中，y=f(x)。在这一方程中自变量是x，因变量是y。将这个方程运用到心理学的研究中，自变量是指研究者主动操纵，而引起因变量发生变化的因素或条件，因此自变量被看作是因变量的原因。自变量有连续变量和类别变量之分。如果实验者操纵的自变量是连续变量，则实验是函数型实验。如实验者操纵的自变量是类别变量，则实验是因素型的。在心理学实验中，一个明显的问题是要有一个有机体作为被试对刺激作反应。显然，这里刺激变量就是自变量。&lt;br /&gt;
+2.&lt;strong&gt;因变量:&lt;/strong&gt;&lt;br /&gt;
+因变量（dependent variable）函数中的专业名词，也叫函数值。函数关系式中，某些特定的数会随另一个（或另几个）会变动的数的变动而变动，就称为因变量。如：Y=f(X)。此式表示为：Y随X的变化而变化。Y是因变量，X是自变量。另外“因变量”也特指心理实验中的专业名词。&lt;br /&gt;
+3.&lt;strong&gt;潜在变量（外部因素）&lt;/strong&gt;:&lt;br /&gt;
+a.可为变量之间观察到的关系提供可能的另一种解释&lt;br /&gt;
+b.是会影响我们衡量的两个或多个变量之间关系的因素&lt;br /&gt;
+c.在我们做出确定的因果声明之前，必须在试验中加以控制&lt;br /&gt;
+d.使从观察性研究的数据中确定因果关系变得困难&lt;/p&gt;
+
+&lt;h2 id=&quot;相关并不代表因果&quot;&gt;相关并不代表因果&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;correlation does not imply causation. - 相关并不代表因果&lt;/strong&gt;  &lt;br /&gt;
+show releation（关系） =&amp;gt; observational studies surveys（观察性研究）  &lt;br /&gt;
+show causation（因果关系 即特定因素） =&amp;gt; controued experiment（对照实验，实验性研究）&lt;/p&gt;
+
+&lt;h2 id=&quot;实验性研究和观察性研究&quot;&gt;实验性研究和观察性研究&lt;/h2&gt;
+&lt;p&gt;实验性研究和观察性研究的区别:&lt;br /&gt;
+&lt;strong&gt;观察性研究&lt;/strong&gt;：是非随机化的研究,在自然状态下对研究对象的特征进行观查、记录，并对结果进行描述和对比分析的研究。&lt;br /&gt;
+&lt;strong&gt;实验性研究&lt;/strong&gt;：就是人为地进行干预措施，而收集到结果的分析性研究。&lt;br /&gt;
+实验性研究是人为研究，观察性研究是自然研究。&lt;br /&gt;
+拓展：&lt;br /&gt;
+（1）观察性研究中的基本要素：一个是研究对象，另一个是研究因素。在描述性研究中，研究因素是影响因素；在分析性研究中，研究因素称为危险因素或暴露因素。&lt;br /&gt;
+（2）观察性研究的特征概括：在研究中，不向研究对象施加任何实验因素（干预因素），可以将观察对象按某种特征分组，但不需随机分组。&lt;br /&gt;
+（3）实验性研究是在控制的条件下系统的操纵某种变量的变化，来研究这种变量的变化对其他变量所产生的影响。&lt;/p&gt;
+
+&lt;p&gt;调查方式：调查问卷&lt;br /&gt;
+1.不理解内容 =&amp;gt; &lt;strong&gt;应答偏差&lt;/strong&gt;&lt;br /&gt;
+2.拒绝回答 =&amp;gt; &lt;strong&gt;无应答偏差&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;控制因素：盲法&lt;br /&gt;
+安慰剂（无效药）&lt;br /&gt;
+1.单盲：参与者不知道自己是无效药&lt;br /&gt;
+2.双盲：都不知道&lt;/p&gt;
+
+&lt;h2 id=&quot;小习题&quot;&gt;小习题&lt;/h2&gt;
+&lt;p&gt;假设我们将患有失眠症的人随机分配到两个治疗方法中。在一个方法中，被试获得 20 毫克唑吡旦（安比恩）。在另一种方法中，被试获得了一个安慰剂药片。被试不知道他们服用的是哪种类型的药片。服药后，被试在睡眠实验室入睡以帮助控制潜在变量。第二天早上，在与心理学家的对话中，他们对自己的睡眠质量进行了从 1 到 10 的评分（1 表示“非常差”，10 表示“非常好”）。心理学家同样不知道他们各自服用了哪种药物。唑吡旦组的被试报告的睡眠质量（均值 = 8）优于安慰剂组（均值 = 5）。&lt;br /&gt;
+关于这个情景以下哪个说法是正确的？选择所有适用项。&lt;br /&gt;
+A这是一项观察性研究示例，因此我们无法对唑吡旦的有效性得出因果结论。&lt;br /&gt;
+B参与者可以看出他们服用的是什么药片。&lt;br /&gt;
+C药片类型（唑吡旦或安慰剂）为因变量。&lt;br /&gt;
+D此研究为实验性研究，我们可以对唑吡旦的有效性得出因果结论。&lt;br /&gt;
+E该实验使用了双盲对照组，因为参与者和心理学家都不知道每个人服用的药片类型。&lt;br /&gt;
+F唑吡旦组与安慰剂组报告的睡眠质量之间的差异，可能不是由唑吡旦引起的。&lt;br /&gt;
+G睡眠质量的操作定义使用一个满分为100分的度量表。&lt;br /&gt;
+H药丸类型（唑吡旦或安慰剂）是自变量。&lt;br /&gt;
+I治疗成果的操作定义使用一个满分为10分的度量表。&lt;br /&gt;
+J心理学家不知道被试服用的是那种药丸。&lt;br /&gt;
+K这项研究表明，在其他条件相同的情况下，唑吡旦比安慰剂更能改善睡眠质量。&lt;/p&gt;
+
+&lt;p&gt;答案:DEHJK&lt;/p&gt;
+
+&lt;p&gt;习题解释:&lt;br /&gt;
+此研究为实验性研究，我们可以对唑吡旦的有效性得出因果结论;该实验使用了双盲对照组，因为参与者和心理学家都不知道每个人服用的药片类型。&lt;br /&gt;
+The independent variable is whatever differed between the experiment group and control group. What was the independent variable in this experiment?&lt;br /&gt;
+药丸类型（唑吡旦或安慰剂）是自变量。&lt;br /&gt;
+In an experimental study, unlike an observational study, it is valid to make causal conclusions since randomization minimizes the effect of lurking variables.What conclusions can you draw from the results of this experimental study?&lt;br /&gt;
+这项研究表明，在其他条件相同的情况下，唑吡旦比安慰剂更能改善睡眠质量。&lt;br /&gt;
+Note that while the operational definition of quality of sleep is the 10-point scale, the way we actually measure success comes from the difference in quality between groups.&lt;br /&gt;
+治疗成果的操作定义不是使用一个满分为10分的度量表。而是参与者的睡眠质量。&lt;/p&gt;
+
+&lt;h1 id=&quot;2018-05-11-数据可视化&quot;&gt;2018-05-11-数据可视化&lt;/h1&gt;
+&lt;h2 id=&quot;频率表&quot;&gt;频率表&lt;/h2&gt;
+&lt;p&gt;frequency 在中文中指频数，而relative frequency指的是频率（相对频数）&lt;br /&gt;
+&lt;strong&gt;频数&lt;/strong&gt;（频率）：个数&lt;br /&gt;
+&lt;strong&gt;相对频数&lt;/strong&gt;（相对频率）：比例或百分比,频数除以样本数&lt;br /&gt;
+1.展示方式1:用比例(小数)表示：0&amp;lt;=比例&amp;lt;=1 ,如0.23&lt;br /&gt;
+2.展示方式2:百分比表示：0%&amp;lt;=百分比&amp;lt;=100% ,如23%&lt;br /&gt;
+&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-10-频率表.png?raw=true&quot; alt=&quot;table&quot; /&gt;&lt;br /&gt;
+对于任何频率表，所有相对频率之和应当等于1。&lt;br /&gt;
+表格的行数,取决于你如何去整理数据。&lt;br /&gt;
+&lt;strong&gt;区间&lt;/strong&gt;（interval）、&lt;strong&gt;容器&lt;/strong&gt;（bin）、桶（bucket）:每行选择一个范围，如0-19、20-39&lt;br /&gt;
+&lt;strong&gt;组距&lt;/strong&gt;：是指对频率进行计数的区间，如为20 &lt;br /&gt;
+一组混乱无章的数据，可以通过频率表描述数据可视化。&lt;/p&gt;
+&lt;h2 id=&quot;直方图&quot;&gt;直方图&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;X轴&lt;/strong&gt;上：变量，是可以量化的值，可划分组距（如年龄的值）-区分柱状图 &lt;br /&gt;
+&lt;strong&gt;Y轴&lt;/strong&gt;上：只是频率&lt;br /&gt;
+两个轴的交叉点是&lt;strong&gt;原点&lt;/strong&gt;，&lt;strong&gt;笛卡尔坐标是(0,0)&lt;/strong&gt;。 &lt;br /&gt;
+&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-10-直方图.png?raw=true&quot; alt=&quot;histogram&quot; /&gt; &lt;br /&gt;
+组距大小（区间大小），可以创建任何组距大小的直方图，Interactivate直方图软件。&lt;br /&gt;
+组距越大，每个区间内观察值越多。&lt;br /&gt;
+组距大小取决于需要多大的分组、回答什么养的问题、需要多少详细信息。选择的组距大小在某些情况下可能会牺牲一些信息。&lt;br /&gt;
+每个长条上的数字可代表其频率。&lt;/p&gt;
+&lt;h2 id=&quot;直方图和柱状图区别&quot;&gt;直方图和柱状图区别&lt;/h2&gt;
+&lt;p&gt;&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-10-直方图与柱状图.png?raw=true&quot; alt=&quot;different&quot; /&gt;&lt;br /&gt;
+&lt;strong&gt;柱状图（BAR GRAPH）&lt;/strong&gt;：&lt;br /&gt;
+柱之间的空间表示每个柱都是独特的类别，无法更改组距；柱状图可能会根据需要回答的问题，按照一定顺序排列柱状物，这样可以轻松的从x轴寻找到任何内容；柱状图的形状是任意的，取决于如何在x轴上排列各个类别；x轴上的变量通常是分类或者定性的(categorical/qualitative)；注意y轴上的值，划分可能不同。&lt;br /&gt;
+&lt;strong&gt;直方图（Histogram）&lt;/strong&gt;：&lt;br /&gt;
+是同一个类别，可以选择任何区间或组距；直方图的形状非常重要；对于直方图来说x轴上的变量是值（numerical/quantitative），是可以量化的。&lt;/p&gt;
+&lt;h2 id=&quot;基础概念&quot;&gt;基础概念&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;正态分布&lt;/strong&gt;：&lt;br /&gt;
+&lt;a href=&quot;https://baike.baidu.com/item/正态分布/829892?fr=aladdin&quot;&gt;正态分布百度百科&lt;/a&gt; &lt;br /&gt;
+&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-10-正态分布.png?raw=true&quot; alt=&quot;正态分布&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;正态分布峰值：众数；形状大致对称；大多数都在中间位置&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;偏斜分布&lt;/strong&gt;：&lt;br /&gt;
+当多数数据集中在曲线的一端，而少数数据在曲线的另一端，数据分布的形态就产生了偏斜。当偏斜的一边的趋向正数的方向，叫正偏态。当偏斜的一边的趋向负数的方向叫负偏态。&lt;br /&gt;
+&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-10-偏斜分布.png?raw=true&quot; alt=&quot;偏斜分布&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～&lt;br /&gt;
+©商业转载请联系作者获得授权，非商业转载请注明出处。&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="机器学习" /><category term="描述统计学" /><summary type="html">本文关于自学udacity机器学习课程的自学笔记，为第一部分，描述统计学入门。 2018-05-08-研究方法入门 基本概念 抽象概念（constructs） 操作性定义：一种将构造（constructs）转变为我们可衡量的变量的方式；一种用我们衡量它的方式描述变量的方式。 总体参数μ：描述整个总体的平均值 样本统计量：样本的平均值 样本大小n 抽样误差μ-：样本平均值和总体平均值之间的差异。在使用一个样本对一个总体进行推理时，样本的平均值可能不会完全等于总体的平均值。 用来估计μ，估计值是对μ的最佳猜测。 好样本：大、随机无偏差 随机样本：每个对象被选中的概率都是一样的。 可视化关系-eg 散点图 散点图： 1.x轴上变量：自变量（independent variable）或预测变量（predictor variable） 2.y轴上变量：因变量（dependent variable）即结果（outcome）</summary></entry><entry><title type="html">Kerberos具体实践1-Kerberos环境准备及安装</title><link href="http://localhost:4000/bigdata/2018/05/05/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B51-Kerberos%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%E5%8F%8A%E5%AE%89%E8%A3%85/" rel="alternate" type="text/html" title="Kerberos具体实践1-Kerberos环境准备及安装" /><published>2018-05-05T00:00:00+08:00</published><updated>2018-05-05T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/05/05/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B51-Kerberos%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%E5%8F%8A%E5%AE%89%E8%A3%85</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/05/05/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B51-Kerberos%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%E5%8F%8A%E5%AE%89%E8%A3%85/">&lt;blockquote&gt;
   &lt;p&gt;本文属于Kerberos具体实践整理的第一部分，主要涉及到Kerberos集群的安装以及基本命令的使用。&lt;/p&gt;
 &lt;/blockquote&gt;
 
