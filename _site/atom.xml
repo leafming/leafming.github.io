@@ -1,4 +1,76 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-05-16T17:19:27+08:00</updated><id>http://localhost:4000/</id><title type="html">iLeaf</title><subtitle>Yesterday you said tomorrow.</subtitle><author><name>Liv Yeh</name></author><entry><title type="html">机器学习入门自学-描述统计学入门</title><link href="http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/10/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A8/" rel="alternate" type="text/html" title="机器学习入门自学-描述统计学入门" /><published>2018-05-10T00:00:00+08:00</published><updated>2018-05-10T00:00:00+08:00</updated><id>http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/10/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A8</id><content type="html" xml:base="http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/10/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A8/">&lt;blockquote&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-05-17T16:58:43+08:00</updated><id>http://localhost:4000/</id><title type="html">iLeaf</title><subtitle>Yesterday you said tomorrow.</subtitle><author><name>Liv Yeh</name></author><entry><title type="html">机器学习入门自学-描述统计学入门2</title><link href="http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/16/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A82/" rel="alternate" type="text/html" title="机器学习入门自学-描述统计学入门2" /><published>2018-05-16T00:00:00+08:00</published><updated>2018-05-16T00:00:00+08:00</updated><id>http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/16/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A82</id><content type="html" xml:base="http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/16/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A82/">&lt;blockquote&gt;
+  &lt;p&gt;本文关于自学udacity机器学习课程的自学笔记，为第一部分，描述统计学入门。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h1 id=&quot;2018-05-16-可变性&quot;&gt;2018-05-16-可变性&lt;/h1&gt;
+&lt;p&gt;&lt;strong&gt;范围(值域)&lt;/strong&gt;是观察到的最大值和最小值之间的差。&lt;br /&gt;
+值域不包括细节信息，因为值域是仅仅在2个数据的基础上得出的。&lt;br /&gt;
+异常数值增大差异性，值域作为度量标准时，有异常数值，值域不可能准确的代表数据的差异性。&lt;/p&gt;
+
+&lt;h2 id=&quot;忽略尾部&quot;&gt;忽略尾部&lt;/h2&gt;
+&lt;p&gt;处理异常数值：处理异常数值的一种方法就是忽略分布中的上尾和下尾。习惯上，统计学家会忽略较低的25%和较高的25%。
+虽然建议去除上下各25%的数据点，但我们在去除数据点时还需要特别谨慎，特别是在数据量不大的情况下，去除一半的数据点&amp;gt;会让我们丢失大量数据的信息。&lt;br /&gt;
+一般来说，在去除数据点前，我们建议首先将数据点通过图像表述出来（直方图、散点图、箱线图等），这样可以帮助你获得对数据整理分析的了解。然后，基于项目的背景，判断你更关心数据的哪一部分（大多数正常数据，还是小部分异常数据），因为在一些项目背景下，你可能更关心那些异常值。最后，是基于现有的数据量作出决定，究竟是直接丢弃部分数据还是对部分作出调整，亦或是有保留地接受所有数据。特别记住一点，没有一种分析方法100%正确，但我们总可以尝试根据不同的需求找到一种最合理的方法。&lt;/p&gt;
+
+&lt;h2 id=&quot;四分位差&quot;&gt;四分位差&lt;/h2&gt;
+&lt;p&gt;找出方法：排序的数据集，从中间分成2半，再找一半的中位数。&lt;br /&gt;
+第一个四分位数：称为总体的&lt;strong&gt;Q1&lt;/strong&gt;&lt;br /&gt;
+中位数：Q2&lt;br /&gt;
+第三个四分位：称为总体的&lt;strong&gt;Q3&lt;/strong&gt;&lt;br /&gt;
+&lt;strong&gt;四分位差(IQR)&lt;/strong&gt;：Q3-Q1 能表示图的差异性。&lt;br /&gt;
+几乎50%的数据在IQR间。&lt;br /&gt;
+IQR不受异常值的影响。&lt;br /&gt;
+The Interquartile range (IQR) is the distance be- tween the 1st quartile and 3rd quartile and gives us the range of the middle 50% of our data. The IQR is easily found by computing: Q3-Q1.&lt;/p&gt;
+
+&lt;h2 id=&quot;异常值&quot;&gt;异常值&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;异常值&lt;/strong&gt;：如果一个值小于Q1减去1.5倍的IQR或者大于Q3加上1.5倍IQR，则这个数就被认为是异常数值。&lt;br /&gt;
+Lower Outliers &amp;lt; Q1-1.5(IQR)&lt;br /&gt;
+Upper Outliers &amp;gt; Q3+1.5(IQR)&lt;/p&gt;
+
+&lt;h2 id=&quot;箱线图&quot;&gt;箱线图&lt;/h2&gt;
+&lt;p&gt;表示中位数、四分位差、最小值和最大值有效。&lt;br /&gt;
+&lt;strong&gt;箱线图（盒须图）&lt;/strong&gt;：直观的表示四分位数和异常数值。箱线图外面的点表示异常值，在此上下文中，“min”和“max”是指样本中不包括异常值在内的最小值和最大值。箱线图的方向可以有不同。&lt;br /&gt;
+&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-16-箱线图.png?raw=true&quot; alt=&quot;普通箱线图例子&quot; /&gt;&lt;br /&gt;
+箱线图的对比，箱线图与直方图连线对应：&lt;br /&gt;
+&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-16-箱线图与分布图连线对应.png?raw=true&quot; alt=&quot;箱线图和直方图对应连线例子&quot; /&gt;&lt;br /&gt;
+值域和IQR都无法将所有数据集考虑进来，完全不相同的两个数据集也可能有相同的IQR，不同的图可能有相同的箱线图。&lt;br /&gt;
+&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-16-不同图IQR相同.png?raw=true&quot; alt=&quot;不同图相同IQR&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;基础概念&quot;&gt;基础概念&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;离均差&lt;/strong&gt;(Deviation from Mean)：用每个值减去平均值 &lt;script type=&quot;math/tex&quot;&gt;x_{i}-\overline{x}&lt;/script&gt; （减的顺序保持一致）。&lt;br /&gt;
+&lt;strong&gt;平均偏差&lt;/strong&gt;：计算离均差的平均值。&lt;script type=&quot;math/tex&quot;&gt;\frac{\sum(x_{i}-\overline{x}) }{n}&lt;/script&gt;&lt;br /&gt;
+&lt;strong&gt;绝对偏差&lt;/strong&gt;(Absolute Deviations)：&lt;script type=&quot;math/tex&quot;&gt;|x_{i}-\overline{x}|&lt;/script&gt;&lt;br /&gt;
+&lt;strong&gt;平均绝对偏差&lt;/strong&gt;(Average Absolute Deviation)：各次测量值的绝对偏差绝对值的平均值。 &lt;script type=&quot;math/tex&quot;&gt;\overline{d}=\frac{\sum_{i=1}^{n}|x_{i}-\overline{x}|}{n}=\sum (\frac{|x_{i}-\overline{x}|}{n})&lt;/script&gt;&lt;br /&gt;
+&lt;strong&gt;相对平均偏差&lt;/strong&gt;：指平均偏差占平均值的百分率。&lt;script type=&quot;math/tex&quot;&gt;R\overline{d}=\frac{\overline{d}}{ \overline{x}}&lt;/script&gt;*100%&lt;br /&gt;
+&lt;strong&gt;平方偏差&lt;/strong&gt;(Squared Deviation)：&lt;script type=&quot;math/tex&quot;&gt;\left ( x_{i}-\overline{x} \right )^{2}&lt;/script&gt;&lt;br /&gt;
+&lt;strong&gt;平方和&lt;/strong&gt;SS(sum of squares)：&lt;script type=&quot;math/tex&quot;&gt;\sum_{i=1}^{n} \left ( x_{i}-\overline{x} \right )^{2}&lt;/script&gt;&lt;/p&gt;
+
+&lt;p&gt;因为抽样往往是总体居于中间的值，因此抽样中的差异性将少于整个总体的差异性，所以使用贝塞尔校正系数：将除以n换为除以n-1。&lt;br /&gt;
+&lt;strong&gt;平均平方偏差&lt;/strong&gt;（Arerage Square Deviation）-&lt;strong&gt;方差&lt;/strong&gt;：平方偏差的均值 &lt;script type=&quot;math/tex&quot;&gt;\frac{\sum_{i=1}^{n} \left ( x_{i}-\overline{x} \right )^{2}}{n}&lt;/script&gt;，贝塞尔校正后的方差(样本方差)&lt;script type=&quot;math/tex&quot;&gt;s^{2}=\frac{\sum_{i=1}^{n} \left ( x_{i}-\overline{x} \right )^{2}}{n-1}&lt;/script&gt;&lt;br /&gt;
+&lt;strong&gt;标准偏差（标准差）(standard deviation)&lt;/strong&gt;：最常用的分布测量方法,平均平方偏差的平方根;方差的平方根(平方偏差的和除以n，再开平方)。&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;样本标准差&lt;/strong&gt;(standard deviation of sample): &lt;script type=&quot;math/tex&quot;&gt;s=\sqrt{\frac{\sum_{i=1}^{n}\left ( x_{i}-\overline{x} \right )^{2}}{n-1}}&lt;/script&gt;,&lt;script type=&quot;math/tex&quot;&gt;\overline{x}&lt;/script&gt;代表样本的X1,X2,…,Xn的均值。-估算总体标准差。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;总体标准差&lt;/strong&gt;(standard deviation of population): &lt;script type=&quot;math/tex&quot;&gt;\sigma=\sqrt{\frac{\sum_{i=1}^{n}\left ( x_{i}-\mu \right )^{2}}{n}}&lt;/script&gt;,&lt;script type=&quot;math/tex&quot;&gt;\sigma&lt;/script&gt;代表总体X的均值。-计算数据集自己的标准差。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;strong&gt;如果使用这个数据集估算此样本所属的较大型总体的标准差，要除以n-1，即使用样本标准差公式。如果这个数据集较小，计算这个数据集自己的标准差，则除以n，即使用总体标准差公式。&lt;/strong&gt;&lt;br /&gt;
+计算过程：求平均值、求离均差、再求每个偏差
+的平方、再取平均值、在取平方根。  &lt;br /&gt;
+&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-16-方差到标准方差.png?raw=true&quot; alt=&quot;方差到标准方差&quot; /&gt; &lt;br /&gt;
+&lt;strong&gt;相对标准偏差&lt;/strong&gt;：指标准偏差占平均值的百分率，又称为变异系数(CV)，通常用RSD表示。&lt;script type=&quot;math/tex&quot;&gt;RSD=\frac{s}{\overline{x}}&lt;/script&gt;*100%&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;平均绝对离差&lt;/strong&gt;：平均绝对离差(mean absolute deviation)是用样本数据相对于其平均值的绝对距离来度量数据的离散程度。平均绝对离差也称为平均离差(mean deviation)。平均绝对离差定义为各数据与平均值的离差的绝对值的平均数。&lt;br /&gt;
+设样本的n个观测值为x1,x2..xn，平均绝对离差为：&lt;br /&gt;
+&lt;script type=&quot;math/tex&quot;&gt;M_{D}=\frac{1}{n}\sum_{i=1}^{n}|x_{i}-\overline{x}|&lt;/script&gt;&lt;br /&gt;
+对于分组数据，平均绝对离差为：&lt;br /&gt;
+&lt;script type=&quot;math/tex&quot;&gt;M_{D}=\frac{\sum_{i=1}^{k}f_{i}\left|x_{i} -\overline{x}\right|}{\sum_{i=1}^{k}f_{i}}&lt;/script&gt;&lt;br /&gt;
+其中&lt;script type=&quot;math/tex&quot;&gt;f_{i}&lt;/script&gt;,&lt;script type=&quot;math/tex&quot;&gt;x_{i}&lt;/script&gt;分别为第i(i=1,2…,k)组数据的频数及组中值，k为数据分组的组数。&lt;/p&gt;
+
+&lt;h2 id=&quot;标准差重要性&quot;&gt;标准差重要性&lt;/h2&gt;
+&lt;p&gt;在正态分布中，数据均匀分布，平均值=中位数=众数，并且位于分布的中心。&lt;strong&gt;大约68%的数据与平均值的偏差不超过1个标准差；95%的数据与平均值的偏差不超过2个标准差。&lt;/strong&gt;&lt;br /&gt;
+&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-17-正态分布与标准差.png?raw=true&quot; alt=&quot;正态分布与标准差&quot; /&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;2018-05-17-归一化&quot;&gt;2018-05-17 归一化&lt;/h1&gt;</content><author><name>Liv Yeh</name></author><category term="机器学习" /><category term="描述统计学" /><summary type="html">本文关于自学udacity机器学习课程的自学笔记，为第一部分，描述统计学入门。 2018-05-16-可变性 范围(值域)是观察到的最大值和最小值之间的差。 值域不包括细节信息，因为值域是仅仅在2个数据的基础上得出的。 异常数值增大差异性，值域作为度量标准时，有异常数值，值域不可能准确的代表数据的差异性。 忽略尾部 处理异常数值：处理异常数值的一种方法就是忽略分布中的上尾和下尾。习惯上，统计学家会忽略较低的25%和较高的25%。 虽然建议去除上下各25%的数据点，但我们在去除数据点时还需要特别谨慎，特别是在数据量不大的情况下，去除一半的数据点&amp;gt;会让我们丢失大量数据的信息。 一般来说，在去除数据点前，我们建议首先将数据点通过图像表述出来（直方图、散点图、箱线图等），这样可以帮助你获得对数据整理分析的了解。然后，基于项目的背景，判断你更关心数据的哪一部分（大多数正常数据，还是小部分异常数据），因为在一些项目背景下，你可能更关心那些异常值。最后，是基于现有的数据量作出决定，究竟是直接丢弃部分数据还是对部分作出调整，亦或是有保留地接受所有数据。特别记住一点，没有一种分析方法100%正确，但我们总可以尝试根据不同的需求找到一种最合理的方法。 四分位差 找出方法：排序的数据集，从中间分成2半，再找一半的中位数。 第一个四分位数：称为总体的Q1 中位数：Q2 第三个四分位：称为总体的Q3 四分位差(IQR)：Q3-Q1 能表示图的差异性。 几乎50%的数据在IQR间。 IQR不受异常值的影响。 The Interquartile range (IQR) is the distance be- tween the 1st quartile and 3rd quartile and gives us the range of the middle 50% of our data. The IQR is easily found by computing: Q3-Q1. 异常值 异常值：如果一个值小于Q1减去1.5倍的IQR或者大于Q3加上1.5倍IQR，则这个数就被认为是异常数值。 Lower Outliers &amp;lt; Q1-1.5(IQR) Upper Outliers &amp;gt; Q3+1.5(IQR) 箱线图 表示中位数、四分位差、最小值和最大值有效。 箱线图（盒须图）：直观的表示四分位数和异常数值。箱线图外面的点表示异常值，在此上下文中，“min”和“max”是指样本中不包括异常值在内的最小值和最大值。箱线图的方向可以有不同。 箱线图的对比，箱线图与直方图连线对应： 值域和IQR都无法将所有数据集考虑进来，完全不相同的两个数据集也可能有相同的IQR，不同的图可能有相同的箱线图。 基础概念 离均差(Deviation from Mean)：用每个值减去平均值 （减的顺序保持一致）。 平均偏差：计算离均差的平均值。 绝对偏差(Absolute Deviations)： 平均绝对偏差(Average Absolute Deviation)：各次测量值的绝对偏差绝对值的平均值。 相对平均偏差：指平均偏差占平均值的百分率。*100% 平方偏差(Squared Deviation)： 平方和SS(sum of squares)： 因为抽样往往是总体居于中间的值，因此抽样中的差异性将少于整个总体的差异性，所以使用贝塞尔校正系数：将除以n换为除以n-1。 平均平方偏差（Arerage Square Deviation）-方差：平方偏差的均值 ，贝塞尔校正后的方差(样本方差) 标准偏差（标准差）(standard deviation)：最常用的分布测量方法,平均平方偏差的平方根;方差的平方根(平方偏差的和除以n，再开平方)。 样本标准差(standard deviation of sample): ,代表样本的X1,X2,…,Xn的均值。-估算总体标准差。 总体标准差(standard deviation of population): ,代表总体X的均值。-计算数据集自己的标准差。 如果使用这个数据集估算此样本所属的较大型总体的标准差，要除以n-1，即使用样本标准差公式。如果这个数据集较小，计算这个数据集自己的标准差，则除以n，即使用总体标准差公式。 计算过程：求平均值、求离均差、再求每个偏差 的平方、再取平均值、在取平方根。 相对标准偏差：指标准偏差占平均值的百分率，又称为变异系数(CV)，通常用RSD表示。*100% 平均绝对离差：平均绝对离差(mean absolute deviation)是用样本数据相对于其平均值的绝对距离来度量数据的离散程度。平均绝对离差也称为平均离差(mean deviation)。平均绝对离差定义为各数据与平均值的离差的绝对值的平均数。 设样本的n个观测值为x1,x2..xn，平均绝对离差为： 对于分组数据，平均绝对离差为： 其中,分别为第i(i=1,2…,k)组数据的频数及组中值，k为数据分组的组数。 标准差重要性 在正态分布中，数据均匀分布，平均值=中位数=众数，并且位于分布的中心。大约68%的数据与平均值的偏差不超过1个标准差；95%的数据与平均值的偏差不超过2个标准差。 2018-05-17 归一化</summary></entry><entry><title type="html">机器学习入门自学-描述统计学入门1</title><link href="http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/10/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A81/" rel="alternate" type="text/html" title="机器学习入门自学-描述统计学入门1" /><published>2018-05-10T00:00:00+08:00</published><updated>2018-05-10T00:00:00+08:00</updated><id>http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/10/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A81</id><content type="html" xml:base="http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/10/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A81/">&lt;blockquote&gt;
   &lt;p&gt;本文关于自学udacity机器学习课程的自学笔记，为第一部分，描述统计学入门。&lt;/p&gt;
 &lt;/blockquote&gt;
 
@@ -261,37 +333,6 @@ AMale  BFemale  C1000  D7000&lt;br /&gt;
 众数均为40000-50000&lt;br /&gt;
 平均值50000&lt;br /&gt;
 中间数也差不多在中间&lt;/p&gt;
-
-&lt;h1 id=&quot;2018-05-16-可变性&quot;&gt;2018-05-16-可变性&lt;/h1&gt;
-&lt;p&gt;&lt;strong&gt;范围(值域)&lt;/strong&gt;是观察到的最大值和最小值之间的差。&lt;br /&gt;
-值域不包括细节信息，因为值域是仅仅在2个数据的基础上得出的。&lt;br /&gt;
-异常数值增大差异性，值域作为度量标准时，有异常数值，值域不可能准确的代表数据的差异性。&lt;/p&gt;
-&lt;h2 id=&quot;忽略尾部&quot;&gt;忽略尾部&lt;/h2&gt;
-&lt;p&gt;处理异常数值：处理异常数值的一种方法就是忽略分布中的上尾和下尾。习惯上，统计学家会忽略较低的25%和较高的25%。&lt;br /&gt;
-虽然建议去除上下各25%的数据点，但我们在去除数据点时还需要特别谨慎，特别是在数据量不大的情况下，去除一半的数据点会让我们丢失大量数据的信息。&lt;br /&gt;
-一般来说，在去除数据点前，我们建议首先将数据点通过图像表述出来（直方图、散点图、箱线图等），这样可以帮助你获得对数据整理分析的了解。然后，基于项目的背景，判断你更关心数据的哪一部分（大多数正常数据，还是小部分异常数据），因为在一些项目背景下，你可能更关心那些异常值。最后，是基于现有的数据量作出决定，究竟是直接丢弃部分数据还是对部分作出调整，亦或是有保留地接受所有数据。特别记住一点，没有一种分析方法100%正确，但我们总可以尝试根据不同的需求找到一种最合理的方法。&lt;/p&gt;
-&lt;h2 id=&quot;四分位差&quot;&gt;四分位差&lt;/h2&gt;
-&lt;p&gt;找出方法：排序的数据集，从中间分成2半，再找一半的中位数。&lt;br /&gt;
-第一个四分位数：称为总体的&lt;strong&gt;Q1&lt;/strong&gt;&lt;br /&gt;
-中位数：Q2&lt;br /&gt;
-第三个四分位：称为总体的&lt;strong&gt;Q3&lt;/strong&gt;&lt;br /&gt;
-&lt;strong&gt;四分位差(IQR)&lt;/strong&gt;：Q3-Q1 能表示图的差异性。&lt;br /&gt;
-几乎50%的数据在IQR间。&lt;br /&gt;
-IQR不受异常值的影响。 
-The Interquartile range (IQR) is the distance be- tween the 1st quartile and 3rd quartile and gives us the range of the middle 50% of our data. The IQR is easily found by computing: Q3-Q1.&lt;/p&gt;
-
-&lt;h2 id=&quot;异常值&quot;&gt;异常值&lt;/h2&gt;
-&lt;p&gt;&lt;strong&gt;异常值&lt;/strong&gt;：如果一个值小于Q1减去1.5倍的IQR或者大于Q3加上1.5倍IQR，则这个数就被认为是异常数值。&lt;br /&gt;
-Lower Outliers &amp;lt; Q1-1.5(IQR)&lt;br /&gt;
-Upper Outliers &amp;gt; Q3+1.5(IQR)&lt;/p&gt;
-
-&lt;h2 id=&quot;箱线图-表示中位数四分位差最小值和最大值有效&quot;&gt;箱线图-表示中位数、四分位差、最小值和最大值有效。&lt;/h2&gt;
-&lt;p&gt;&lt;strong&gt;箱线图（盒须图）&lt;/strong&gt;：直观的表示四分位数和异常数值。箱线图外面的点表示异常值，在此上下文中，“min”和“max”是指样本中不包括异常值在内的最小值和最大值。箱线图的方向可以有不同。&lt;br /&gt;
-&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-16-箱线图.png?raw=true&quot; alt=&quot;普通箱线图例子&quot; /&gt;  &lt;br /&gt;
-箱线图的对比，箱线图与直方图连线对应：&lt;br /&gt;
-&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-16-箱线图与分布图连线对应.png?raw=true&quot; alt=&quot;箱线图和直方图对应连线例子&quot; /&gt;&lt;br /&gt;
-值域和IQR都无法将所有数据集考虑进来，完全不相同的两个数据集也可能有相同的IQR，不同的图可能有相同的箱线图。&lt;br /&gt;
-&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-16-不同图IQR相同.png?raw=true&quot; alt=&quot;不同图相同IQR&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～&lt;br /&gt;
 ©商业转载请联系作者获得授权，非商业转载请注明出处。&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="机器学习" /><category term="描述统计学" /><summary type="html">本文关于自学udacity机器学习课程的自学笔记，为第一部分，描述统计学入门。 2018-05-08-研究方法入门 基本概念 抽象概念（constructs） 操作性定义：一种将构造（constructs）转变为我们可衡量的变量的方式；一种用我们衡量它的方式描述变量的方式。 总体参数μ：描述整个总体的平均值 样本统计量：样本的平均值 样本大小n 抽样误差μ-：样本平均值和总体平均值之间的差异。在使用一个样本对一个总体进行推理时，样本的平均值可能不会完全等于总体的平均值。 用来估计μ，估计值是对μ的最佳猜测。 好样本：大、随机无偏差 随机样本：每个对象被选中的概率都是一样的。 可视化关系-eg 散点图 散点图： 1.x轴上变量：自变量（independent variable）或预测变量（predictor variable） 2.y轴上变量：因变量（dependent variable）即结果（outcome）</summary></entry><entry><title type="html">Kerberos具体实践1-Kerberos环境准备及安装</title><link href="http://localhost:4000/bigdata/2018/05/05/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B51-Kerberos%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%E5%8F%8A%E5%AE%89%E8%A3%85/" rel="alternate" type="text/html" title="Kerberos具体实践1-Kerberos环境准备及安装" /><published>2018-05-05T00:00:00+08:00</published><updated>2018-05-05T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/05/05/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B51-Kerberos%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%E5%8F%8A%E5%AE%89%E8%A3%85</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/05/05/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B51-Kerberos%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%E5%8F%8A%E5%AE%89%E8%A3%85/">&lt;blockquote&gt;
