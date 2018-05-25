@@ -1,5 +1,186 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-05-17T16:58:43+08:00</updated><id>http://localhost:4000/</id><title type="html">iLeaf</title><subtitle>Yesterday you said tomorrow.</subtitle><author><name>Liv Yeh</name></author><entry><title type="html">机器学习入门自学-描述统计学入门2</title><link href="http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/16/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A82/" rel="alternate" type="text/html" title="机器学习入门自学-描述统计学入门2" /><published>2018-05-16T00:00:00+08:00</published><updated>2018-05-16T00:00:00+08:00</updated><id>http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/16/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A82</id><content type="html" xml:base="http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/16/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A82/">&lt;blockquote&gt;
-  &lt;p&gt;本文关于自学udacity机器学习课程的自学笔记，为第一部分，描述统计学入门。&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-05-25T17:37:12+08:00</updated><id>http://localhost:4000/</id><title type="html">iLeaf</title><subtitle>Yesterday you said tomorrow.</subtitle><author><name>Liv Yeh</name></author><entry><title type="html">spark日志相关内容</title><link href="http://localhost:4000/bigdata/2018/05/21/spark%E6%97%A5%E5%BF%97%E7%9B%B8%E5%85%B3%E5%86%85%E5%AE%B9/" rel="alternate" type="text/html" title="spark日志相关内容" /><published>2018-05-21T00:00:00+08:00</published><updated>2018-05-21T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/05/21/spark%E6%97%A5%E5%BF%97%E7%9B%B8%E5%85%B3%E5%86%85%E5%AE%B9</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/05/21/spark%E6%97%A5%E5%BF%97%E7%9B%B8%E5%85%B3%E5%86%85%E5%AE%B9/">&lt;blockquote&gt;
+  &lt;p&gt;本文主要关于spark日志相关的部分内容，包括spark日志位置以及其中一种&amp;gt;日志配置方法，后续可再对本文进行其他配置方法的补充。&lt;br /&gt;
+&lt;strong&gt;注意: 本文中使用的版本是spark2.2.1&lt;/strong&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;最近平台中某租户使用的容器化集群spark集群，提交的spark  streaming任务的日志没有进行级别控制，疯狂的刷日志，导致会占满宿主机的存储空间，并且集群均使用的是standalone模式，没有配置删除日志，所以日志太多会影响同一个宿主机下其他租户spark的使用。因此，在今天进行了一下集群的全局配置，直接将日志级别进行了更改，并且也趁这个时间，总结下对于spark日志相关的部分内容，后续有时间再进行其他补充。&lt;/p&gt;
+
+&lt;h1 id=&quot;spark应用程序运行日志的存放&quot;&gt;Spark应用程序运行日志的存放&lt;/h1&gt;
+&lt;p&gt;在很多情况下，我们需要查看driver和executor在运行spark程序时候产生的日志，以便于我们调试和查找问题。&lt;/p&gt;
+&lt;h2 id=&quot;driver端日志&quot;&gt;Driver端日志&lt;/h2&gt;
+&lt;p&gt;Spark Driver端的日志在默认情况下是直接输出在控制台的，driver本身没有stderr和stdout文件，所以只能在控制台输出。不过可以通过配置，将日志打印到文件中，具体配置方式后续再进行说明。&lt;/p&gt;
+&lt;h2 id=&quot;executor端日志&quot;&gt;Executor端日志&lt;/h2&gt;
+&lt;p&gt;Spark Executor日志的存放位置，是与Spark的部署模式相关的；Spark目前3种部署方式：Spark Standalone、Mesos、YARN。&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Spark Standalone模式：在spark standalone的部署模式下，可以直接在Master UI界面查看到相应的应用程序的日志，如下图。其中可以看到是有stderr和stdout两种日志，区别就是如果你在程序中使用了println(….)输出语句，并且位置是在executor端执行的，这些信息会在stdout文件里面显示，而在driver端执行的会直接在控制台输出；其余的Spark运行日志会在stderr文件里面显示。&lt;br /&gt;
+&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/spark/2018-05-21-sparkStandaloneLogUI.png?raw=true&quot; alt=&quot;standaloneUI日志&quot; /&gt;&lt;br /&gt;
+通常，每个job的详细日志输出是在每个worker（slave）节点的work目录下，这个目录可以通过spark-env.sh下配置SPARK_WORKER_DIR参数（Directory to run applications in, which will include both logs and scratch space，默认情况下是SPARK_HOME/work）设置。&lt;br /&gt;
+&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/spark/2018-05-23-work目录下内容.png?raw=true&quot; alt=&quot;work目录下内容&quot; /&gt;&lt;br /&gt;
+此部分，可以进行worker配置使日志自动删除，详情见后续“配置日志”部分。&lt;/li&gt;
+  &lt;li&gt;Mesos模式：在Mesos模式下，也可以通过Mesos的Master UI界面上看到相关的应用程序日志，这些日志是存储在Mesos Slave的work目录下的，通常情况下通过修改mesos-slave-env.sh或mesos-master-env.sh文件下的MESOS_log_dir参数和MESOS_work_dir参数可以设置slave或master的日志目录和工作目录，默认情况下是master和slave的logs都在/var/log/mesos下。&lt;/li&gt;
+  &lt;li&gt;YARN模式：在yarn模式下，executor和application master都运行在“containers”内。&lt;br /&gt;
+YARN在一个application结束后，有2种处理容器内日志的方式。
+    &lt;ol&gt;
+      &lt;li&gt;其中在yarn模式下，最简单的收集日志的方式是使用Yarn的日志收集工具(yarn logs -applicationId &lt;app ID=&quot;&quot;&gt;)，这个工具可以收集应用程序的相关日志，但是要求:a.开启了日志聚合功能（yarn.log-aggregation-enable，默认情况下这参数是false）；b.application必须运行完，因为yarn必须先聚合这些日志。这种情况下，容器日志将被复制到HDFS，并删除本地日志，从而腾出更多空间。这样的话，这些日志可以在集群任何节点上用yarn logs命令查看：yarn logs -applicationId &lt;app ID=&quot;&quot;&gt;，用这个命令会打印出指定应用的所有日志文件的内容，或者也可以直接在HDFS上查看这些日志（HDFS shell或者HDFS API）。这个目录的配置可以在YARN配置中指定（yarn.nodemanager.remote-app-log-dir和yarn.nodemanager.remote-app-log-dir-suffix）。这些日志同样还可以在Spark Web UI上Executors页查看，但是也有前提，需要启动Spark history server和MapReduce history server，再在yarn-site.xml中配置好yarn.log.server.url。Spark history server UI将把你重定向到MapReduce history server以查看这些聚合日志。&lt;/app&gt;&lt;/app&gt;&lt;/li&gt;
+      &lt;li&gt;如果日志聚合没有开启，那么日志文件将在每台机器上的YARN_APP_LOGS_DIR目录保留，通常这个目录指向NodeManager节点(ResourceManager节点下没输出)的/tmp/logs或者$HADOOP_HOME/log/userlogs（这取决于Hadoop版本和安全方式）。查看日志的话，需要到每台机器上查看这些目录。子目录是按application ID和container ID来组织的。这些日志同样可以在 Spark Web UI上Executors页查看，而且这时你不需要运行MapReduce history server。这里还有一个需要注意的地方，在没有开启日志聚合的时候，有一个参数yarn.nodemanager.log.retain-seconds，这个参数指应用程序输入出日志的保存时间，默认是10800，单位s，也就是3个小时，所以有可能超过时间再去查看日志的时候，原来的运行日志就自动删除了。&lt;br /&gt;
+额外补充：在yarn模式下，kill掉某个job（直接在UI界面或者是终端kill掉任务都是不对的，该任务可能还会继续执行下去，所以要用如下命令才算完全停止该job的执行），yarn application -kill &lt;app ID=&quot;&quot;&gt;。&lt;/app&gt;&lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h1 id=&quot;配置日志&quot;&gt;配置日志&lt;/h1&gt;
+&lt;h2 id=&quot;standalone日志自动删除配置&quot;&gt;Standalone日志自动删除配置&lt;/h2&gt;
+&lt;p&gt;目前，在使用中，平台中的容器化的spark集群因为资源已经由docker+mesos+marathon控制了，一个集群只有一个租户使用，因此均是standalone模式部署的，不过在使用过程中，应用程序日志不会自动删除会占很大空间，因此进行了worker配置，使日志自动删除。&lt;br /&gt;
+其中，更改了conf/spark-env.sh，设置SPARK_WORKER_OPTS，即在文件内增加：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;export SPARK_WORKER_OPTS=&quot;-Dspark.worker.cleanup.enabled=true -Dspark.worker.cleanup.interval=3600 -Dspark.worker.cleanup.appDataTtl=604800 -Dspark.worker.ui.compressedLogFileLengthCacheSize=100&quot;  
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;参数解释：&lt;br /&gt;
+(1)spark.worker.cleanup.enabled（默认false）：仅在standalone模式下生效，开启后定期清理worker节点的worker目录下的应用程序日志，并且仅会清理已经停止的application日志。Enable periodic cleanup of worker / application directories. Note that this only affects standalone mode, as YARN works differently. Only the directories of stopped applications are cleaned up.&lt;br /&gt;
+(2)spark.worker.cleanup.interval（默认1800）：清理频率。Controls the interval, in seconds, at which the worker cleans up old application work dirs on the local machine.&lt;br /&gt;
+(3)spark.worker.cleanup.appDataTtl（604800(7days,7&lt;em&gt;24&lt;/em&gt;3600)）：The number of seconds to retain application work directories on each worker. This is a Time To Live and should depend on the amount of available disk space you have. Application logs and jars are downloaded to each application work dir. Over time, the work dirs can quickly fill up disk space, especially if you run jobs very frequently.&lt;br /&gt;
+(4)spark.worker.ui.compressedLogFileLengthCacheSize（默认100）：For compressed log files, the uncompressed file can only be computed by uncompressing the files. Spark caches the uncompressed file size of compressed log files. This property controls the cache size.&lt;/p&gt;
+
+&lt;h2 id=&quot;调试屏蔽日志&quot;&gt;调试屏蔽日志&lt;/h2&gt;
+&lt;p&gt;我们通常会使用IDE（例如Intellij IDEA）开发Spark应用，而程序调试运行时会在控制台中打印出所有的日志信息。它描述了（伪）集群运行、程序执行的所有行为。在很多情况下，这些信息对于我们来说是无关紧要的，我们更关心的是最终结果，无论是正常输出还是异常停止。我们可以通过log4j主动控制日志输出的级别。引入log4j.Logger和log4j.Level，并在对象中设置Logger.getLogger(“org”).setLevel(Level.ERROR)，其中getLogger(class)的参数用途是追踪产生此日志的类。&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;import org.apache.log4j.{Level, Logger}
+Logger.getLogger(&quot;org.apache.spark&quot;).setLevel(Level.WARN)
+Logger.getLogger(&quot;org.eclipse.jetty.server&quot;).setLevel(Level.OFF)
+Logger.getLogger(&quot;kafka.utils.VerifiableProperties&quot;).setLevel(Level.WARN)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;这样的话，就可以看到我们关心的信息了。&lt;br /&gt;
+补充说明参考：&lt;a href=&quot;https://blog.csdn.net/lixwjava/article/details/45950559&quot;&gt;使用一个类Log4jUtils来专门处理Logger对象的声明等操作&lt;/a&gt;。&lt;/p&gt;
+&lt;h2 id=&quot;spark日志级别设置-log4j&quot;&gt;spark日志级别设置-log4j&lt;/h2&gt;
+&lt;p&gt;在默认情况下，Spark应用程序的日志级别是INFO的，我们可以自定义Spark应用程序的日志输出级别，其中可以有多种方式：&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;局部应用设置：&lt;br /&gt;
+针对SparkContext应用，Spark有专门的api设置日志级别，即sc.setLogLevel(级别)，但是此方法只针对SparkContext相关的应用，而对Spark-streaming等应用无效果。&lt;/li&gt;
+  &lt;li&gt;局部应用设置：&lt;br /&gt;
+自己写一个log4j.properties文件，在里面设置日志级别，如：
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# Set everything to be logged to the console
+log4j.rootCategory=WARN, console
+log4j.appender.console=org.apache.log4j.ConsoleAppender
+log4j.appender.console.target=System.err
+log4j.appender.console.layout=org.apache.log4j.PatternLayout
+log4j.appender.console.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+    &lt;p&gt;这个文件设置了Spark应用程序在运行的时候会打出WARN级别的日志，然后在spark-submit提交应用程序的时候，通过–files参数，指定上述log4j.properties的文件路径，上传后即可即可使用这个配置打印应用程序的日志。&lt;br /&gt;
+问题：Note that for the first option, both executors and the application master will share the same log4j configuration, which may cause issues when they run on the same node (e.g. trying to write to the same log file).&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;局部应用设置：&lt;br /&gt;
+在spark-submit的时候，在spark.driver.extraJavaOptions（对Spark Driver）或者spark.executor.extraJavaOptions（对SparkExecutor）增加 -Dlog4j.configuration=&lt;location of=&quot;&quot; configuration=&quot;&quot; file=&quot;&quot;&gt;。但是在这里需要注意2个问题：如果使用了文件，需要protocol should be explicitly provided；并且这个文件需要存在在所有的节点上（and the file needs to exist locally on all the nodes）。&lt;/location&gt;&lt;/li&gt;
+  &lt;li&gt;集群全局配置：&lt;br /&gt;
+针对集群的log级别更改，可以到$SPARK_HOME/conf/log4j.properties文件里面进行修改，比如：
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# Set everything to be logged to the console
+log4j.rootCategory=WARN, console
+log4j.appender.console=org.apache.log4j.ConsoleAppender
+log4j.appender.console.target=System.err
+log4j.appender.console.layout=org.apache.log4j.PatternLayout
+log4j.appender.console.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+    &lt;p&gt;这样设置，即进行了全局日志的设置。&lt;br /&gt;
+在standalone模式下，如果不进行配置，集群默认使用的是org/apache/spark/log4j-defaults.properties配置，配置的话则如上操作。但是，如果在全局设置了之后，会同时生效Driver端和Executor端的日志级别。&lt;br /&gt;
+这次我在更改容器内集群的配置日志级别配置的时候，就是用的此种方式，但是在集群中运行的程序，会通过driver端输出Info日志来表示程序运行的状态，而executor端确实是不需要关注Info日志的内容，因此需要进行driver端和executor端日志分离的情况操作，详情见下下述“Spark Streaming中应用日志的切分”的操作。&lt;/p&gt;
+    &lt;h2 id=&quot;log4j其他配置&quot;&gt;log4j其他配置&lt;/h2&gt;
+    &lt;p&gt;在yarn模式下：&lt;br /&gt;
+If you need a reference to the proper location to put log files in the YARN so that YARN can properly display and aggregate them, use spark.yarn.app.container.log.dir in your log4j.properties. For example,&lt;/p&gt;
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; log4j.appender.file_appender.File=${spark.yarn.app.container.log.dir}/spark.log
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+    &lt;p&gt;For streaming applications, configuring RollingFileAppender and setting file location to YARN’s log directory will avoid disk overflow caused by large log files, and logs can be accessed using YARN’s log utility.&lt;br /&gt;
+翻译：&lt;br /&gt;
+如果你需要引用YARN放置日志文件的路径，以便YARN可以正确地展示和聚合日志，请在log4j.properties文件中使用spark.yarn.app.container.log.dir。例如，&lt;/p&gt;
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;log4j.appender.file_appender.File=${spark.yarn.app.container.log.dir}/spark.log
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+    &lt;p&gt;对于流式应用，可以配置RollingFileAppender，并将文件路径设置为YARN日志目录，以避免磁盘打满，而且这些日志还可以利用YARN的日志工具访问和查看。&lt;/p&gt;
+    &lt;h2 id=&quot;spark-streaming中应用的日志切分&quot;&gt;Spark Streaming中应用的日志切分&lt;/h2&gt;
+    &lt;p&gt;目前我们所用的集群是standalone模式，在Spark Standalone模式下，spark默认使用org/apache/spark/log4j-defaults.properties配置，所有的日志都记录在stderr里面，由于Spark Streaming应用程序是一直运行的，时间长了以后stderr文件会非常大，占用空间的同时难以让我们调试和定位问题，所以我们需要切分日志，spark原生提供了对Executor日志的切分，Driver日志需要我们单独配置log4j。&lt;/p&gt;
+    &lt;h3 id=&quot;executor端日志切分在spark应用环境变量中配置&quot;&gt;Executor端日志切分，在spark应用环境变量中配置：&lt;/h3&gt;
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;spark.executor.logs.rolling.strategy  time  //可以按日期（time）和日志大小(size)来切分日志
+spark.executor.logs.rolling.time.interval daily  //可以按天、小时、分钟切分
+spark.executor.logs.rolling.maxRetainedFiles 7  //保留多少个日志文件，旧的日志自动删除
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+    &lt;p&gt;或者也可以自定义日志生成方式，同上述3方法，只要配置参数spark.executor.extraJavaOptions，指定log4j配置。&lt;/p&gt;
+    &lt;h3 id=&quot;driver日志切分&quot;&gt;Driver日志切分&lt;/h3&gt;
+    &lt;p&gt;spark-submit的时候自定义log4j，–driver-java-options “-Dlog4j.configuration=file:/路径/log4j-driver.properties -Dapp.logging.name=NAME” ，app.logging.name在log4j文件里面配置了，用NAME去区分不同spark应用。&lt;/p&gt;
+    &lt;h4 id=&quot;使用示例-driver端单独设置log4j配置并且设置额外输出日志到文件中&quot;&gt;使用示例-Driver端单独设置log4j配置，并且设置额外输出日志到文件中：&lt;/h4&gt;
+    &lt;p&gt;背景：&lt;br /&gt;
+集群中的日志级别设置的是WRAN，但是程序中Driver端的日志需要输出INFO级别的日志并且显示在控制台上，因此使用此方法进行了Driver端的日志级别单独设置。并且对于Driver端的日志，如果不进行设置的话，均会输出到控制台中，因此通过设置，尝试将日志输出到文件（&lt;strong&gt;这里需要注意的是，log4j的控制仅仅针对于的是日志，对于在程序里执行的print语句，仍然会输出到控制台中，并不会输出到定义的日志文件&lt;/strong&gt;）。  &lt;br /&gt;
+log4j文件设置：&lt;/p&gt;
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the &quot;License&quot;); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+log4j.rootCategory=INFO, console,FILE
+# 针对控制台设置：Set everything to be logged to the console
+log4j.appender.console=org.apache.log4j.ConsoleAppender
+log4j.appender.console.target=System.err
+log4j.appender.console.layout=org.apache.log4j.PatternLayout
+log4j.appender.console.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n
+# 针对日志输出到FILE
+log4j.appender.FILE=org.apache.log4j.FileAppender
+log4j.appender.FILE.Threshold=DEBUG
+# 输出到的日志路径：${app.logging.name}为外部引入的应用名称来定义日志文件的名字
+log4j.appender.FILE.file=/usr/tools/logs/${app.logging.name}-driver.log
+log4j.appender.FILE.layout=org.apache.log4j.PatternLayout
+log4j.appender.FILE.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n
+# Set the default spark-shell log level to WARN. When running the spark-shell, the
+# log level for this class is used to overwrite the root logger's log level, so that
+# the user can have different defaults for the shell and regular Spark apps.
+log4j.logger.org.apache.spark.repl.Main=WARN
+# Settings to quiet third party logs that are too verbose
+log4j.logger.org.spark_project.jetty=WARN
+log4j.logger.org.spark_project.jetty.util.component.AbstractLifeCycle=ERROR
+log4j.logger.org.apache.spark.repl.SparkIMain$exprTyper=WARN
+log4j.logger.org.apache.spark.repl.SparkILoop$SparkILoopInterpreter=WARN
+log4j.logger.org.apache.parquet=ERROR
+log4j.logger.parquet=ERROR
+# SPARK-9183: Settings to avoid annoying messages when looking up nonexistent UDFs in SparkSQL with Hive support
+log4j.logger.org.apache.hadoop.hive.metastore.RetryingHMSHandler=FATAL
+log4j.logger.org.apache.hadoop.hive.ql.exec.FunctionRegistry=ERROR
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+    &lt;p&gt;提交命令：&lt;/p&gt;
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;spark-submit --master spark://master01:7077,master02:7077 --jars /usr/tools/spark_234gsignalling/sparkStreamingKafka0.8-0.10Jars/spark-streaming-kafka-0-8_2.11-2.2.1.jar,/usr/tools/spark_234gsignalling/sparkStreamingKafka0.8-0.10Jars/kafka_2.11-0.8.2.1.jar,/usr/tools/spark_234gsignalling/sparkStreamingKafka0.8-0.10Jars/metrics-core-2.2.0.jar,/usr/tools/spark_234gsignalling/sparkStreamingKafka0.8-0.10Jars/kafka-clients-0.10.1.1.jar --files &quot;/usr/tools/spark_234gsignalling/kafka_client_jaas.conf&quot; --driver-java-options &quot;-Dlog4j.configuration=file:/usr/tools/spark_234gsignalling/log4j4g.properties -Dapp.logging.name=NAME&quot; --driver-memory 2g --total-executor-cores 36 --executor-cores 2 --executor-memory 10g --class com.sitech.signallingStreaming.Signalling234gMask 4gsignallingSpark-0.10kafka-c60.jar skhconf_4g hdfs://dcoshdfs/spark_log/4g_info_c60log
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+    &lt;p&gt;提交命令中对于此次日志设置的主要是：&lt;/p&gt;
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;--driver-java-options &quot;-Dlog4j.configuration=file:/usr/tools/spark_234gsignalling/log4j4g.properties -Dapp.logging.name=NAME&quot;
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;参考文章：&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.iteblog.com/archives/1353.html&quot;&gt;Spark应用程序运行的日志存在哪里&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://blog.csdn.net/dylanzhouz/article/details/53098508&quot;&gt;sparkstreaming日志切分配置&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://bit1129.iteye.com/blog/2186358&quot;&gt;spark日志log4j配置-控制台+文件同时输出&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.cnblogs.com/sorco/p/7070922.html&quot;&gt;spark深入：配置文件与日志(yarn)&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.cnblogs.com/likui360/p/7992982.html&quot;&gt;log4j配置1&lt;/a&gt;,&lt;a href=&quot;https://blog.csdn.net/sinat_30185177/article/details/73550377&quot;&gt;log4j配置2&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://spark.apache.org/docs/2.2.1/running-on-yarn.html&quot;&gt;spark2.2-yarn&lt;/a&gt;,&lt;a href=&quot;http://spark.apache.org/docs/2.2.1/spark-standalone.html&quot;&gt;spark2.2-standalone&lt;/a&gt;,&lt;a href=&quot;http://spark.apache.org/docs/2.2.1/running-on-mesos.html&quot;&gt;spark2.2-mesos&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;至此，本篇内容完成。&lt;br /&gt;
+如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～&lt;br /&gt;
+©商业转载请联系作者获得授权，非商业转载请注明出处。&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="Spark" /><summary type="html">本文主要关于spark日志相关的部分内容，包括spark日志位置以及其中一种&amp;gt;日志配置方法，后续可再对本文进行其他配置方法的补充。 注意: 本文中使用的版本是spark2.2.1 最近平台中某租户使用的容器化集群spark集群，提交的spark streaming任务的日志没有进行级别控制，疯狂的刷日志，导致会占满宿主机的存储空间，并且集群均使用的是standalone模式，没有配置删除日志，所以日志太多会影响同一个宿主机下其他租户spark的使用。因此，在今天进行了一下集群的全局配置，直接将日志级别进行了更改，并且也趁这个时间，总结下对于spark日志相关的部分内容，后续有时间再进行其他补充。 Spark应用程序运行日志的存放 在很多情况下，我们需要查看driver和executor在运行spark程序时候产生的日志，以便于我们调试和查找问题。 Driver端日志 Spark Driver端的日志在默认情况下是直接输出在控制台的，driver本身没有stderr和stdout文件，所以只能在控制台输出。不过可以通过配置，将日志打印到文件中，具体配置方式后续再进行说明。 Executor端日志 Spark Executor日志的存放位置，是与Spark的部署模式相关的；Spark目前3种部署方式：Spark Standalone、Mesos、YARN。 Spark Standalone模式：在spark standalone的部署模式下，可以直接在Master UI界面查看到相应的应用程序的日志，如下图。其中可以看到是有stderr和stdout两种日志，区别就是如果你在程序中使用了println(….)输出语句，并且位置是在executor端执行的，这些信息会在stdout文件里面显示，而在driver端执行的会直接在控制台输出；其余的Spark运行日志会在stderr文件里面显示。 通常，每个job的详细日志输出是在每个worker（slave）节点的work目录下，这个目录可以通过spark-env.sh下配置SPARK_WORKER_DIR参数（Directory to run applications in, which will include both logs and scratch space，默认情况下是SPARK_HOME/work）设置。 此部分，可以进行worker配置使日志自动删除，详情见后续“配置日志”部分。 Mesos模式：在Mesos模式下，也可以通过Mesos的Master UI界面上看到相关的应用程序日志，这些日志是存储在Mesos Slave的work目录下的，通常情况下通过修改mesos-slave-env.sh或mesos-master-env.sh文件下的MESOS_log_dir参数和MESOS_work_dir参数可以设置slave或master的日志目录和工作目录，默认情况下是master和slave的logs都在/var/log/mesos下。 YARN模式：在yarn模式下，executor和application master都运行在“containers”内。 YARN在一个application结束后，有2种处理容器内日志的方式。 其中在yarn模式下，最简单的收集日志的方式是使用Yarn的日志收集工具(yarn logs -applicationId )，这个工具可以收集应用程序的相关日志，但是要求:a.开启了日志聚合功能（yarn.log-aggregation-enable，默认情况下这参数是false）；b.application必须运行完，因为yarn必须先聚合这些日志。这种情况下，容器日志将被复制到HDFS，并删除本地日志，从而腾出更多空间。这样的话，这些日志可以在集群任何节点上用yarn logs命令查看：yarn logs -applicationId ，用这个命令会打印出指定应用的所有日志文件的内容，或者也可以直接在HDFS上查看这些日志（HDFS shell或者HDFS API）。这个目录的配置可以在YARN配置中指定（yarn.nodemanager.remote-app-log-dir和yarn.nodemanager.remote-app-log-dir-suffix）。这些日志同样还可以在Spark Web UI上Executors页查看，但是也有前提，需要启动Spark history server和MapReduce history server，再在yarn-site.xml中配置好yarn.log.server.url。Spark history server UI将把你重定向到MapReduce history server以查看这些聚合日志。 如果日志聚合没有开启，那么日志文件将在每台机器上的YARN_APP_LOGS_DIR目录保留，通常这个目录指向NodeManager节点(ResourceManager节点下没输出)的/tmp/logs或者$HADOOP_HOME/log/userlogs（这取决于Hadoop版本和安全方式）。查看日志的话，需要到每台机器上查看这些目录。子目录是按application ID和container ID来组织的。这些日志同样可以在 Spark Web UI上Executors页查看，而且这时你不需要运行MapReduce history server。这里还有一个需要注意的地方，在没有开启日志聚合的时候，有一个参数yarn.nodemanager.log.retain-seconds，这个参数指应用程序输入出日志的保存时间，默认是10800，单位s，也就是3个小时，所以有可能超过时间再去查看日志的时候，原来的运行日志就自动删除了。 额外补充：在yarn模式下，kill掉某个job（直接在UI界面或者是终端kill掉任务都是不对的，该任务可能还会继续执行下去，所以要用如下命令才算完全停止该job的执行），yarn application -kill 。 配置日志 Standalone日志自动删除配置 目前，在使用中，平台中的容器化的spark集群因为资源已经由docker+mesos+marathon控制了，一个集群只有一个租户使用，因此均是standalone模式部署的，不过在使用过程中，应用程序日志不会自动删除会占很大空间，因此进行了worker配置，使日志自动删除。 其中，更改了conf/spark-env.sh，设置SPARK_WORKER_OPTS，即在文件内增加： export SPARK_WORKER_OPTS=&quot;-Dspark.worker.cleanup.enabled=true -Dspark.worker.cleanup.interval=3600 -Dspark.worker.cleanup.appDataTtl=604800 -Dspark.worker.ui.compressedLogFileLengthCacheSize=100&quot; 参数解释： (1)spark.worker.cleanup.enabled（默认false）：仅在standalone模式下生效，开启后定期清理worker节点的worker目录下的应用程序日志，并且仅会清理已经停止的application日志。Enable periodic cleanup of worker / application directories. Note that this only affects standalone mode, as YARN works differently. Only the directories of stopped applications are cleaned up. (2)spark.worker.cleanup.interval（默认1800）：清理频率。Controls the interval, in seconds, at which the worker cleans up old application work dirs on the local machine. (3)spark.worker.cleanup.appDataTtl（604800(7days,7243600)）：The number of seconds to retain application work directories on each worker. This is a Time To Live and should depend on the amount of available disk space you have. Application logs and jars are downloaded to each application work dir. Over time, the work dirs can quickly fill up disk space, especially if you run jobs very frequently. (4)spark.worker.ui.compressedLogFileLengthCacheSize（默认100）：For compressed log files, the uncompressed file can only be computed by uncompressing the files. Spark caches the uncompressed file size of compressed log files. This property controls the cache size.</summary></entry><entry><title type="html">机器学习入门自学-描述统计学入门2</title><link href="http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/16/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A82/" rel="alternate" type="text/html" title="机器学习入门自学-描述统计学入门2" /><published>2018-05-16T00:00:00+08:00</published><updated>2018-05-16T00:00:00+08:00</updated><id>http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/16/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A82</id><content type="html" xml:base="http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/16/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A82/">&lt;blockquote&gt;
+  &lt;p&gt;本文关于自学udacity机器学习课程的自学笔记，为第一部分，描述统计学入门(2)。&lt;/p&gt;
 &lt;/blockquote&gt;
 
 &lt;h1 id=&quot;2018-05-16-可变性&quot;&gt;2018-05-16-可变性&lt;/h1&gt;
@@ -70,8 +251,42 @@ Upper Outliers &amp;gt; Q3+1.5(IQR)&lt;/p&gt;
 &lt;p&gt;在正态分布中，数据均匀分布，平均值=中位数=众数，并且位于分布的中心。&lt;strong&gt;大约68%的数据与平均值的偏差不超过1个标准差；95%的数据与平均值的偏差不超过2个标准差。&lt;/strong&gt;&lt;br /&gt;
 &lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-17-正态分布与标准差.png?raw=true&quot; alt=&quot;正态分布与标准差&quot; /&gt;&lt;/p&gt;
 
-&lt;h1 id=&quot;2018-05-17-归一化&quot;&gt;2018-05-17 归一化&lt;/h1&gt;</content><author><name>Liv Yeh</name></author><category term="机器学习" /><category term="描述统计学" /><summary type="html">本文关于自学udacity机器学习课程的自学笔记，为第一部分，描述统计学入门。 2018-05-16-可变性 范围(值域)是观察到的最大值和最小值之间的差。 值域不包括细节信息，因为值域是仅仅在2个数据的基础上得出的。 异常数值增大差异性，值域作为度量标准时，有异常数值，值域不可能准确的代表数据的差异性。 忽略尾部 处理异常数值：处理异常数值的一种方法就是忽略分布中的上尾和下尾。习惯上，统计学家会忽略较低的25%和较高的25%。 虽然建议去除上下各25%的数据点，但我们在去除数据点时还需要特别谨慎，特别是在数据量不大的情况下，去除一半的数据点&amp;gt;会让我们丢失大量数据的信息。 一般来说，在去除数据点前，我们建议首先将数据点通过图像表述出来（直方图、散点图、箱线图等），这样可以帮助你获得对数据整理分析的了解。然后，基于项目的背景，判断你更关心数据的哪一部分（大多数正常数据，还是小部分异常数据），因为在一些项目背景下，你可能更关心那些异常值。最后，是基于现有的数据量作出决定，究竟是直接丢弃部分数据还是对部分作出调整，亦或是有保留地接受所有数据。特别记住一点，没有一种分析方法100%正确，但我们总可以尝试根据不同的需求找到一种最合理的方法。 四分位差 找出方法：排序的数据集，从中间分成2半，再找一半的中位数。 第一个四分位数：称为总体的Q1 中位数：Q2 第三个四分位：称为总体的Q3 四分位差(IQR)：Q3-Q1 能表示图的差异性。 几乎50%的数据在IQR间。 IQR不受异常值的影响。 The Interquartile range (IQR) is the distance be- tween the 1st quartile and 3rd quartile and gives us the range of the middle 50% of our data. The IQR is easily found by computing: Q3-Q1. 异常值 异常值：如果一个值小于Q1减去1.5倍的IQR或者大于Q3加上1.5倍IQR，则这个数就被认为是异常数值。 Lower Outliers &amp;lt; Q1-1.5(IQR) Upper Outliers &amp;gt; Q3+1.5(IQR) 箱线图 表示中位数、四分位差、最小值和最大值有效。 箱线图（盒须图）：直观的表示四分位数和异常数值。箱线图外面的点表示异常值，在此上下文中，“min”和“max”是指样本中不包括异常值在内的最小值和最大值。箱线图的方向可以有不同。 箱线图的对比，箱线图与直方图连线对应： 值域和IQR都无法将所有数据集考虑进来，完全不相同的两个数据集也可能有相同的IQR，不同的图可能有相同的箱线图。 基础概念 离均差(Deviation from Mean)：用每个值减去平均值 （减的顺序保持一致）。 平均偏差：计算离均差的平均值。 绝对偏差(Absolute Deviations)： 平均绝对偏差(Average Absolute Deviation)：各次测量值的绝对偏差绝对值的平均值。 相对平均偏差：指平均偏差占平均值的百分率。*100% 平方偏差(Squared Deviation)： 平方和SS(sum of squares)： 因为抽样往往是总体居于中间的值，因此抽样中的差异性将少于整个总体的差异性，所以使用贝塞尔校正系数：将除以n换为除以n-1。 平均平方偏差（Arerage Square Deviation）-方差：平方偏差的均值 ，贝塞尔校正后的方差(样本方差) 标准偏差（标准差）(standard deviation)：最常用的分布测量方法,平均平方偏差的平方根;方差的平方根(平方偏差的和除以n，再开平方)。 样本标准差(standard deviation of sample): ,代表样本的X1,X2,…,Xn的均值。-估算总体标准差。 总体标准差(standard deviation of population): ,代表总体X的均值。-计算数据集自己的标准差。 如果使用这个数据集估算此样本所属的较大型总体的标准差，要除以n-1，即使用样本标准差公式。如果这个数据集较小，计算这个数据集自己的标准差，则除以n，即使用总体标准差公式。 计算过程：求平均值、求离均差、再求每个偏差 的平方、再取平均值、在取平方根。 相对标准偏差：指标准偏差占平均值的百分率，又称为变异系数(CV)，通常用RSD表示。*100% 平均绝对离差：平均绝对离差(mean absolute deviation)是用样本数据相对于其平均值的绝对距离来度量数据的离散程度。平均绝对离差也称为平均离差(mean deviation)。平均绝对离差定义为各数据与平均值的离差的绝对值的平均数。 设样本的n个观测值为x1,x2..xn，平均绝对离差为： 对于分组数据，平均绝对离差为： 其中,分别为第i(i=1,2…,k)组数据的频数及组中值，k为数据分组的组数。 标准差重要性 在正态分布中，数据均匀分布，平均值=中位数=众数，并且位于分布的中心。大约68%的数据与平均值的偏差不超过1个标准差；95%的数据与平均值的偏差不超过2个标准差。 2018-05-17 归一化</summary></entry><entry><title type="html">机器学习入门自学-描述统计学入门1</title><link href="http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/10/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A81/" rel="alternate" type="text/html" title="机器学习入门自学-描述统计学入门1" /><published>2018-05-10T00:00:00+08:00</published><updated>2018-05-10T00:00:00+08:00</updated><id>http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/10/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A81</id><content type="html" xml:base="http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/10/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A81/">&lt;blockquote&gt;
-  &lt;p&gt;本文关于自学udacity机器学习课程的自学笔记，为第一部分，描述统计学入门。&lt;/p&gt;
+&lt;h1 id=&quot;2018-05-17-归一化&quot;&gt;2018-05-17 归一化&lt;/h1&gt;
+&lt;h2 id=&quot;标准化分布图&quot;&gt;标准化分布图&lt;/h2&gt;
+&lt;p&gt;正态分布类型：宽扁型、瘦高型、或者介于2者之间，但曲线下面积始终为1或100%。&lt;strong&gt;大约68%的数据与平均值的偏差不超过1个标准差；95%的数据与平均值的偏差不超过2个标准差。&lt;/strong&gt;   &lt;br /&gt;
+&lt;strong&gt;特定值在x轴上的位置通常用标准偏差来描述&lt;/strong&gt;。与平均值的距离多少个标准差的值，称为&lt;strong&gt;z&lt;/strong&gt;。通过将正态分布中的值转换为这个特殊数字z，就可以知道小于或大于该值的百分比。&lt;br /&gt;
+&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-17-正态分布的z值.png?raw=true&quot; alt=&quot;正态分布的z值&quot; /&gt;&lt;br /&gt;
+&lt;strong&gt;标准差数量&lt;/strong&gt;z公式：计算某个值与平均值之间相差多少个标准差，即&lt;script type=&quot;math/tex&quot;&gt;z=\frac{x-\mu}{\sigma }&lt;/script&gt;。始终用x减去平均值。&lt;br /&gt;
+当某个值小于平均值是，是负的z值；z值是指任何值距离平均值的标准偏差数；如果一个值与均值相等，它的Z值为0。&lt;br /&gt;
+&lt;strong&gt;标准化（归一化）分布图&lt;/strong&gt;：将正态分布图中的任意值转化称z值，则标准化了分布图。&lt;br /&gt;
+如果我们将数据归一化处理为z值，该归一化分布的新平均值会是多少？-0&lt;br /&gt;
+如果我们将数据归一化处理为z值，该归一化分布的新标准偏差会是多少？-1&lt;/p&gt;
+
+&lt;p&gt;总结：对于任何正态分布，都可以通过以下方式归一化该分布：&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;减去平均值，将其平移到0处&lt;/li&gt;
+  &lt;li&gt;除以标准偏差，使标准偏差=1&lt;br /&gt;
+这就叫做&lt;strong&gt;标准正态分布&lt;/strong&gt;。&lt;br /&gt;
+&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-17-标准正态分布.png?raw=true&quot; alt=&quot;标准正态分布&quot; /&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;可以将任意正态分布转成任意正态分布：即通过转成标准正态分布，再转换成其他正态分布。&lt;/p&gt;
+
+&lt;h1 id=&quot;2018-05-21-概率密度函数&quot;&gt;2018-05-21-概率密度函数&lt;/h1&gt;
+&lt;h2 id=&quot;概率密度函数&quot;&gt;概率密度函数&lt;/h2&gt;
+&lt;p&gt;在正态分布中，通过查看某个值在x轴上的位置即标准偏差，能改确定大于或小于任何值的百分比，下面学习如何计算这些百分比。&lt;br /&gt;
+我们使用理论曲线来绘制数据模型，曲线下的面积是1 ，因为它是用分布数据的相对频率（即比例）来绘制数据模型，该曲线叫做&lt;strong&gt;概率密度函数&lt;/strong&gt;，通常缩写为PDF。&lt;br /&gt;
+概率密度函数曲线下的面积表示概率。&lt;br /&gt;
+&lt;img src=&quot;&quot; alt=&quot;概率密度函数&quot; /&gt;&lt;br /&gt;
+绘制概率密度函数时，绝对频率（absolute frequency）变成相对频率（relative frequency）。&lt;br /&gt;
+&lt;img src=&quot;&quot; alt=&quot;直方图-概率密度函数&quot; /&gt;&lt;/p&gt;
+&lt;h2 id=&quot;正态概率密度函数&quot;&gt;正态概率密度函数&lt;/h2&gt;
+&lt;p&gt;曲线的末端实际上不会接触到x轴，只是越来越接近x轴，x轴是水平渐进线，该理论模型的曲线末端不能接触到x轴是因为我们永远都不能100%确定某件事；&lt;br /&gt;
+假设有某个值（x），从负无穷到x之间的曲线下的面积，等于随机地从样本中选择一个小于x的受试者对应的概率，也就等于样本或总体中值小于x的比例。如果这个概率是80%，可以说x是第80个百分位。&lt;br /&gt;
+概率密度函数公式见百科：&lt;a href=&quot;https://baike.baidu.com/item/概率密度函数/5021996?fr=aladdin&quot;&gt;概率密度函数&lt;/a&gt;。&lt;br /&gt;
+正态概率密度函数公式（一维正态分布）：&lt;br /&gt;
+若随机变量X服从一个位置参数为&lt;script type=&quot;math/tex&quot;&gt;\mu&lt;/script&gt;、尺度参数为&lt;script type=&quot;math/tex&quot;&gt;\sigma&lt;/script&gt;的概率分布，其概率密度函数为&lt;script type=&quot;math/tex&quot;&gt;f\left ( x \right )=\frac{1}{\sqrt{2\pi }\sigma }e^{\left ( -\frac{\left ( x-\mu \right )^{2}}{2\sigma^{2}} \right )}&lt;/script&gt;，则这个随机变量就称为正态随机变量，正态随机变量服从的正态分布就称为正态分布，记作&lt;script type=&quot;math/tex&quot;&gt;&lt;/script&gt;，读作X服从&lt;script type=&quot;math/tex&quot;&gt;&lt;/script&gt;，或X服从正态分布。&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="机器学习" /><category term="描述统计学" /><summary type="html">本文关于自学udacity机器学习课程的自学笔记，为第一部分，描述统计学入门(2)。 2018-05-16-可变性 范围(值域)是观察到的最大值和最小值之间的差。 值域不包括细节信息，因为值域是仅仅在2个数据的基础上得出的。 异常数值增大差异性，值域作为度量标准时，有异常数值，值域不可能准确的代表数据的差异性。 忽略尾部 处理异常数值：处理异常数值的一种方法就是忽略分布中的上尾和下尾。习惯上，统计学家会忽略较低的25%和较高的25%。 虽然建议去除上下各25%的数据点，但我们在去除数据点时还需要特别谨慎，特别是在数据量不大的情况下，去除一半的数据点&amp;gt;会让我们丢失大量数据的信息。 一般来说，在去除数据点前，我们建议首先将数据点通过图像表述出来（直方图、散点图、箱线图等），这样可以帮助你获得对数据整理分析的了解。然后，基于项目的背景，判断你更关心数据的哪一部分（大多数正常数据，还是小部分异常数据），因为在一些项目背景下，你可能更关心那些异常值。最后，是基于现有的数据量作出决定，究竟是直接丢弃部分数据还是对部分作出调整，亦或是有保留地接受所有数据。特别记住一点，没有一种分析方法100%正确，但我们总可以尝试根据不同的需求找到一种最合理的方法。 四分位差 找出方法：排序的数据集，从中间分成2半，再找一半的中位数。 第一个四分位数：称为总体的Q1 中位数：Q2 第三个四分位：称为总体的Q3 四分位差(IQR)：Q3-Q1 能表示图的差异性。 几乎50%的数据在IQR间。 IQR不受异常值的影响。 The Interquartile range (IQR) is the distance be- tween the 1st quartile and 3rd quartile and gives us the range of the middle 50% of our data. The IQR is easily found by computing: Q3-Q1. 异常值 异常值：如果一个值小于Q1减去1.5倍的IQR或者大于Q3加上1.5倍IQR，则这个数就被认为是异常数值。 Lower Outliers &amp;lt; Q1-1.5(IQR) Upper Outliers &amp;gt; Q3+1.5(IQR) 箱线图 表示中位数、四分位差、最小值和最大值有效。 箱线图（盒须图）：直观的表示四分位数和异常数值。箱线图外面的点表示异常值，在此上下文中，“min”和“max”是指样本中不包括异常值在内的最小值和最大值。箱线图的方向可以有不同。 箱线图的对比，箱线图与直方图连线对应： 值域和IQR都无法将所有数据集考虑进来，完全不相同的两个数据集也可能有相同的IQR，不同的图可能有相同的箱线图。 基础概念 离均差(Deviation from Mean)：用每个值减去平均值 （减的顺序保持一致）。 平均偏差：计算离均差的平均值。 绝对偏差(Absolute Deviations)： 平均绝对偏差(Average Absolute Deviation)：各次测量值的绝对偏差绝对值的平均值。 相对平均偏差：指平均偏差占平均值的百分率。*100% 平方偏差(Squared Deviation)： 平方和SS(sum of squares)： 因为抽样往往是总体居于中间的值，因此抽样中的差异性将少于整个总体的差异性，所以使用贝塞尔校正系数：将除以n换为除以n-1。 平均平方偏差（Arerage Square Deviation）-方差：平方偏差的均值 ，贝塞尔校正后的方差(样本方差) 标准偏差（标准差）(standard deviation)：最常用的分布测量方法,平均平方偏差的平方根;方差的平方根(平方偏差的和除以n，再开平方)。 样本标准差(standard deviation of sample): ,代表样本的X1,X2,…,Xn的均值。-估算总体标准差。 总体标准差(standard deviation of population): ,代表总体X的均值。-计算数据集自己的标准差。 如果使用这个数据集估算此样本所属的较大型总体的标准差，要除以n-1，即使用样本标准差公式。如果这个数据集较小，计算这个数据集自己的标准差，则除以n，即使用总体标准差公式。 计算过程：求平均值、求离均差、再求每个偏差 的平方、再取平均值、在取平方根。 相对标准偏差：指标准偏差占平均值的百分率，又称为变异系数(CV)，通常用RSD表示。*100% 平均绝对离差：平均绝对离差(mean absolute deviation)是用样本数据相对于其平均值的绝对距离来度量数据的离散程度。平均绝对离差也称为平均离差(mean deviation)。平均绝对离差定义为各数据与平均值的离差的绝对值的平均数。 设样本的n个观测值为x1,x2..xn，平均绝对离差为： 对于分组数据，平均绝对离差为： 其中,分别为第i(i=1,2…,k)组数据的频数及组中值，k为数据分组的组数。 标准差重要性 在正态分布中，数据均匀分布，平均值=中位数=众数，并且位于分布的中心。大约68%的数据与平均值的偏差不超过1个标准差；95%的数据与平均值的偏差不超过2个标准差。 2018-05-17 归一化 标准化分布图 正态分布类型：宽扁型、瘦高型、或者介于2者之间，但曲线下面积始终为1或100%。大约68%的数据与平均值的偏差不超过1个标准差；95%的数据与平均值的偏差不超过2个标准差。 特定值在x轴上的位置通常用标准偏差来描述。与平均值的距离多少个标准差的值，称为z。通过将正态分布中的值转换为这个特殊数字z，就可以知道小于或大于该值的百分比。 标准差数量z公式：计算某个值与平均值之间相差多少个标准差，即。始终用x减去平均值。 当某个值小于平均值是，是负的z值；z值是指任何值距离平均值的标准偏差数；如果一个值与均值相等，它的Z值为0。 标准化（归一化）分布图：将正态分布图中的任意值转化称z值，则标准化了分布图。 如果我们将数据归一化处理为z值，该归一化分布的新平均值会是多少？-0 如果我们将数据归一化处理为z值，该归一化分布的新标准偏差会是多少？-1 总结：对于任何正态分布，都可以通过以下方式归一化该分布： 减去平均值，将其平移到0处 除以标准偏差，使标准偏差=1 这就叫做标准正态分布。 可以将任意正态分布转成任意正态分布：即通过转成标准正态分布，再转换成其他正态分布。 2018-05-21-概率密度函数 概率密度函数 在正态分布中，通过查看某个值在x轴上的位置即标准偏差，能改确定大于或小于任何值的百分比，下面学习如何计算这些百分比。 我们使用理论曲线来绘制数据模型，曲线下的面积是1 ，因为它是用分布数据的相对频率（即比例）来绘制数据模型，该曲线叫做概率密度函数，通常缩写为PDF。 概率密度函数曲线下的面积表示概率。 绘制概率密度函数时，绝对频率（absolute frequency）变成相对频率（relative frequency）。 正态概率密度函数 曲线的末端实际上不会接触到x轴，只是越来越接近x轴，x轴是水平渐进线，该理论模型的曲线末端不能接触到x轴是因为我们永远都不能100%确定某件事； 假设有某个值（x），从负无穷到x之间的曲线下的面积，等于随机地从样本中选择一个小于x的受试者对应的概率，也就等于样本或总体中值小于x的比例。如果这个概率是80%，可以说x是第80个百分位。 概率密度函数公式见百科：概率密度函数。 正态概率密度函数公式（一维正态分布）： 若随机变量X服从一个位置参数为、尺度参数为的概率分布，其概率密度函数为，则这个随机变量就称为正态随机变量，正态随机变量服从的正态分布就称为正态分布，记作，读作X服从，或X服从正态分布。</summary></entry><entry><title type="html">机器学习入门自学-描述统计学入门1</title><link href="http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/10/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A81/" rel="alternate" type="text/html" title="机器学习入门自学-描述统计学入门1" /><published>2018-05-10T00:00:00+08:00</published><updated>2018-05-10T00:00:00+08:00</updated><id>http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/10/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A81</id><content type="html" xml:base="http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/10/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A81/">&lt;blockquote&gt;
+  &lt;p&gt;本文关于自学udacity机器学习课程的自学笔记，为第一部分，描述统计学入门(1)。&lt;/p&gt;
 &lt;/blockquote&gt;
 
 &lt;h1 id=&quot;2018-05-08-研究方法入门&quot;&gt;2018-05-08-研究方法入门&lt;/h1&gt;
@@ -335,7 +550,7 @@ AMale  BFemale  C1000  D7000&lt;br /&gt;
 中间数也差不多在中间&lt;/p&gt;
 
 &lt;p&gt;如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～&lt;br /&gt;
-©商业转载请联系作者获得授权，非商业转载请注明出处。&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="机器学习" /><category term="描述统计学" /><summary type="html">本文关于自学udacity机器学习课程的自学笔记，为第一部分，描述统计学入门。 2018-05-08-研究方法入门 基本概念 抽象概念（constructs） 操作性定义：一种将构造（constructs）转变为我们可衡量的变量的方式；一种用我们衡量它的方式描述变量的方式。 总体参数μ：描述整个总体的平均值 样本统计量：样本的平均值 样本大小n 抽样误差μ-：样本平均值和总体平均值之间的差异。在使用一个样本对一个总体进行推理时，样本的平均值可能不会完全等于总体的平均值。 用来估计μ，估计值是对μ的最佳猜测。 好样本：大、随机无偏差 随机样本：每个对象被选中的概率都是一样的。 可视化关系-eg 散点图 散点图： 1.x轴上变量：自变量（independent variable）或预测变量（predictor variable） 2.y轴上变量：因变量（dependent variable）即结果（outcome）</summary></entry><entry><title type="html">Kerberos具体实践1-Kerberos环境准备及安装</title><link href="http://localhost:4000/bigdata/2018/05/05/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B51-Kerberos%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%E5%8F%8A%E5%AE%89%E8%A3%85/" rel="alternate" type="text/html" title="Kerberos具体实践1-Kerberos环境准备及安装" /><published>2018-05-05T00:00:00+08:00</published><updated>2018-05-05T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/05/05/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B51-Kerberos%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%E5%8F%8A%E5%AE%89%E8%A3%85</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/05/05/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B51-Kerberos%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%E5%8F%8A%E5%AE%89%E8%A3%85/">&lt;blockquote&gt;
+©商业转载请联系作者获得授权，非商业转载请注明出处。&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="机器学习" /><category term="描述统计学" /><summary type="html">本文关于自学udacity机器学习课程的自学笔记，为第一部分，描述统计学入门(1)。 2018-05-08-研究方法入门 基本概念 抽象概念（constructs） 操作性定义：一种将构造（constructs）转变为我们可衡量的变量的方式；一种用我们衡量它的方式描述变量的方式。 总体参数μ：描述整个总体的平均值 样本统计量：样本的平均值 样本大小n 抽样误差μ-：样本平均值和总体平均值之间的差异。在使用一个样本对一个总体进行推理时，样本的平均值可能不会完全等于总体的平均值。 用来估计μ，估计值是对μ的最佳猜测。 好样本：大、随机无偏差 随机样本：每个对象被选中的概率都是一样的。 可视化关系-eg 散点图 散点图： 1.x轴上变量：自变量（independent variable）或预测变量（predictor variable） 2.y轴上变量：因变量（dependent variable）即结果（outcome）</summary></entry><entry><title type="html">Kerberos具体实践1-Kerberos环境准备及安装</title><link href="http://localhost:4000/bigdata/2018/05/05/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B51-Kerberos%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%E5%8F%8A%E5%AE%89%E8%A3%85/" rel="alternate" type="text/html" title="Kerberos具体实践1-Kerberos环境准备及安装" /><published>2018-05-05T00:00:00+08:00</published><updated>2018-05-05T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/05/05/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B51-Kerberos%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%E5%8F%8A%E5%AE%89%E8%A3%85</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/05/05/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B51-Kerberos%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%E5%8F%8A%E5%AE%89%E8%A3%85/">&lt;blockquote&gt;
   &lt;p&gt;本文属于Kerberos具体实践整理的第一部分，主要涉及到Kerberos集群的安装以及基本命令的使用。&lt;/p&gt;
 &lt;/blockquote&gt;
 
@@ -1167,7 +1382,7 @@ end&lt;/p&gt;
 &lt;p&gt;至此，更改完毕。&lt;/p&gt;
 &lt;h1 id=&quot;结果对比&quot;&gt;结果对比&lt;/h1&gt;
 &lt;p&gt;使用Kafka连接池更改程序之前以及之后的处理速度对比如下图所示，写入90W条数据由原来的17953ms变为了1966ms，效率大大提高。&lt;br /&gt;
-&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/2018-04-02SparkStreamingKafka.png?raw=true&quot; alt=&quot;compare&quot; /&gt;&lt;/p&gt;
+&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/spark/2018-04-02SparkStreamingKafka.png?raw=true&quot; alt=&quot;compare&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;内容即以上，会在下篇文章(&lt;a href=&quot;https://leafming.github.io/bigdata/2018/04/04/SparkStreaming程序中checkpoint与广播变量兼容处理/&quot;&gt;SparkStreaming程序中checkpoint与广播变量兼容处理&lt;/a&gt;)解决spark streaming中checkpoint和广播变量使用冲突的问题，敬请期待。&lt;br /&gt;
 如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～&lt;br /&gt;
