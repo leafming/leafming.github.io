@@ -126,8 +126,10 @@
 <meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-17-正态分布与标准差.png?raw=true">
 <meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-17-正态分布的z值.png?raw=true">
 <meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-17-标准正态分布.png?raw=true">
-<meta property="og:image" content="">
-<meta property="og:image" content="">
+<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/machineLearning/2018-06-04-标准正态分布.png?raw=true">
+<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-21-概率密度函数.png?raw=true">
+<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-21-直方图-概率密度函数.png?raw=true">
+<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/machineLearning/2018-06-04-认识概率密度函数.png?raw=true">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="机器学习入门自学-描述统计学入门2">
 <meta name="twitter:description" content="本文关于自学udacity机器学习课程的自学笔记，为第一部分，描述统计学入门(2)。">
@@ -532,25 +534,29 @@ Upper Outliers &gt; Q3+1.5(IQR)</p>
   <li>减去平均值，将其平移到0处</li>
   <li>除以标准偏差，使标准偏差=1<br />
 这就叫做<strong>标准正态分布</strong>。<br />
-<img src="https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-17-标准正态分布.png?raw=true" alt="标准正态分布" /></li>
+<img src="https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-17-标准正态分布.png?raw=true" alt="标准正态分布" /> <br />
+<img src="https://github.com/leafming/bak/blob/master/images/machineLearning/2018-06-04-标准正态分布.png?raw=true" alt="标准正态分布2" /><br />
+可以将任意正态分布转成任意正态分布：即通过转成标准正态分布，再转换成其他正态分布。</li>
 </ol>
-
-<p>可以将任意正态分布转成任意正态分布：即通过转成标准正态分布，再转换成其他正态分布。</p>
 
 <h1 id="2018-05-21-概率密度函数">2018-05-21-概率密度函数</h1>
 <h2 id="概率密度函数">概率密度函数</h2>
 <p>在正态分布中，通过查看某个值在x轴上的位置即标准偏差，能改确定大于或小于任何值的百分比，下面学习如何计算这些百分比。<br />
 我们使用理论曲线来绘制数据模型，曲线下的面积是1 ，因为它是用分布数据的相对频率（即比例）来绘制数据模型，该曲线叫做<strong>概率密度函数</strong>，通常缩写为PDF。<br />
 概率密度函数曲线下的面积表示概率。<br />
-<img src="" alt="概率密度函数" /><br />
+<img src="https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-21-概率密度函数.png?raw=true" alt="概率密度函数" /><br />
 绘制概率密度函数时，绝对频率（absolute frequency）变成相对频率（relative frequency）。<br />
-<img src="" alt="直方图-概率密度函数" /></p>
+<img src="https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-21-直方图-概率密度函数.png?raw=true" alt="直方图-概率密度函数" /></p>
 <h2 id="正态概率密度函数">正态概率密度函数</h2>
 <p>曲线的末端实际上不会接触到x轴，只是越来越接近x轴，x轴是水平渐进线，该理论模型的曲线末端不能接触到x轴是因为我们永远都不能100%确定某件事；<br />
 假设有某个值（x），从负无穷到x之间的曲线下的面积，等于随机地从样本中选择一个小于x的受试者对应的概率，也就等于样本或总体中值小于x的比例。如果这个概率是80%，可以说x是第80个百分位。<br />
+<img src="https://github.com/leafming/bak/blob/master/images/machineLearning/2018-06-04-认识概率密度函数.png?raw=true" alt="认识概率密度函数" /><br />
 概率密度函数公式见百科：<a href="https://baike.baidu.com/item/概率密度函数/5021996?fr=aladdin">概率密度函数</a>。<br />
 正态概率密度函数公式（一维正态分布）：<br />
-若随机变量X服从一个位置参数为<script type="math/tex">\mu</script>、尺度参数为<script type="math/tex">\sigma</script>的概率分布，其概率密度函数为<script type="math/tex">f\left ( x \right )=\frac{1}{\sqrt{2\pi }\sigma }e^{\left ( -\frac{\left ( x-\mu \right )^{2}}{2\sigma^{2}} \right )}</script>，则这个随机变量就称为正态随机变量，正态随机变量服从的正态分布就称为正态分布，记作<script type="math/tex"></script>，读作X服从<script type="math/tex"></script>，或X服从正态分布。</p>
+若随机变量X服从一个位置参数为<script type="math/tex">\mu</script>、尺度参数为<script type="math/tex">\sigma</script>的概率分布，其概率密度函数为<script type="math/tex">f\left ( x \right )=\frac{1}{\sqrt{2\pi }\sigma }e^{\left ( -\frac{\left ( x-\mu \right )^{2}}{2\sigma^{2}} \right )}</script>，则这个随机变量就称为正态随机变量，正态随机变量服从的正态分布就称为正态分布，记作<script type="math/tex"></script>，读作X服从<script type="math/tex"></script>，或X服从正态分布。  <br />
+μ维随机向量具有类似的概率规律时，称此随机向量遵从多维正态分布。多元正态分布有很好的性质，例如，多元正态分布的边缘分布仍为正态分布，它经任何线性变换得到的随机向量仍为多维正态分布，特别它的线性组合为一元正态分布。<br />
+标准正态分布：<br />
+当μ=0，<script type="math/tex">\sigma</script>=1时，正态分布就成为标准正态分布：<script type="math/tex">f(x)=\frac{1}{\sqrt{2\pi }}e^{(-\frac{x^{2}}{2})}</script></p>
 
 
       
@@ -691,7 +697,7 @@ Upper Outliers &gt; Q3+1.5(IQR)</p>
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">6</span>
+                <span class="site-state-item-count">8</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -702,7 +708,7 @@ Upper Outliers &gt; Q3+1.5(IQR)</p>
             
             <div class="site-state-item site-state-categories">
               <a href="/categories/">
-                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-count">3</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -713,7 +719,7 @@ Upper Outliers &gt; Q3+1.5(IQR)</p>
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/">
-                <span class="site-state-item-count">5</span>
+                <span class="site-state-item-count">7</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>

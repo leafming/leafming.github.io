@@ -1,4 +1,236 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-05-25T17:37:12+08:00</updated><id>http://localhost:4000/</id><title type="html">iLeaf</title><subtitle>Yesterday you said tomorrow.</subtitle><author><name>Liv Yeh</name></author><entry><title type="html">spark日志相关内容</title><link href="http://localhost:4000/bigdata/2018/05/21/spark%E6%97%A5%E5%BF%97%E7%9B%B8%E5%85%B3%E5%86%85%E5%AE%B9/" rel="alternate" type="text/html" title="spark日志相关内容" /><published>2018-05-21T00:00:00+08:00</published><updated>2018-05-21T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/05/21/spark%E6%97%A5%E5%BF%97%E7%9B%B8%E5%85%B3%E5%86%85%E5%AE%B9</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/05/21/spark%E6%97%A5%E5%BF%97%E7%9B%B8%E5%85%B3%E5%86%85%E5%AE%B9/">&lt;blockquote&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-06-06T19:11:07+08:00</updated><id>http://localhost:4000/</id><title type="html">iLeaf</title><subtitle>Yesterday you said tomorrow.</subtitle><author><name>Liv Yeh</name></author><entry><title type="html">lintcode算法练习打卡</title><link href="http://localhost:4000/base/2018/06/06/lintcode%E7%AE%97%E6%B3%95%E7%BB%83%E4%B9%A0%E6%89%93%E5%8D%A1/" rel="alternate" type="text/html" title="lintcode算法练习打卡" /><published>2018-06-06T00:00:00+08:00</published><updated>2018-06-06T00:00:00+08:00</updated><id>http://localhost:4000/base/2018/06/06/lintcode%E7%AE%97%E6%B3%95%E7%BB%83%E4%B9%A0%E6%89%93%E5%8D%A1</id><content type="html" xml:base="http://localhost:4000/base/2018/06/06/lintcode%E7%AE%97%E6%B3%95%E7%BB%83%E4%B9%A0%E6%89%93%E5%8D%A1/">&lt;blockquote&gt;
+  &lt;p&gt;本文主要关于&lt;a href=&quot;https://www.lintcode.com/problem/&quot;&gt;lintcode&lt;/a&gt; 中的算法练习。最近几个无聊的小伙伴组成了一个算法打卡小组，每天完成1道算法题并互相分析，不知道能坚持多久哈哈，正式打卡时间从2018-06-08开始，争取以后有空就在这个文章里面记录下题目和解题。这里解题应该是多用java，偶尔混入python或者scala。PS估计最后个人实在太懒了可能就直接贴个题目和代码上来了，而且有些很可能做不出来哈哈哈哈哈哈，随缘吧！&lt;br /&gt;
+想要加入的联系哈～&lt;/p&gt;
+  &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;代码小组规则：
+1、答题顺序从1开始，每天至少完成1道简单题或中等题（困难题可给2天时间），不完成着发红包3元;  
+2、一个月可以请假8次，但后续需要有时间把这8个题目补上；  
+3、每月统计一次，排行榜第一名的口头表扬；  
+4、完成代码语言任意，完成后可互相交流问题和心得；  
+5、若有难题，全部人员都未做出，可暂时跳过，后续大家一起讨论解决；  
+6、剩下内容后续大家商量补充。
+&lt;/code&gt;&lt;/pre&gt;
+  &lt;/div&gt;
+&lt;/blockquote&gt;
+
+&lt;h1 id=&quot;2018-06-06-1-ab问题&quot;&gt;2018-06-06-1-A+B问题&lt;/h1&gt;
+&lt;h2 id=&quot;题目&quot;&gt;题目&lt;/h2&gt;
+&lt;p&gt;给出两个整数a和b, 求他们的和, 但不能使用+等数学运算符。&lt;br /&gt;
+&lt;strong&gt;说明&lt;/strong&gt;&lt;br /&gt;
+a和b都是32位整数么？-是&lt;br /&gt;
+我可以使用位运算符么？-当然可以&lt;br /&gt;
+&lt;strong&gt;样例&lt;/strong&gt;&lt;br /&gt;
+如果a=1并且b=2，返回3。&lt;/p&gt;
+&lt;h2 id=&quot;解答&quot;&gt;解答&lt;/h2&gt;
+&lt;h3 id=&quot;所用知识点-java位运算&quot;&gt;所用知识点-java位运算&lt;/h3&gt;
+&lt;p&gt;java里int型是4个字节，即32位，用二进制表示java里的1即000……0001，且都是有符号的数，最高位代表符号位，即32位能表示的最大整数是2的32次方-1。&lt;br /&gt;
+&amp;amp; 与运算符 ：按位与，当且仅当两个对应的位置都是1，结果才是1，否则结果为0。(有0则0)&lt;br /&gt;
+| 或运算符 ：按位或，当且仅当两个对应的位置都是0，结果才是0，否则结果是1。(有1则1)&lt;br /&gt;
+~ 非运算符 ：按位取反。&lt;br /&gt;
+^异或运算符 ：当运算符两边不同的时候结果为1，两边相同的时候结果为0。&lt;br /&gt;
+&lt;script type=&quot;math/tex&quot;&gt;&gt;&gt;&lt;/script&gt;位移运算符（&lt;script type=&quot;math/tex&quot;&gt;% &lt;![CDATA[
+&lt;&lt; %]]&gt;&lt;/script&gt;同理）：位移运算符可以简单的理解为乘除法，像左移是除法，向右移是乘法。左移：在低位补0；右移：正数右移高位补0，负数右移高位补1。num&lt;script type=&quot;math/tex&quot;&gt;% &lt;![CDATA[
+&lt;&lt; %]]&gt;&lt;/script&gt;1,相当于num乘以2;num&lt;script type=&quot;math/tex&quot;&gt;&gt;&gt;&lt;/script&gt;1,相当于num除以2。8&lt;script type=&quot;math/tex&quot;&gt;&gt;&gt;&lt;/script&gt;2不要理解为8/2，位移两位就是除以2的2次方也就是8/4；注意9&lt;script type=&quot;math/tex&quot;&gt;&gt;&gt;&lt;/script&gt;1的结果是4，即最低位的1会移没了。&lt;br /&gt;
+&lt;script type=&quot;math/tex&quot;&gt;&gt;&gt;&gt;&lt;/script&gt;无符号右移 ：忽略符号位，空位都以0补齐。使用了“零扩展”：无论正负，都在高位插入0。value&lt;script type=&quot;math/tex&quot;&gt;&gt;&gt;&gt;&lt;/script&gt;num–num 指定要移位值value 移动的位数。无符号右移运算符&lt;script type=&quot;math/tex&quot;&gt;&gt;&gt;&gt;&lt;/script&gt;只是对32位和64位的值有意义。&lt;/p&gt;
+&lt;h3 id=&quot;位运算加法分析&quot;&gt;位运算加法分析&lt;/h3&gt;
+&lt;p&gt;本题目下述分析均参考或学习文章&lt;a href=&quot;https://blog.csdn.net/surp2011/article/details/51149828&quot;&gt;位运算-加法运算、交换两个数值&lt;/a&gt;。&lt;/p&gt;
+&lt;h4 id=&quot;思路分析&quot;&gt;思路分析&lt;/h4&gt;
+&lt;p&gt;参考上述文章，是从最熟悉的十进制分析。&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;思路1:十进制加法计算过程从末尾到高位进行计算，基本上是同位数字相加，有进位的情况再加上进位，即每次计算的时候是某一位的2个数字相加，最多3个数字即再多加一个进位。如15+9，个位5+9=14，结果末尾数为4，进位1；十位即1+0+1（进位）=2，因此结果为24。&lt;/li&gt;
+  &lt;li&gt;思路2:加法过程分为对应位数字相加结果和进位数字相加结果，再求2个结果的和，直到没有进位即为最终结果。再如15+9，5+9=4（个位），进位为1；1+0=1（十位），进位为0；即本位结果位14，进位为10；因此15+9即可转化为，14+10，即个位4+0=4，进位为0；十位1+1=2，进位为0；所以结果为24，进位结果是0，所以不用再计算，即可得出最终结果24。总结上诉，即将加法分为了对应位相加（不进位）和进位值2部分，再求2个结果和，并且之后重复计算，直到进位值为0。因此，可以发现停止计算的条件可以设置为进位值为0。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h4 id=&quot;位运算分析&quot;&gt;位运算分析&lt;/h4&gt;
+&lt;p&gt;下面在二进制位运算层面实现。&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;二进制和十进制差别：逢十进一和逢二进一。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h5 id=&quot;对应位相加不进位-sum&quot;&gt;对应位相加，不进位-sum&lt;/h5&gt;
+&lt;p&gt;在二进制中，则1位数相加，思考结果为：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;0 + 0 = 0
+0 + 1 = 1
+1 + 0 = 1
+1 + 1 = 0（不进位）
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;可以发现相同为0，不同为1，则当二进制的不进位加法，可以用异或^来表示。&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;0 ^ 0 = 0
+0 ^ 1 = 1
+1 ^ 0 = 1
+1 ^ 1 = 0
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;因此，在二进制中，对应位置相加（本位操作）可以使用异或^符号来实现，即a^b。&lt;/p&gt;
+&lt;h5 id=&quot;进位-carry&quot;&gt;进位-carry&lt;/h5&gt;
+&lt;p&gt;如果进行情况下，如果获取进位，只得到进位值，进位值的结果，思考如下：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;注意这里是只得到进位值
+0 + 0 = 0
+0 + 1 = 0
+1 + 0 = 0
+1 + 1 = 1
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;由此可看出，有0就为0，因此可以用位运算&amp;amp;来代替。&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;0 &amp;amp; 0 = 0
+0 &amp;amp; 1 = 0
+1 &amp;amp; 0 = 0
+1 &amp;amp; 1 = 1
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;但是进位应该是进到高位，因此可以使用左移操作符将进位的1左进一位。&lt;br /&gt;
+在位运算中，我们用“«”表示向左移动一位，也就是“进位”。&lt;br /&gt;
+0«1 = 0，值还是0，1«1 = 10，值为2。&lt;br /&gt;
+因此，进位可以如下表示：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;(x&amp;amp;y)&amp;lt;&amp;lt;1
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;tips：左移一位在二进制的意义可以理解为x2，对应于十进制即为x10，也就实现了进位。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h5 id=&quot;小总结&quot;&gt;小总结&lt;/h5&gt;
+&lt;p&gt;因此总结一下：&lt;br /&gt;
+到这里，我们基本上拥有了这样两个表达式：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;x^y //执行加法
+(x&amp;amp;y)&amp;lt;&amp;lt;1 //进位操作
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;因此，应我们上面的思路2，可以得到加法表达公式抽象为：&lt;strong&gt;a+b = a^b + (a&amp;amp;b)«1&lt;/strong&gt;，之后迭代或循环实现重复性操作即可。&lt;strong&gt;当进位为0的时候，+操作的某一个值就会是0，也就不用再重复计算了，算法停止。&lt;/strong&gt;&lt;br /&gt;
+&lt;strong&gt;因此可以通过进位是0来判断结束。&lt;/strong&gt;&lt;br /&gt;
+下面测试一下：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;计算11+01=100，用推算的表达式：a^b=11^01=10，a&amp;amp;b=11&amp;amp;01=01，(a&amp;amp;b)&amp;lt;&amp;lt;1=01&amp;lt;&amp;lt;1=10，所以下述需要做的是10+10，但是我们不用普通的加法，即可以再执行一下**a+b = a^b + (a&amp;amp;b)&amp;lt;&amp;lt;1**，即a^b=10^10=00,a&amp;amp;b=10&amp;amp;10=10,(a&amp;amp;b)&amp;lt;&amp;lt;1=10&amp;lt;&amp;lt;1=100,加法操作的某一个值已经是0了，但是进位值为100，可以看看一会继续计算，进位会不会变成0，00+100，即00^100=100,000&amp;amp;100=000,000&amp;lt;&amp;lt;1=000,因此现在进位为0了，因此不用再计算了，即结果为100。
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h3 id=&quot;代码&quot;&gt;代码&lt;/h3&gt;
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;递归&lt;/p&gt;
+
+    &lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Solution&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+ &lt;span class=&quot;cm&quot;&gt;/**
+  * @param a: An integer
+  * @param b: An integer
+  * @return: The sum of a and b 
+  */&lt;/span&gt;
+ &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;aplusb&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+     &lt;span class=&quot;c1&quot;&gt;// write your code here&lt;/span&gt;
+     &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;){&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;
+ &lt;span class=&quot;c1&quot;&gt;//没有进位的时候完成运算&lt;/span&gt;
+         &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+     &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+ &lt;span class=&quot;c1&quot;&gt;//加法、进位左移，传入参数完成递归&lt;/span&gt;
+     &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;aplusb&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&amp;lt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;   
+ &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+
+    &lt;p&gt;一行递归:&lt;/p&gt;
+    &lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Solution&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+ &lt;span class=&quot;cm&quot;&gt;/**
+  * @param a: An integer
+  * @param b: An integer
+  * @return: The sum of a and b 
+  */&lt;/span&gt;
+ &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;aplusb&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;?&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;a:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;aplusb&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&amp;lt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+ &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;while&lt;/p&gt;
+
+    &lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Solution&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+ &lt;span class=&quot;cm&quot;&gt;/**
+  * @param a: An integer
+  * @param b: An integer
+  * @return: The sum of a and b 
+  */&lt;/span&gt;
+ &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;aplusb&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+     &lt;span class=&quot;c1&quot;&gt;// write your code here&lt;/span&gt;
+   &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+   &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;carry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&amp;lt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+   &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;carry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;){&lt;/span&gt;
+       &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+       &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;carry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+       &lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+       &lt;span class=&quot;n&quot;&gt;carry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&amp;lt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+   &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+   &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+ &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;\\错误答案&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;四不像，不要&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;while&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;加递归，死循环了&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;：&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;\\&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Solution&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;\\&lt;/span&gt;    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;aplusb&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;\\&lt;/span&gt;        &lt;span class=&quot;c1&quot;&gt;// write your code here&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;\\&lt;/span&gt;        &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;\\&lt;/span&gt;        &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;carry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&amp;lt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;\\&lt;/span&gt;        &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;carry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;){&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;\\&lt;/span&gt;            &lt;span class=&quot;n&quot;&gt;aplusb&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;carry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;\\&lt;/span&gt;        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;\\&lt;/span&gt;        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;\\&lt;/span&gt;    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;\\&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;do-while&lt;/p&gt;
+
+    &lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Solution&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+ &lt;span class=&quot;cm&quot;&gt;/**
+  * @param a: An integer
+  * @param b: An integer
+  * @return: The sum of a and b 
+  */&lt;/span&gt;
+ &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;aplusb&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+     &lt;span class=&quot;c1&quot;&gt;// write your code here&lt;/span&gt;
+     &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+     &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;carry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+     &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+         &lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+         &lt;span class=&quot;n&quot;&gt;carry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&amp;lt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+         &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+         &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;carry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+     &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;carry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+     &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+ &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;拓展-交换2个数的值&quot;&gt;拓展-交换2个数的值&lt;/h2&gt;
+&lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Test&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[]){&lt;/span&gt;
+        &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;\t&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;至此，本篇内容暂时完成，以后随着更新。&lt;br /&gt;
+如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～&lt;br /&gt;
+©商业转载请联系作者获得授权，非商业转载请注明出处。&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="Algorithm" /><summary type="html">本文主要关于lintcode 中的算法练习。最近几个无聊的小伙伴组成了一个算法打卡小组，每天完成1道算法题并互相分析，不知道能坚持多久哈哈，正式打卡时间从2018-06-08开始，争取以后有空就在这个文章里面记录下题目和解题。这里解题应该是多用java，偶尔混入python或者scala。PS估计最后个人实在太懒了可能就直接贴个题目和代码上来了，而且有些很可能做不出来哈哈哈哈哈哈，随缘吧！ 想要加入的联系哈～ 代码小组规则： 1、答题顺序从1开始，每天至少完成1道简单题或中等题（困难题可给2天时间），不完成着发红包3元; 2、一个月可以请假8次，但后续需要有时间把这8个题目补上； 3、每月统计一次，排行榜第一名的口头表扬； 4、完成代码语言任意，完成后可互相交流问题和心得； 5、若有难题，全部人员都未做出，可暂时跳过，后续大家一起讨论解决； 6、剩下内容后续大家商量补充。 2018-06-06-1-A+B问题 题目 给出两个整数a和b, 求他们的和, 但不能使用+等数学运算符。 说明 a和b都是32位整数么？-是 我可以使用位运算符么？-当然可以 样例 如果a=1并且b=2，返回3。 解答 所用知识点-java位运算 java里int型是4个字节，即32位，用二进制表示java里的1即000……0001，且都是有符号的数，最高位代表符号位，即32位能表示的最大整数是2的32次方-1。 &amp;amp; 与运算符 ：按位与，当且仅当两个对应的位置都是1，结果才是1，否则结果为0。(有0则0) | 或运算符 ：按位或，当且仅当两个对应的位置都是0，结果才是0，否则结果是1。(有1则1) ~ 非运算符 ：按位取反。 ^异或运算符 ：当运算符两边不同的时候结果为1，两边相同的时候结果为0。 位移运算符（同理）：位移运算符可以简单的理解为乘除法，像左移是除法，向右移是乘法。左移：在低位补0；右移：正数右移高位补0，负数右移高位补1。num1,相当于num乘以2;num1,相当于num除以2。82不要理解为8/2，位移两位就是除以2的2次方也就是8/4；注意91的结果是4，即最低位的1会移没了。 无符号右移 ：忽略符号位，空位都以0补齐。使用了“零扩展”：无论正负，都在高位插入0。valuenum–num 指定要移位值value 移动的位数。无符号右移运算符只是对32位和64位的值有意义。 位运算加法分析 本题目下述分析均参考或学习文章位运算-加法运算、交换两个数值。 思路分析 参考上述文章，是从最熟悉的十进制分析。 思路1:十进制加法计算过程从末尾到高位进行计算，基本上是同位数字相加，有进位的情况再加上进位，即每次计算的时候是某一位的2个数字相加，最多3个数字即再多加一个进位。如15+9，个位5+9=14，结果末尾数为4，进位1；十位即1+0+1（进位）=2，因此结果为24。 思路2:加法过程分为对应位数字相加结果和进位数字相加结果，再求2个结果的和，直到没有进位即为最终结果。再如15+9，5+9=4（个位），进位为1；1+0=1（十位），进位为0；即本位结果位14，进位为10；因此15+9即可转化为，14+10，即个位4+0=4，进位为0；十位1+1=2，进位为0；所以结果为24，进位结果是0，所以不用再计算，即可得出最终结果24。总结上诉，即将加法分为了对应位相加（不进位）和进位值2部分，再求2个结果和，并且之后重复计算，直到进位值为0。因此，可以发现停止计算的条件可以设置为进位值为0。 位运算分析 下面在二进制位运算层面实现。 二进制和十进制差别：逢十进一和逢二进一。 对应位相加，不进位-sum 在二进制中，则1位数相加，思考结果为： 0 + 0 = 0 0 + 1 = 1 1 + 0 = 1 1 + 1 = 0（不进位） 可以发现相同为0，不同为1，则当二进制的不进位加法，可以用异或^来表示。 0 ^ 0 = 0 0 ^ 1 = 1 1 ^ 0 = 1 1 ^ 1 = 0 因此，在二进制中，对应位置相加（本位操作）可以使用异或^符号来实现，即a^b。 进位-carry 如果进行情况下，如果获取进位，只得到进位值，进位值的结果，思考如下： 注意这里是只得到进位值 0 + 0 = 0 0 + 1 = 0 1 + 0 = 0 1 + 1 = 1 由此可看出，有0就为0，因此可以用位运算&amp;amp;来代替。 0 &amp;amp; 0 = 0 0 &amp;amp; 1 = 0 1 &amp;amp; 0 = 0 1 &amp;amp; 1 = 1 但是进位应该是进到高位，因此可以使用左移操作符将进位的1左进一位。 在位运算中，我们用“«”表示向左移动一位，也就是“进位”。 0«1 = 0，值还是0，1«1 = 10，值为2。 因此，进位可以如下表示： (x&amp;amp;y)&amp;lt;&amp;lt;1 tips：左移一位在二进制的意义可以理解为x2，对应于十进制即为x10，也就实现了进位。 小总结 因此总结一下： 到这里，我们基本上拥有了这样两个表达式： x^y //执行加法 (x&amp;amp;y)&amp;lt;&amp;lt;1 //进位操作 因此，应我们上面的思路2，可以得到加法表达公式抽象为：a+b = a^b + (a&amp;amp;b)«1，之后迭代或循环实现重复性操作即可。当进位为0的时候，+操作的某一个值就会是0，也就不用再重复计算了，算法停止。 因此可以通过进位是0来判断结束。 下面测试一下： 计算11+01=100，用推算的表达式：a^b=11^01=10，a&amp;amp;b=11&amp;amp;01=01，(a&amp;amp;b)&amp;lt;&amp;lt;1=01&amp;lt;&amp;lt;1=10，所以下述需要做的是10+10，但是我们不用普通的加法，即可以再执行一下**a+b = a^b + (a&amp;amp;b)&amp;lt;&amp;lt;1**，即a^b=10^10=00,a&amp;amp;b=10&amp;amp;10=10,(a&amp;amp;b)&amp;lt;&amp;lt;1=10&amp;lt;&amp;lt;1=100,加法操作的某一个值已经是0了，但是进位值为100，可以看看一会继续计算，进位会不会变成0，00+100，即00^100=100,000&amp;amp;100=000,000&amp;lt;&amp;lt;1=000,因此现在进位为0了，因此不用再计算了，即结果为100。 代码 递归 public class Solution { /** * @param a: An integer * @param b: An integer * @return: The sum of a and b */ public int aplusb(int a, int b) { // write your code here if(0==b){a //没有进位的时候完成运算 return a; } //加法、进位左移，传入参数完成递归 return aplusb(a^b,(a&amp;amp;b)&amp;lt;&amp;lt;1); } } 一行递归: public class Solution { /** * @param a: An integer * @param b: An integer * @return: The sum of a and b */ public int aplusb(int a, int b) { return b==0?a:aplusb(a^b,(a&amp;amp;b)&amp;lt;&amp;lt;1); } } while public class Solution { /** * @param a: An integer * @param b: An integer * @return: The sum of a and b */ public int aplusb(int a, int b) { // write your code here int sum=a^b; int carry=(a&amp;amp;b)&amp;lt;&amp;lt;1; while(carry!=0){ a=sum; b=carry; sum=a^b; carry=(a&amp;amp;b)&amp;lt;&amp;lt;1; } return sum; } } \\错误答案(四不像，不要while加递归，死循环了)： \\public class Solution { \\ public int aplusb(int a, int b) { \\ // write your code here \\ int sum=a^b; \\ int carry=(a&amp;amp;b)&amp;lt;&amp;lt;1; \\ while(0!=carry){ \\ aplusb(sum,carry); \\ } \\ return sum; \\ } \\} do-while public class Solution { /** * @param a: An integer * @param b: An integer * @return: The sum of a and b */ public int aplusb(int a, int b) { // write your code here int sum=0; int carry=0; do { sum=a^b; carry=(a&amp;amp;b)&amp;lt;&amp;lt;1; a=sum; b=carry; } while (carry!=0); return sum; } } 拓展-交换2个数的值 public class Test{ public static void main(String args[]){ int a=10;int b=20; a=a^b; b=b^a; a=a^b; System.out.println(a+&quot;\t&quot;+b); } }</summary></entry><entry><title type="html">HDFS权限以及目录限额相关</title><link href="http://localhost:4000/bigdata/2018/06/04/HDFS%E6%9D%83%E9%99%90%E4%BB%A5%E5%8F%8A%E7%9B%AE%E5%BD%95%E9%99%90%E9%A2%9D%E7%9B%B8%E5%85%B3/" rel="alternate" type="text/html" title="HDFS权限以及目录限额相关" /><published>2018-06-04T00:00:00+08:00</published><updated>2018-06-04T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/06/04/HDFS%E6%9D%83%E9%99%90%E4%BB%A5%E5%8F%8A%E7%9B%AE%E5%BD%95%E9%99%90%E9%A2%9D%E7%9B%B8%E5%85%B3</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/06/04/HDFS%E6%9D%83%E9%99%90%E4%BB%A5%E5%8F%8A%E7%9B%AE%E5%BD%95%E9%99%90%E9%A2%9D%E7%9B%B8%E5%85%B3/">&lt;blockquote&gt;
+  &lt;p&gt;本文主要关于HDFS的用户权限设置以及目录的限额控制的总结。本文主要分3部分进行总结，1为HDFS的用户权限设置，2为目录的限额控制，最后简单说明一下单纯使用HDFS ACL可能造成的安全隐患。&lt;br /&gt;
+&lt;strong&gt;注意: 本文中使用的版本是Hadoop 2.6.0-cdh5.11.0&lt;/strong&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;平台中需要对于使用租户的权限以及所用文件空间进行控制，所以查找了关于HDFS用户权限以及目录限额控制的相关方法和权限控制JAVA API，并且翻阅源码的时候也找到了相关HDFS存储限额控制的JAVA API，过了这么长时间今天终于想起来要总结一下。不过有点需要注明，目前为止单纯的使用HDFS ACL控制权限有用户伪造的隐患，此种隐患会在本文最后进行说明。&lt;/p&gt;
+
+&lt;p&gt;#&lt;/p&gt;
+
+&lt;p&gt;至此，本篇内容完成。&lt;br /&gt;
+如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～&lt;br /&gt;
+©商业转载请联系作者获得授权，非商业转载请注明出处。&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="Hadoop" /><summary type="html">本文主要关于HDFS的用户权限设置以及目录的限额控制的总结。本文主要分3部分进行总结，1为HDFS的用户权限设置，2为目录的限额控制，最后简单说明一下单纯使用HDFS ACL可能造成的安全隐患。 注意: 本文中使用的版本是Hadoop 2.6.0-cdh5.11.0 平台中需要对于使用租户的权限以及所用文件空间进行控制，所以查找了关于HDFS用户权限以及目录限额控制的相关方法和权限控制JAVA API，并且翻阅源码的时候也找到了相关HDFS存储限额控制的JAVA API，过了这么长时间今天终于想起来要总结一下。不过有点需要注明，目前为止单纯的使用HDFS ACL控制权限有用户伪造的隐患，此种隐患会在本文最后进行说明。 # 至此，本篇内容完成。 如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～ ©商业转载请联系作者获得授权，非商业转载请注明出处。</summary></entry><entry><title type="html">spark日志相关内容</title><link href="http://localhost:4000/bigdata/2018/05/21/spark%E6%97%A5%E5%BF%97%E7%9B%B8%E5%85%B3%E5%86%85%E5%AE%B9/" rel="alternate" type="text/html" title="spark日志相关内容" /><published>2018-05-21T00:00:00+08:00</published><updated>2018-05-21T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/05/21/spark%E6%97%A5%E5%BF%97%E7%9B%B8%E5%85%B3%E5%86%85%E5%AE%B9</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/05/21/spark%E6%97%A5%E5%BF%97%E7%9B%B8%E5%85%B3%E5%86%85%E5%AE%B9/">&lt;blockquote&gt;
   &lt;p&gt;本文主要关于spark日志相关的部分内容，包括spark日志位置以及其中一种&amp;gt;日志配置方法，后续可再对本文进行其他配置方法的补充。&lt;br /&gt;
 &lt;strong&gt;注意: 本文中使用的版本是spark2.2.1&lt;/strong&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
@@ -267,25 +499,29 @@ Upper Outliers &amp;gt; Q3+1.5(IQR)&lt;/p&gt;
   &lt;li&gt;减去平均值，将其平移到0处&lt;/li&gt;
   &lt;li&gt;除以标准偏差，使标准偏差=1&lt;br /&gt;
 这就叫做&lt;strong&gt;标准正态分布&lt;/strong&gt;。&lt;br /&gt;
-&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-17-标准正态分布.png?raw=true&quot; alt=&quot;标准正态分布&quot; /&gt;&lt;/li&gt;
+&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-17-标准正态分布.png?raw=true&quot; alt=&quot;标准正态分布&quot; /&gt; &lt;br /&gt;
+&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-06-04-标准正态分布.png?raw=true&quot; alt=&quot;标准正态分布2&quot; /&gt;&lt;br /&gt;
+可以将任意正态分布转成任意正态分布：即通过转成标准正态分布，再转换成其他正态分布。&lt;/li&gt;
 &lt;/ol&gt;
-
-&lt;p&gt;可以将任意正态分布转成任意正态分布：即通过转成标准正态分布，再转换成其他正态分布。&lt;/p&gt;
 
 &lt;h1 id=&quot;2018-05-21-概率密度函数&quot;&gt;2018-05-21-概率密度函数&lt;/h1&gt;
 &lt;h2 id=&quot;概率密度函数&quot;&gt;概率密度函数&lt;/h2&gt;
 &lt;p&gt;在正态分布中，通过查看某个值在x轴上的位置即标准偏差，能改确定大于或小于任何值的百分比，下面学习如何计算这些百分比。&lt;br /&gt;
 我们使用理论曲线来绘制数据模型，曲线下的面积是1 ，因为它是用分布数据的相对频率（即比例）来绘制数据模型，该曲线叫做&lt;strong&gt;概率密度函数&lt;/strong&gt;，通常缩写为PDF。&lt;br /&gt;
 概率密度函数曲线下的面积表示概率。&lt;br /&gt;
-&lt;img src=&quot;&quot; alt=&quot;概率密度函数&quot; /&gt;&lt;br /&gt;
+&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-21-概率密度函数.png?raw=true&quot; alt=&quot;概率密度函数&quot; /&gt;&lt;br /&gt;
 绘制概率密度函数时，绝对频率（absolute frequency）变成相对频率（relative frequency）。&lt;br /&gt;
-&lt;img src=&quot;&quot; alt=&quot;直方图-概率密度函数&quot; /&gt;&lt;/p&gt;
+&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-21-直方图-概率密度函数.png?raw=true&quot; alt=&quot;直方图-概率密度函数&quot; /&gt;&lt;/p&gt;
 &lt;h2 id=&quot;正态概率密度函数&quot;&gt;正态概率密度函数&lt;/h2&gt;
 &lt;p&gt;曲线的末端实际上不会接触到x轴，只是越来越接近x轴，x轴是水平渐进线，该理论模型的曲线末端不能接触到x轴是因为我们永远都不能100%确定某件事；&lt;br /&gt;
 假设有某个值（x），从负无穷到x之间的曲线下的面积，等于随机地从样本中选择一个小于x的受试者对应的概率，也就等于样本或总体中值小于x的比例。如果这个概率是80%，可以说x是第80个百分位。&lt;br /&gt;
+&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-06-04-认识概率密度函数.png?raw=true&quot; alt=&quot;认识概率密度函数&quot; /&gt;&lt;br /&gt;
 概率密度函数公式见百科：&lt;a href=&quot;https://baike.baidu.com/item/概率密度函数/5021996?fr=aladdin&quot;&gt;概率密度函数&lt;/a&gt;。&lt;br /&gt;
 正态概率密度函数公式（一维正态分布）：&lt;br /&gt;
-若随机变量X服从一个位置参数为&lt;script type=&quot;math/tex&quot;&gt;\mu&lt;/script&gt;、尺度参数为&lt;script type=&quot;math/tex&quot;&gt;\sigma&lt;/script&gt;的概率分布，其概率密度函数为&lt;script type=&quot;math/tex&quot;&gt;f\left ( x \right )=\frac{1}{\sqrt{2\pi }\sigma }e^{\left ( -\frac{\left ( x-\mu \right )^{2}}{2\sigma^{2}} \right )}&lt;/script&gt;，则这个随机变量就称为正态随机变量，正态随机变量服从的正态分布就称为正态分布，记作&lt;script type=&quot;math/tex&quot;&gt;&lt;/script&gt;，读作X服从&lt;script type=&quot;math/tex&quot;&gt;&lt;/script&gt;，或X服从正态分布。&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="机器学习" /><category term="描述统计学" /><summary type="html">本文关于自学udacity机器学习课程的自学笔记，为第一部分，描述统计学入门(2)。 2018-05-16-可变性 范围(值域)是观察到的最大值和最小值之间的差。 值域不包括细节信息，因为值域是仅仅在2个数据的基础上得出的。 异常数值增大差异性，值域作为度量标准时，有异常数值，值域不可能准确的代表数据的差异性。 忽略尾部 处理异常数值：处理异常数值的一种方法就是忽略分布中的上尾和下尾。习惯上，统计学家会忽略较低的25%和较高的25%。 虽然建议去除上下各25%的数据点，但我们在去除数据点时还需要特别谨慎，特别是在数据量不大的情况下，去除一半的数据点&amp;gt;会让我们丢失大量数据的信息。 一般来说，在去除数据点前，我们建议首先将数据点通过图像表述出来（直方图、散点图、箱线图等），这样可以帮助你获得对数据整理分析的了解。然后，基于项目的背景，判断你更关心数据的哪一部分（大多数正常数据，还是小部分异常数据），因为在一些项目背景下，你可能更关心那些异常值。最后，是基于现有的数据量作出决定，究竟是直接丢弃部分数据还是对部分作出调整，亦或是有保留地接受所有数据。特别记住一点，没有一种分析方法100%正确，但我们总可以尝试根据不同的需求找到一种最合理的方法。 四分位差 找出方法：排序的数据集，从中间分成2半，再找一半的中位数。 第一个四分位数：称为总体的Q1 中位数：Q2 第三个四分位：称为总体的Q3 四分位差(IQR)：Q3-Q1 能表示图的差异性。 几乎50%的数据在IQR间。 IQR不受异常值的影响。 The Interquartile range (IQR) is the distance be- tween the 1st quartile and 3rd quartile and gives us the range of the middle 50% of our data. The IQR is easily found by computing: Q3-Q1. 异常值 异常值：如果一个值小于Q1减去1.5倍的IQR或者大于Q3加上1.5倍IQR，则这个数就被认为是异常数值。 Lower Outliers &amp;lt; Q1-1.5(IQR) Upper Outliers &amp;gt; Q3+1.5(IQR) 箱线图 表示中位数、四分位差、最小值和最大值有效。 箱线图（盒须图）：直观的表示四分位数和异常数值。箱线图外面的点表示异常值，在此上下文中，“min”和“max”是指样本中不包括异常值在内的最小值和最大值。箱线图的方向可以有不同。 箱线图的对比，箱线图与直方图连线对应： 值域和IQR都无法将所有数据集考虑进来，完全不相同的两个数据集也可能有相同的IQR，不同的图可能有相同的箱线图。 基础概念 离均差(Deviation from Mean)：用每个值减去平均值 （减的顺序保持一致）。 平均偏差：计算离均差的平均值。 绝对偏差(Absolute Deviations)： 平均绝对偏差(Average Absolute Deviation)：各次测量值的绝对偏差绝对值的平均值。 相对平均偏差：指平均偏差占平均值的百分率。*100% 平方偏差(Squared Deviation)： 平方和SS(sum of squares)： 因为抽样往往是总体居于中间的值，因此抽样中的差异性将少于整个总体的差异性，所以使用贝塞尔校正系数：将除以n换为除以n-1。 平均平方偏差（Arerage Square Deviation）-方差：平方偏差的均值 ，贝塞尔校正后的方差(样本方差) 标准偏差（标准差）(standard deviation)：最常用的分布测量方法,平均平方偏差的平方根;方差的平方根(平方偏差的和除以n，再开平方)。 样本标准差(standard deviation of sample): ,代表样本的X1,X2,…,Xn的均值。-估算总体标准差。 总体标准差(standard deviation of population): ,代表总体X的均值。-计算数据集自己的标准差。 如果使用这个数据集估算此样本所属的较大型总体的标准差，要除以n-1，即使用样本标准差公式。如果这个数据集较小，计算这个数据集自己的标准差，则除以n，即使用总体标准差公式。 计算过程：求平均值、求离均差、再求每个偏差 的平方、再取平均值、在取平方根。 相对标准偏差：指标准偏差占平均值的百分率，又称为变异系数(CV)，通常用RSD表示。*100% 平均绝对离差：平均绝对离差(mean absolute deviation)是用样本数据相对于其平均值的绝对距离来度量数据的离散程度。平均绝对离差也称为平均离差(mean deviation)。平均绝对离差定义为各数据与平均值的离差的绝对值的平均数。 设样本的n个观测值为x1,x2..xn，平均绝对离差为： 对于分组数据，平均绝对离差为： 其中,分别为第i(i=1,2…,k)组数据的频数及组中值，k为数据分组的组数。 标准差重要性 在正态分布中，数据均匀分布，平均值=中位数=众数，并且位于分布的中心。大约68%的数据与平均值的偏差不超过1个标准差；95%的数据与平均值的偏差不超过2个标准差。 2018-05-17 归一化 标准化分布图 正态分布类型：宽扁型、瘦高型、或者介于2者之间，但曲线下面积始终为1或100%。大约68%的数据与平均值的偏差不超过1个标准差；95%的数据与平均值的偏差不超过2个标准差。 特定值在x轴上的位置通常用标准偏差来描述。与平均值的距离多少个标准差的值，称为z。通过将正态分布中的值转换为这个特殊数字z，就可以知道小于或大于该值的百分比。 标准差数量z公式：计算某个值与平均值之间相差多少个标准差，即。始终用x减去平均值。 当某个值小于平均值是，是负的z值；z值是指任何值距离平均值的标准偏差数；如果一个值与均值相等，它的Z值为0。 标准化（归一化）分布图：将正态分布图中的任意值转化称z值，则标准化了分布图。 如果我们将数据归一化处理为z值，该归一化分布的新平均值会是多少？-0 如果我们将数据归一化处理为z值，该归一化分布的新标准偏差会是多少？-1 总结：对于任何正态分布，都可以通过以下方式归一化该分布： 减去平均值，将其平移到0处 除以标准偏差，使标准偏差=1 这就叫做标准正态分布。 可以将任意正态分布转成任意正态分布：即通过转成标准正态分布，再转换成其他正态分布。 2018-05-21-概率密度函数 概率密度函数 在正态分布中，通过查看某个值在x轴上的位置即标准偏差，能改确定大于或小于任何值的百分比，下面学习如何计算这些百分比。 我们使用理论曲线来绘制数据模型，曲线下的面积是1 ，因为它是用分布数据的相对频率（即比例）来绘制数据模型，该曲线叫做概率密度函数，通常缩写为PDF。 概率密度函数曲线下的面积表示概率。 绘制概率密度函数时，绝对频率（absolute frequency）变成相对频率（relative frequency）。 正态概率密度函数 曲线的末端实际上不会接触到x轴，只是越来越接近x轴，x轴是水平渐进线，该理论模型的曲线末端不能接触到x轴是因为我们永远都不能100%确定某件事； 假设有某个值（x），从负无穷到x之间的曲线下的面积，等于随机地从样本中选择一个小于x的受试者对应的概率，也就等于样本或总体中值小于x的比例。如果这个概率是80%，可以说x是第80个百分位。 概率密度函数公式见百科：概率密度函数。 正态概率密度函数公式（一维正态分布）： 若随机变量X服从一个位置参数为、尺度参数为的概率分布，其概率密度函数为，则这个随机变量就称为正态随机变量，正态随机变量服从的正态分布就称为正态分布，记作，读作X服从，或X服从正态分布。</summary></entry><entry><title type="html">机器学习入门自学-描述统计学入门1</title><link href="http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/10/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A81/" rel="alternate" type="text/html" title="机器学习入门自学-描述统计学入门1" /><published>2018-05-10T00:00:00+08:00</published><updated>2018-05-10T00:00:00+08:00</updated><id>http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/10/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A81</id><content type="html" xml:base="http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/10/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A81/">&lt;blockquote&gt;
+若随机变量X服从一个位置参数为&lt;script type=&quot;math/tex&quot;&gt;\mu&lt;/script&gt;、尺度参数为&lt;script type=&quot;math/tex&quot;&gt;\sigma&lt;/script&gt;的概率分布，其概率密度函数为&lt;script type=&quot;math/tex&quot;&gt;f\left ( x \right )=\frac{1}{\sqrt{2\pi }\sigma }e^{\left ( -\frac{\left ( x-\mu \right )^{2}}{2\sigma^{2}} \right )}&lt;/script&gt;，则这个随机变量就称为正态随机变量，正态随机变量服从的正态分布就称为正态分布，记作&lt;script type=&quot;math/tex&quot;&gt;&lt;/script&gt;，读作X服从&lt;script type=&quot;math/tex&quot;&gt;&lt;/script&gt;，或X服从正态分布。  &lt;br /&gt;
+μ维随机向量具有类似的概率规律时，称此随机向量遵从多维正态分布。多元正态分布有很好的性质，例如，多元正态分布的边缘分布仍为正态分布，它经任何线性变换得到的随机向量仍为多维正态分布，特别它的线性组合为一元正态分布。&lt;br /&gt;
+标准正态分布：&lt;br /&gt;
+当μ=0，&lt;script type=&quot;math/tex&quot;&gt;\sigma&lt;/script&gt;=1时，正态分布就成为标准正态分布：&lt;script type=&quot;math/tex&quot;&gt;f(x)=\frac{1}{\sqrt{2\pi }}e^{(-\frac{x^{2}}{2})}&lt;/script&gt;&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="机器学习" /><category term="描述统计学" /><summary type="html">本文关于自学udacity机器学习课程的自学笔记，为第一部分，描述统计学入门(2)。 2018-05-16-可变性 范围(值域)是观察到的最大值和最小值之间的差。 值域不包括细节信息，因为值域是仅仅在2个数据的基础上得出的。 异常数值增大差异性，值域作为度量标准时，有异常数值，值域不可能准确的代表数据的差异性。 忽略尾部 处理异常数值：处理异常数值的一种方法就是忽略分布中的上尾和下尾。习惯上，统计学家会忽略较低的25%和较高的25%。 虽然建议去除上下各25%的数据点，但我们在去除数据点时还需要特别谨慎，特别是在数据量不大的情况下，去除一半的数据点&amp;gt;会让我们丢失大量数据的信息。 一般来说，在去除数据点前，我们建议首先将数据点通过图像表述出来（直方图、散点图、箱线图等），这样可以帮助你获得对数据整理分析的了解。然后，基于项目的背景，判断你更关心数据的哪一部分（大多数正常数据，还是小部分异常数据），因为在一些项目背景下，你可能更关心那些异常值。最后，是基于现有的数据量作出决定，究竟是直接丢弃部分数据还是对部分作出调整，亦或是有保留地接受所有数据。特别记住一点，没有一种分析方法100%正确，但我们总可以尝试根据不同的需求找到一种最合理的方法。 四分位差 找出方法：排序的数据集，从中间分成2半，再找一半的中位数。 第一个四分位数：称为总体的Q1 中位数：Q2 第三个四分位：称为总体的Q3 四分位差(IQR)：Q3-Q1 能表示图的差异性。 几乎50%的数据在IQR间。 IQR不受异常值的影响。 The Interquartile range (IQR) is the distance be- tween the 1st quartile and 3rd quartile and gives us the range of the middle 50% of our data. The IQR is easily found by computing: Q3-Q1. 异常值 异常值：如果一个值小于Q1减去1.5倍的IQR或者大于Q3加上1.5倍IQR，则这个数就被认为是异常数值。 Lower Outliers &amp;lt; Q1-1.5(IQR) Upper Outliers &amp;gt; Q3+1.5(IQR) 箱线图 表示中位数、四分位差、最小值和最大值有效。 箱线图（盒须图）：直观的表示四分位数和异常数值。箱线图外面的点表示异常值，在此上下文中，“min”和“max”是指样本中不包括异常值在内的最小值和最大值。箱线图的方向可以有不同。 箱线图的对比，箱线图与直方图连线对应： 值域和IQR都无法将所有数据集考虑进来，完全不相同的两个数据集也可能有相同的IQR，不同的图可能有相同的箱线图。 基础概念 离均差(Deviation from Mean)：用每个值减去平均值 （减的顺序保持一致）。 平均偏差：计算离均差的平均值。 绝对偏差(Absolute Deviations)： 平均绝对偏差(Average Absolute Deviation)：各次测量值的绝对偏差绝对值的平均值。 相对平均偏差：指平均偏差占平均值的百分率。*100% 平方偏差(Squared Deviation)： 平方和SS(sum of squares)： 因为抽样往往是总体居于中间的值，因此抽样中的差异性将少于整个总体的差异性，所以使用贝塞尔校正系数：将除以n换为除以n-1。 平均平方偏差（Arerage Square Deviation）-方差：平方偏差的均值 ，贝塞尔校正后的方差(样本方差) 标准偏差（标准差）(standard deviation)：最常用的分布测量方法,平均平方偏差的平方根;方差的平方根(平方偏差的和除以n，再开平方)。 样本标准差(standard deviation of sample): ,代表样本的X1,X2,…,Xn的均值。-估算总体标准差。 总体标准差(standard deviation of population): ,代表总体X的均值。-计算数据集自己的标准差。 如果使用这个数据集估算此样本所属的较大型总体的标准差，要除以n-1，即使用样本标准差公式。如果这个数据集较小，计算这个数据集自己的标准差，则除以n，即使用总体标准差公式。 计算过程：求平均值、求离均差、再求每个偏差 的平方、再取平均值、在取平方根。 相对标准偏差：指标准偏差占平均值的百分率，又称为变异系数(CV)，通常用RSD表示。*100% 平均绝对离差：平均绝对离差(mean absolute deviation)是用样本数据相对于其平均值的绝对距离来度量数据的离散程度。平均绝对离差也称为平均离差(mean deviation)。平均绝对离差定义为各数据与平均值的离差的绝对值的平均数。 设样本的n个观测值为x1,x2..xn，平均绝对离差为： 对于分组数据，平均绝对离差为： 其中,分别为第i(i=1,2…,k)组数据的频数及组中值，k为数据分组的组数。 标准差重要性 在正态分布中，数据均匀分布，平均值=中位数=众数，并且位于分布的中心。大约68%的数据与平均值的偏差不超过1个标准差；95%的数据与平均值的偏差不超过2个标准差。 2018-05-17 归一化 标准化分布图 正态分布类型：宽扁型、瘦高型、或者介于2者之间，但曲线下面积始终为1或100%。大约68%的数据与平均值的偏差不超过1个标准差；95%的数据与平均值的偏差不超过2个标准差。 特定值在x轴上的位置通常用标准偏差来描述。与平均值的距离多少个标准差的值，称为z。通过将正态分布中的值转换为这个特殊数字z，就可以知道小于或大于该值的百分比。 标准差数量z公式：计算某个值与平均值之间相差多少个标准差，即。始终用x减去平均值。 当某个值小于平均值是，是负的z值；z值是指任何值距离平均值的标准偏差数；如果一个值与均值相等，它的Z值为0。 标准化（归一化）分布图：将正态分布图中的任意值转化称z值，则标准化了分布图。 如果我们将数据归一化处理为z值，该归一化分布的新平均值会是多少？-0 如果我们将数据归一化处理为z值，该归一化分布的新标准偏差会是多少？-1 总结：对于任何正态分布，都可以通过以下方式归一化该分布： 减去平均值，将其平移到0处 除以标准偏差，使标准偏差=1 这就叫做标准正态分布。 可以将任意正态分布转成任意正态分布：即通过转成标准正态分布，再转换成其他正态分布。 2018-05-21-概率密度函数 概率密度函数 在正态分布中，通过查看某个值在x轴上的位置即标准偏差，能改确定大于或小于任何值的百分比，下面学习如何计算这些百分比。 我们使用理论曲线来绘制数据模型，曲线下的面积是1 ，因为它是用分布数据的相对频率（即比例）来绘制数据模型，该曲线叫做概率密度函数，通常缩写为PDF。 概率密度函数曲线下的面积表示概率。 绘制概率密度函数时，绝对频率（absolute frequency）变成相对频率（relative frequency）。 正态概率密度函数 曲线的末端实际上不会接触到x轴，只是越来越接近x轴，x轴是水平渐进线，该理论模型的曲线末端不能接触到x轴是因为我们永远都不能100%确定某件事； 假设有某个值（x），从负无穷到x之间的曲线下的面积，等于随机地从样本中选择一个小于x的受试者对应的概率，也就等于样本或总体中值小于x的比例。如果这个概率是80%，可以说x是第80个百分位。 概率密度函数公式见百科：概率密度函数。 正态概率密度函数公式（一维正态分布）： 若随机变量X服从一个位置参数为、尺度参数为的概率分布，其概率密度函数为，则这个随机变量就称为正态随机变量，正态随机变量服从的正态分布就称为正态分布，记作，读作X服从，或X服从正态分布。 μ维随机向量具有类似的概率规律时，称此随机向量遵从多维正态分布。多元正态分布有很好的性质，例如，多元正态分布的边缘分布仍为正态分布，它经任何线性变换得到的随机向量仍为多维正态分布，特别它的线性组合为一元正态分布。 标准正态分布： 当μ=0，=1时，正态分布就成为标准正态分布：</summary></entry><entry><title type="html">机器学习入门自学-描述统计学入门1</title><link href="http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/10/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A81/" rel="alternate" type="text/html" title="机器学习入门自学-描述统计学入门1" /><published>2018-05-10T00:00:00+08:00</published><updated>2018-05-10T00:00:00+08:00</updated><id>http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/10/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A81</id><content type="html" xml:base="http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/10/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A81/">&lt;blockquote&gt;
   &lt;p&gt;本文关于自学udacity机器学习课程的自学笔记，为第一部分，描述统计学入门(1)。&lt;/p&gt;
 &lt;/blockquote&gt;
 

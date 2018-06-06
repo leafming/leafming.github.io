@@ -83,7 +83,7 @@
 <link href="/assets/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Spark," />
+  <meta name="keywords" content="Algorithm," />
 
 
 
@@ -111,20 +111,17 @@
 
 
 
-<meta name="description" content="本文主要关于spark日志相关的部分内容，包括spark日志位置以及其中一种日志配置方法，后续可再对本文进行其他配置方法的补充。">
-<meta name="keywords" content="Spark">
+<meta name="description" content="本文主要关于lintcode算法练习打卡记录。">
+<meta name="keywords" content="Algorithm">
 <meta property="og:type" content="article">
-<meta property="og:title" content="spark日志相关内容">
-<meta property="og:url" content="http://localhost:4000/bigdata/2018/05/21/spark%E6%97%A5%E5%BF%97%E7%9B%B8%E5%85%B3%E5%86%85%E5%AE%B9/">
+<meta property="og:title" content="lintcode算法练习打卡">
+<meta property="og:url" content="http://localhost:4000/base/2018/06/06/lintcode%E7%AE%97%E6%B3%95%E7%BB%83%E4%B9%A0%E6%89%93%E5%8D%A1/">
 <meta property="og:site_name" content="iLeaf">
-<meta property="og:description" content="本文主要关于spark日志相关的部分内容，包括spark日志位置以及其中一种日志配置方法，后续可再对本文进行其他配置方法的补充。">
+<meta property="og:description" content="本文主要关于lintcode算法练习打卡记录。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/spark/2018-05-21-sparkStandaloneLogUI.png?raw=true">
-<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/spark/2018-05-23-work目录下内容.png?raw=true">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="spark日志相关内容">
-<meta name="twitter:description" content="本文主要关于spark日志相关的部分内容，包括spark日志位置以及其中一种日志配置方法，后续可再对本文进行其他配置方法的补充。">
-<meta name="twitter:image" content="https://github.com/leafming/bak/blob/master/images/spark/2018-05-21-sparkStandaloneLogUI.png?raw=true">
+<meta name="twitter:title" content="lintcode算法练习打卡">
+<meta name="twitter:description" content="本文主要关于lintcode算法练习打卡记录。">
 
 
 <script type="text/javascript" id="hexo.configurations">
@@ -157,7 +154,7 @@
 
 
 
-  <title>spark日志相关内容 | iLeaf</title>
+  <title>lintcode算法练习打卡 | iLeaf</title>
   
 
 
@@ -339,7 +336,7 @@
   
 
   <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://localhost:4000/bigdata/2018/05/21/spark%E6%97%A5%E5%BF%97%E7%9B%B8%E5%85%B3%E5%86%85%E5%AE%B9/">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/base/2018/06/06/lintcode%E7%AE%97%E6%B3%95%E7%BB%83%E4%B9%A0%E6%89%93%E5%8D%A1/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Liv Yeh">
@@ -359,7 +356,7 @@
           <h1 class="post-title" itemprop="name headline">
           
           
-            spark日志相关内容
+            lintcode算法练习打卡
           
         </h1>
         
@@ -373,8 +370,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-21T00:00:00+08:00">
-                2018-05-21
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-06T00:00:00+08:00">
+                2018-06-06
               </time>
             
 
@@ -397,8 +394,8 @@
               
                 
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/category/#/BigData" itemprop="url" rel="index">
-                    <span itemprop="name">BigData</span>
+                  <a href="/category/#/Base" itemprop="url" rel="index">
+                    <span itemprop="name">Base</span>
                   </a>
                 </span>
 
@@ -422,7 +419,7 @@
           
             
                 <div class="post-description">
-                    本文主要关于spark日志相关的部分内容，包括spark日志位置以及其中一种日志配置方法，后续可再对本文进行其他配置方法的补充。
+                    本文主要关于lintcode算法练习打卡记录。
                 </div>
             
           
@@ -438,185 +435,225 @@
 
       
         <blockquote>
-  <p>本文主要关于spark日志相关的部分内容，包括spark日志位置以及其中一种&gt;日志配置方法，后续可再对本文进行其他配置方法的补充。<br />
-<strong>注意: 本文中使用的版本是spark2.2.1</strong></p>
+  <p>本文主要关于<a href="https://www.lintcode.com/problem/">lintcode</a> 中的算法练习。最近几个无聊的小伙伴组成了一个算法打卡小组，每天完成1道算法题并互相分析，不知道能坚持多久哈哈，正式打卡时间从2018-06-08开始，争取以后有空就在这个文章里面记录下题目和解题。这里解题应该是多用java，偶尔混入python或者scala。PS估计最后个人实在太懒了可能就直接贴个题目和代码上来了，而且有些很可能做不出来哈哈哈哈哈哈，随缘吧！<br />
+想要加入的联系哈～</p>
+  <div class="highlighter-rouge"><pre class="highlight"><code>代码小组规则：
+1、答题顺序从1开始，每天至少完成1道简单题或中等题（困难题可给2天时间），不完成着发红包3元;  
+2、一个月可以请假8次，但后续需要有时间把这8个题目补上；  
+3、每月统计一次，排行榜第一名的口头表扬；  
+4、完成代码语言任意，完成后可互相交流问题和心得；  
+5、若有难题，全部人员都未做出，可暂时跳过，后续大家一起讨论解决；  
+6、剩下内容后续大家商量补充。
+</code></pre>
+  </div>
 </blockquote>
 
-<p>最近平台中某租户使用的容器化集群spark集群，提交的spark  streaming任务的日志没有进行级别控制，疯狂的刷日志，导致会占满宿主机的存储空间，并且集群均使用的是standalone模式，没有配置删除日志，所以日志太多会影响同一个宿主机下其他租户spark的使用。因此，在今天进行了一下集群的全局配置，直接将日志级别进行了更改，并且也趁这个时间，总结下对于spark日志相关的部分内容，后续有时间再进行其他补充。</p>
-
-<h1 id="spark应用程序运行日志的存放">Spark应用程序运行日志的存放</h1>
-<p>在很多情况下，我们需要查看driver和executor在运行spark程序时候产生的日志，以便于我们调试和查找问题。</p>
-<h2 id="driver端日志">Driver端日志</h2>
-<p>Spark Driver端的日志在默认情况下是直接输出在控制台的，driver本身没有stderr和stdout文件，所以只能在控制台输出。不过可以通过配置，将日志打印到文件中，具体配置方式后续再进行说明。</p>
-<h2 id="executor端日志">Executor端日志</h2>
-<p>Spark Executor日志的存放位置，是与Spark的部署模式相关的；Spark目前3种部署方式：Spark Standalone、Mesos、YARN。</p>
+<h1 id="2018-06-06-1-ab问题">2018-06-06-1-A+B问题</h1>
+<h2 id="题目">题目</h2>
+<p>给出两个整数a和b, 求他们的和, 但不能使用+等数学运算符。<br />
+<strong>说明</strong><br />
+a和b都是32位整数么？-是<br />
+我可以使用位运算符么？-当然可以<br />
+<strong>样例</strong><br />
+如果a=1并且b=2，返回3。</p>
+<h2 id="解答">解答</h2>
+<h3 id="所用知识点-java位运算">所用知识点-java位运算</h3>
+<p>java里int型是4个字节，即32位，用二进制表示java里的1即000……0001，且都是有符号的数，最高位代表符号位，即32位能表示的最大整数是2的32次方-1。<br />
+&amp; 与运算符 ：按位与，当且仅当两个对应的位置都是1，结果才是1，否则结果为0。(有0则0)<br />
+| 或运算符 ：按位或，当且仅当两个对应的位置都是0，结果才是0，否则结果是1。(有1则1)<br />
+~ 非运算符 ：按位取反。<br />
+^异或运算符 ：当运算符两边不同的时候结果为1，两边相同的时候结果为0。<br />
+<script type="math/tex">>></script>位移运算符（<script type="math/tex">% <![CDATA[
+<< %]]></script>同理）：位移运算符可以简单的理解为乘除法，像左移是除法，向右移是乘法。左移：在低位补0；右移：正数右移高位补0，负数右移高位补1。num<script type="math/tex">% <![CDATA[
+<< %]]></script>1,相当于num乘以2;num<script type="math/tex">>></script>1,相当于num除以2。8<script type="math/tex">>></script>2不要理解为8/2，位移两位就是除以2的2次方也就是8/4；注意9<script type="math/tex">>></script>1的结果是4，即最低位的1会移没了。<br />
+<script type="math/tex">>>></script>无符号右移 ：忽略符号位，空位都以0补齐。使用了“零扩展”：无论正负，都在高位插入0。value<script type="math/tex">>>></script>num–num 指定要移位值value 移动的位数。无符号右移运算符<script type="math/tex">>>></script>只是对32位和64位的值有意义。</p>
+<h3 id="位运算加法分析">位运算加法分析</h3>
+<p>本题目下述分析均参考或学习文章<a href="https://blog.csdn.net/surp2011/article/details/51149828">位运算-加法运算、交换两个数值</a>。</p>
+<h4 id="思路分析">思路分析</h4>
+<p>参考上述文章，是从最熟悉的十进制分析。</p>
 <ol>
-  <li>Spark Standalone模式：在spark standalone的部署模式下，可以直接在Master UI界面查看到相应的应用程序的日志，如下图。其中可以看到是有stderr和stdout两种日志，区别就是如果你在程序中使用了println(….)输出语句，并且位置是在executor端执行的，这些信息会在stdout文件里面显示，而在driver端执行的会直接在控制台输出；其余的Spark运行日志会在stderr文件里面显示。<br />
-<img src="https://github.com/leafming/bak/blob/master/images/spark/2018-05-21-sparkStandaloneLogUI.png?raw=true" alt="standaloneUI日志" /><br />
-通常，每个job的详细日志输出是在每个worker（slave）节点的work目录下，这个目录可以通过spark-env.sh下配置SPARK_WORKER_DIR参数（Directory to run applications in, which will include both logs and scratch space，默认情况下是SPARK_HOME/work）设置。<br />
-<img src="https://github.com/leafming/bak/blob/master/images/spark/2018-05-23-work目录下内容.png?raw=true" alt="work目录下内容" /><br />
-此部分，可以进行worker配置使日志自动删除，详情见后续“配置日志”部分。</li>
-  <li>Mesos模式：在Mesos模式下，也可以通过Mesos的Master UI界面上看到相关的应用程序日志，这些日志是存储在Mesos Slave的work目录下的，通常情况下通过修改mesos-slave-env.sh或mesos-master-env.sh文件下的MESOS_log_dir参数和MESOS_work_dir参数可以设置slave或master的日志目录和工作目录，默认情况下是master和slave的logs都在/var/log/mesos下。</li>
-  <li>YARN模式：在yarn模式下，executor和application master都运行在“containers”内。<br />
-YARN在一个application结束后，有2种处理容器内日志的方式。
-    <ol>
-      <li>其中在yarn模式下，最简单的收集日志的方式是使用Yarn的日志收集工具(yarn logs -applicationId <app ID="">)，这个工具可以收集应用程序的相关日志，但是要求:a.开启了日志聚合功能（yarn.log-aggregation-enable，默认情况下这参数是false）；b.application必须运行完，因为yarn必须先聚合这些日志。这种情况下，容器日志将被复制到HDFS，并删除本地日志，从而腾出更多空间。这样的话，这些日志可以在集群任何节点上用yarn logs命令查看：yarn logs -applicationId <app ID="">，用这个命令会打印出指定应用的所有日志文件的内容，或者也可以直接在HDFS上查看这些日志（HDFS shell或者HDFS API）。这个目录的配置可以在YARN配置中指定（yarn.nodemanager.remote-app-log-dir和yarn.nodemanager.remote-app-log-dir-suffix）。这些日志同样还可以在Spark Web UI上Executors页查看，但是也有前提，需要启动Spark history server和MapReduce history server，再在yarn-site.xml中配置好yarn.log.server.url。Spark history server UI将把你重定向到MapReduce history server以查看这些聚合日志。</app></app></li>
-      <li>如果日志聚合没有开启，那么日志文件将在每台机器上的YARN_APP_LOGS_DIR目录保留，通常这个目录指向NodeManager节点(ResourceManager节点下没输出)的/tmp/logs或者$HADOOP_HOME/log/userlogs（这取决于Hadoop版本和安全方式）。查看日志的话，需要到每台机器上查看这些目录。子目录是按application ID和container ID来组织的。这些日志同样可以在 Spark Web UI上Executors页查看，而且这时你不需要运行MapReduce history server。这里还有一个需要注意的地方，在没有开启日志聚合的时候，有一个参数yarn.nodemanager.log.retain-seconds，这个参数指应用程序输入出日志的保存时间，默认是10800，单位s，也就是3个小时，所以有可能超过时间再去查看日志的时候，原来的运行日志就自动删除了。<br />
-额外补充：在yarn模式下，kill掉某个job（直接在UI界面或者是终端kill掉任务都是不对的，该任务可能还会继续执行下去，所以要用如下命令才算完全停止该job的执行），yarn application -kill <app ID="">。</app></li>
-    </ol>
-  </li>
+  <li>思路1:十进制加法计算过程从末尾到高位进行计算，基本上是同位数字相加，有进位的情况再加上进位，即每次计算的时候是某一位的2个数字相加，最多3个数字即再多加一个进位。如15+9，个位5+9=14，结果末尾数为4，进位1；十位即1+0+1（进位）=2，因此结果为24。</li>
+  <li>思路2:加法过程分为对应位数字相加结果和进位数字相加结果，再求2个结果的和，直到没有进位即为最终结果。再如15+9，5+9=4（个位），进位为1；1+0=1（十位），进位为0；即本位结果位14，进位为10；因此15+9即可转化为，14+10，即个位4+0=4，进位为0；十位1+1=2，进位为0；所以结果为24，进位结果是0，所以不用再计算，即可得出最终结果24。总结上诉，即将加法分为了对应位相加（不进位）和进位值2部分，再求2个结果和，并且之后重复计算，直到进位值为0。因此，可以发现停止计算的条件可以设置为进位值为0。</li>
 </ol>
 
-<h1 id="配置日志">配置日志</h1>
-<h2 id="standalone日志自动删除配置">Standalone日志自动删除配置</h2>
-<p>目前，在使用中，平台中的容器化的spark集群因为资源已经由docker+mesos+marathon控制了，一个集群只有一个租户使用，因此均是standalone模式部署的，不过在使用过程中，应用程序日志不会自动删除会占很大空间，因此进行了worker配置，使日志自动删除。<br />
-其中，更改了conf/spark-env.sh，设置SPARK_WORKER_OPTS，即在文件内增加：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>export SPARK_WORKER_OPTS="-Dspark.worker.cleanup.enabled=true -Dspark.worker.cleanup.interval=3600 -Dspark.worker.cleanup.appDataTtl=604800 -Dspark.worker.ui.compressedLogFileLengthCacheSize=100"  
+<h4 id="位运算分析">位运算分析</h4>
+<p>下面在二进制位运算层面实现。</p>
+<blockquote>
+  <p>二进制和十进制差别：逢十进一和逢二进一。</p>
+</blockquote>
+
+<h5 id="对应位相加不进位-sum">对应位相加，不进位-sum</h5>
+<p>在二进制中，则1位数相加，思考结果为：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>0 + 0 = 0
+0 + 1 = 1
+1 + 0 = 1
+1 + 1 = 0（不进位）
 </code></pre>
 </div>
-<p>参数解释：<br />
-(1)spark.worker.cleanup.enabled（默认false）：仅在standalone模式下生效，开启后定期清理worker节点的worker目录下的应用程序日志，并且仅会清理已经停止的application日志。Enable periodic cleanup of worker / application directories. Note that this only affects standalone mode, as YARN works differently. Only the directories of stopped applications are cleaned up.<br />
-(2)spark.worker.cleanup.interval（默认1800）：清理频率。Controls the interval, in seconds, at which the worker cleans up old application work dirs on the local machine.<br />
-(3)spark.worker.cleanup.appDataTtl（604800(7days,7<em>24</em>3600)）：The number of seconds to retain application work directories on each worker. This is a Time To Live and should depend on the amount of available disk space you have. Application logs and jars are downloaded to each application work dir. Over time, the work dirs can quickly fill up disk space, especially if you run jobs very frequently.<br />
-(4)spark.worker.ui.compressedLogFileLengthCacheSize（默认100）：For compressed log files, the uncompressed file can only be computed by uncompressing the files. Spark caches the uncompressed file size of compressed log files. This property controls the cache size.</p>
-
-<h2 id="调试屏蔽日志">调试屏蔽日志</h2>
-<p>我们通常会使用IDE（例如Intellij IDEA）开发Spark应用，而程序调试运行时会在控制台中打印出所有的日志信息。它描述了（伪）集群运行、程序执行的所有行为。在很多情况下，这些信息对于我们来说是无关紧要的，我们更关心的是最终结果，无论是正常输出还是异常停止。我们可以通过log4j主动控制日志输出的级别。引入log4j.Logger和log4j.Level，并在对象中设置Logger.getLogger(“org”).setLevel(Level.ERROR)，其中getLogger(class)的参数用途是追踪产生此日志的类。</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>import org.apache.log4j.{Level, Logger}
-Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
-Logger.getLogger("org.eclipse.jetty.server").setLevel(Level.OFF)
-Logger.getLogger("kafka.utils.VerifiableProperties").setLevel(Level.WARN)
+<p>可以发现相同为0，不同为1，则当二进制的不进位加法，可以用异或^来表示。</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>0 ^ 0 = 0
+0 ^ 1 = 1
+1 ^ 0 = 1
+1 ^ 1 = 0
 </code></pre>
 </div>
-<p>这样的话，就可以看到我们关心的信息了。<br />
-补充说明参考：<a href="https://blog.csdn.net/lixwjava/article/details/45950559">使用一个类Log4jUtils来专门处理Logger对象的声明等操作</a>。</p>
-<h2 id="spark日志级别设置-log4j">spark日志级别设置-log4j</h2>
-<p>在默认情况下，Spark应用程序的日志级别是INFO的，我们可以自定义Spark应用程序的日志输出级别，其中可以有多种方式：</p>
+<p>因此，在二进制中，对应位置相加（本位操作）可以使用异或^符号来实现，即a^b。</p>
+<h5 id="进位-carry">进位-carry</h5>
+<p>如果进行情况下，如果获取进位，只得到进位值，进位值的结果，思考如下：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>注意这里是只得到进位值
+0 + 0 = 0
+0 + 1 = 0
+1 + 0 = 0
+1 + 1 = 1
+</code></pre>
+</div>
+<p>由此可看出，有0就为0，因此可以用位运算&amp;来代替。</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>0 &amp; 0 = 0
+0 &amp; 1 = 0
+1 &amp; 0 = 0
+1 &amp; 1 = 1
+</code></pre>
+</div>
+<p>但是进位应该是进到高位，因此可以使用左移操作符将进位的1左进一位。<br />
+在位运算中，我们用“«”表示向左移动一位，也就是“进位”。<br />
+0«1 = 0，值还是0，1«1 = 10，值为2。<br />
+因此，进位可以如下表示：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>(x&amp;y)&lt;&lt;1
+</code></pre>
+</div>
+<blockquote>
+  <p>tips：左移一位在二进制的意义可以理解为x2，对应于十进制即为x10，也就实现了进位。</p>
+</blockquote>
+
+<h5 id="小总结">小总结</h5>
+<p>因此总结一下：<br />
+到这里，我们基本上拥有了这样两个表达式：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>x^y //执行加法
+(x&amp;y)&lt;&lt;1 //进位操作
+</code></pre>
+</div>
+<p>因此，应我们上面的思路2，可以得到加法表达公式抽象为：<strong>a+b = a^b + (a&amp;b)«1</strong>，之后迭代或循环实现重复性操作即可。<strong>当进位为0的时候，+操作的某一个值就会是0，也就不用再重复计算了，算法停止。</strong><br />
+<strong>因此可以通过进位是0来判断结束。</strong><br />
+下面测试一下：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>计算11+01=100，用推算的表达式：a^b=11^01=10，a&amp;b=11&amp;01=01，(a&amp;b)&lt;&lt;1=01&lt;&lt;1=10，所以下述需要做的是10+10，但是我们不用普通的加法，即可以再执行一下**a+b = a^b + (a&amp;b)&lt;&lt;1**，即a^b=10^10=00,a&amp;b=10&amp;10=10,(a&amp;b)&lt;&lt;1=10&lt;&lt;1=100,加法操作的某一个值已经是0了，但是进位值为100，可以看看一会继续计算，进位会不会变成0，00+100，即00^100=100,000&amp;100=000,000&lt;&lt;1=000,因此现在进位为0了，因此不用再计算了，即结果为100。
+</code></pre>
+</div>
+<h3 id="代码">代码</h3>
 <ol>
-  <li>局部应用设置：<br />
-针对SparkContext应用，Spark有专门的api设置日志级别，即sc.setLogLevel(级别)，但是此方法只针对SparkContext相关的应用，而对Spark-streaming等应用无效果。</li>
-  <li>局部应用设置：<br />
-自己写一个log4j.properties文件，在里面设置日志级别，如：
-    <div class="highlighter-rouge"><pre class="highlight"><code># Set everything to be logged to the console
-log4j.rootCategory=WARN, console
-log4j.appender.console=org.apache.log4j.ConsoleAppender
-log4j.appender.console.target=System.err
-log4j.appender.console.layout=org.apache.log4j.PatternLayout
-log4j.appender.console.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n
+  <li>
+    <p>递归</p>
+
+    <div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Solution</span> <span class="o">{</span>
+ <span class="cm">/**
+  * @param a: An integer
+  * @param b: An integer
+  * @return: The sum of a and b 
+  */</span>
+ <span class="kd">public</span> <span class="kt">int</span> <span class="nf">aplusb</span><span class="o">(</span><span class="kt">int</span> <span class="n">a</span><span class="o">,</span> <span class="kt">int</span> <span class="n">b</span><span class="o">)</span> <span class="o">{</span>
+     <span class="c1">// write your code here</span>
+     <span class="k">if</span><span class="o">(</span><span class="mi">0</span><span class="o">==</span><span class="n">b</span><span class="o">){</span><span class="n">a</span>
+ <span class="c1">//没有进位的时候完成运算</span>
+         <span class="k">return</span> <span class="n">a</span><span class="o">;</span>
+     <span class="o">}</span>
+ <span class="c1">//加法、进位左移，传入参数完成递归</span>
+     <span class="k">return</span> <span class="nf">aplusb</span><span class="o">(</span><span class="n">a</span><span class="o">^</span><span class="n">b</span><span class="o">,(</span><span class="n">a</span><span class="o">&amp;</span><span class="n">b</span><span class="o">)&lt;&lt;</span><span class="mi">1</span><span class="o">);</span>   
+ <span class="o">}</span>
+<span class="o">}</span>
 </code></pre>
     </div>
-    <p>这个文件设置了Spark应用程序在运行的时候会打出WARN级别的日志，然后在spark-submit提交应用程序的时候，通过–files参数，指定上述log4j.properties的文件路径，上传后即可即可使用这个配置打印应用程序的日志。<br />
-问题：Note that for the first option, both executors and the application master will share the same log4j configuration, which may cause issues when they run on the same node (e.g. trying to write to the same log file).</p>
+
+    <p>一行递归:</p>
+    <div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Solution</span> <span class="o">{</span>
+ <span class="cm">/**
+  * @param a: An integer
+  * @param b: An integer
+  * @return: The sum of a and b 
+  */</span>
+ <span class="kd">public</span> <span class="kt">int</span> <span class="nf">aplusb</span><span class="o">(</span><span class="kt">int</span> <span class="n">a</span><span class="o">,</span> <span class="kt">int</span> <span class="n">b</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">b</span><span class="o">==</span><span class="mi">0</span><span class="o">?</span><span class="nl">a:</span><span class="n">aplusb</span><span class="o">(</span><span class="n">a</span><span class="o">^</span><span class="n">b</span><span class="o">,(</span><span class="n">a</span><span class="o">&amp;</span><span class="n">b</span><span class="o">)&lt;&lt;</span><span class="mi">1</span><span class="o">);</span>
+ <span class="o">}</span>
+<span class="o">}</span>
+</code></pre>
+    </div>
   </li>
-  <li>局部应用设置：<br />
-在spark-submit的时候，在spark.driver.extraJavaOptions（对Spark Driver）或者spark.executor.extraJavaOptions（对SparkExecutor）增加 -Dlog4j.configuration=<location of="" configuration="" file="">。但是在这里需要注意2个问题：如果使用了文件，需要protocol should be explicitly provided；并且这个文件需要存在在所有的节点上（and the file needs to exist locally on all the nodes）。</location></li>
-  <li>集群全局配置：<br />
-针对集群的log级别更改，可以到$SPARK_HOME/conf/log4j.properties文件里面进行修改，比如：
-    <div class="highlighter-rouge"><pre class="highlight"><code># Set everything to be logged to the console
-log4j.rootCategory=WARN, console
-log4j.appender.console=org.apache.log4j.ConsoleAppender
-log4j.appender.console.target=System.err
-log4j.appender.console.layout=org.apache.log4j.PatternLayout
-log4j.appender.console.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n
+  <li>
+    <p>while</p>
+
+    <div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Solution</span> <span class="o">{</span>
+ <span class="cm">/**
+  * @param a: An integer
+  * @param b: An integer
+  * @return: The sum of a and b 
+  */</span>
+ <span class="kd">public</span> <span class="kt">int</span> <span class="nf">aplusb</span><span class="o">(</span><span class="kt">int</span> <span class="n">a</span><span class="o">,</span> <span class="kt">int</span> <span class="n">b</span><span class="o">)</span> <span class="o">{</span>
+     <span class="c1">// write your code here</span>
+   <span class="kt">int</span> <span class="n">sum</span><span class="o">=</span><span class="n">a</span><span class="o">^</span><span class="n">b</span><span class="o">;</span>
+   <span class="kt">int</span> <span class="n">carry</span><span class="o">=(</span><span class="n">a</span><span class="o">&amp;</span><span class="n">b</span><span class="o">)&lt;&lt;</span><span class="mi">1</span><span class="o">;</span>
+   <span class="k">while</span><span class="o">(</span><span class="n">carry</span><span class="o">!=</span><span class="mi">0</span><span class="o">){</span>
+       <span class="n">a</span><span class="o">=</span><span class="n">sum</span><span class="o">;</span>
+       <span class="n">b</span><span class="o">=</span><span class="n">carry</span><span class="o">;</span>
+       <span class="n">sum</span><span class="o">=</span><span class="n">a</span><span class="o">^</span><span class="n">b</span><span class="o">;</span>
+       <span class="n">carry</span><span class="o">=(</span><span class="n">a</span><span class="o">&amp;</span><span class="n">b</span><span class="o">)&lt;&lt;</span><span class="mi">1</span><span class="o">;</span>
+   <span class="o">}</span>
+   <span class="k">return</span> <span class="n">sum</span><span class="o">;</span>
+ <span class="o">}</span>
+<span class="o">}</span>
+<span class="err">\\错误答案</span><span class="o">(</span><span class="err">四不像，不要</span><span class="n">while</span><span class="err">加递归，死循环了</span><span class="o">)</span><span class="err">：</span>
+<span class="err">\\</span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Solution</span> <span class="o">{</span>
+<span class="err">\\</span>    <span class="kd">public</span> <span class="kt">int</span> <span class="nf">aplusb</span><span class="o">(</span><span class="kt">int</span> <span class="n">a</span><span class="o">,</span> <span class="kt">int</span> <span class="n">b</span><span class="o">)</span> <span class="o">{</span>
+<span class="err">\\</span>        <span class="c1">// write your code here</span>
+<span class="err">\\</span>        <span class="kt">int</span> <span class="n">sum</span><span class="o">=</span><span class="n">a</span><span class="o">^</span><span class="n">b</span><span class="o">;</span>
+<span class="err">\\</span>        <span class="kt">int</span> <span class="n">carry</span><span class="o">=(</span><span class="n">a</span><span class="o">&amp;</span><span class="n">b</span><span class="o">)&lt;&lt;</span><span class="mi">1</span><span class="o">;</span>
+<span class="err">\\</span>        <span class="k">while</span><span class="o">(</span><span class="mi">0</span><span class="o">!=</span><span class="n">carry</span><span class="o">){</span>
+<span class="err">\\</span>            <span class="n">aplusb</span><span class="o">(</span><span class="n">sum</span><span class="o">,</span><span class="n">carry</span><span class="o">);</span>
+<span class="err">\\</span>        <span class="o">}</span>
+<span class="err">\\</span>        <span class="k">return</span> <span class="n">sum</span><span class="o">;</span>
+<span class="err">\\</span>    <span class="o">}</span>
+<span class="err">\\</span><span class="o">}</span>
 </code></pre>
     </div>
-    <p>这样设置，即进行了全局日志的设置。<br />
-在standalone模式下，如果不进行配置，集群默认使用的是org/apache/spark/log4j-defaults.properties配置，配置的话则如上操作。但是，如果在全局设置了之后，会同时生效Driver端和Executor端的日志级别。<br />
-这次我在更改容器内集群的配置日志级别配置的时候，就是用的此种方式，但是在集群中运行的程序，会通过driver端输出Info日志来表示程序运行的状态，而executor端确实是不需要关注Info日志的内容，因此需要进行driver端和executor端日志分离的情况操作，详情见下下述“Spark Streaming中应用日志的切分”的操作。</p>
-    <h2 id="log4j其他配置">log4j其他配置</h2>
-    <p>在yarn模式下：<br />
-If you need a reference to the proper location to put log files in the YARN so that YARN can properly display and aggregate them, use spark.yarn.app.container.log.dir in your log4j.properties. For example,</p>
-    <div class="highlighter-rouge"><pre class="highlight"><code> log4j.appender.file_appender.File=${spark.yarn.app.container.log.dir}/spark.log
-</code></pre>
-    </div>
-    <p>For streaming applications, configuring RollingFileAppender and setting file location to YARN’s log directory will avoid disk overflow caused by large log files, and logs can be accessed using YARN’s log utility.<br />
-翻译：<br />
-如果你需要引用YARN放置日志文件的路径，以便YARN可以正确地展示和聚合日志，请在log4j.properties文件中使用spark.yarn.app.container.log.dir。例如，</p>
-    <div class="highlighter-rouge"><pre class="highlight"><code>log4j.appender.file_appender.File=${spark.yarn.app.container.log.dir}/spark.log
-</code></pre>
-    </div>
-    <p>对于流式应用，可以配置RollingFileAppender，并将文件路径设置为YARN日志目录，以避免磁盘打满，而且这些日志还可以利用YARN的日志工具访问和查看。</p>
-    <h2 id="spark-streaming中应用的日志切分">Spark Streaming中应用的日志切分</h2>
-    <p>目前我们所用的集群是standalone模式，在Spark Standalone模式下，spark默认使用org/apache/spark/log4j-defaults.properties配置，所有的日志都记录在stderr里面，由于Spark Streaming应用程序是一直运行的，时间长了以后stderr文件会非常大，占用空间的同时难以让我们调试和定位问题，所以我们需要切分日志，spark原生提供了对Executor日志的切分，Driver日志需要我们单独配置log4j。</p>
-    <h3 id="executor端日志切分在spark应用环境变量中配置">Executor端日志切分，在spark应用环境变量中配置：</h3>
-    <div class="highlighter-rouge"><pre class="highlight"><code>spark.executor.logs.rolling.strategy  time  //可以按日期（time）和日志大小(size)来切分日志
-spark.executor.logs.rolling.time.interval daily  //可以按天、小时、分钟切分
-spark.executor.logs.rolling.maxRetainedFiles 7  //保留多少个日志文件，旧的日志自动删除
-</code></pre>
-    </div>
-    <p>或者也可以自定义日志生成方式，同上述3方法，只要配置参数spark.executor.extraJavaOptions，指定log4j配置。</p>
-    <h3 id="driver日志切分">Driver日志切分</h3>
-    <p>spark-submit的时候自定义log4j，–driver-java-options “-Dlog4j.configuration=file:/路径/log4j-driver.properties -Dapp.logging.name=NAME” ，app.logging.name在log4j文件里面配置了，用NAME去区分不同spark应用。</p>
-    <h4 id="使用示例-driver端单独设置log4j配置并且设置额外输出日志到文件中">使用示例-Driver端单独设置log4j配置，并且设置额外输出日志到文件中：</h4>
-    <p>背景：<br />
-集群中的日志级别设置的是WRAN，但是程序中Driver端的日志需要输出INFO级别的日志并且显示在控制台上，因此使用此方法进行了Driver端的日志级别单独设置。并且对于Driver端的日志，如果不进行设置的话，均会输出到控制台中，因此通过设置，尝试将日志输出到文件（<strong>这里需要注意的是，log4j的控制仅仅针对于的是日志，对于在程序里执行的print语句，仍然会输出到控制台中，并不会输出到定义的日志文件</strong>）。  <br />
-log4j文件设置：</p>
-    <div class="highlighter-rouge"><pre class="highlight"><code>#
-# Licensed to the Apache Software Foundation (ASF) under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-log4j.rootCategory=INFO, console,FILE
-# 针对控制台设置：Set everything to be logged to the console
-log4j.appender.console=org.apache.log4j.ConsoleAppender
-log4j.appender.console.target=System.err
-log4j.appender.console.layout=org.apache.log4j.PatternLayout
-log4j.appender.console.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n
-# 针对日志输出到FILE
-log4j.appender.FILE=org.apache.log4j.FileAppender
-log4j.appender.FILE.Threshold=DEBUG
-# 输出到的日志路径：${app.logging.name}为外部引入的应用名称来定义日志文件的名字
-log4j.appender.FILE.file=/usr/tools/logs/${app.logging.name}-driver.log
-log4j.appender.FILE.layout=org.apache.log4j.PatternLayout
-log4j.appender.FILE.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n
-# Set the default spark-shell log level to WARN. When running the spark-shell, the
-# log level for this class is used to overwrite the root logger's log level, so that
-# the user can have different defaults for the shell and regular Spark apps.
-log4j.logger.org.apache.spark.repl.Main=WARN
-# Settings to quiet third party logs that are too verbose
-log4j.logger.org.spark_project.jetty=WARN
-log4j.logger.org.spark_project.jetty.util.component.AbstractLifeCycle=ERROR
-log4j.logger.org.apache.spark.repl.SparkIMain$exprTyper=WARN
-log4j.logger.org.apache.spark.repl.SparkILoop$SparkILoopInterpreter=WARN
-log4j.logger.org.apache.parquet=ERROR
-log4j.logger.parquet=ERROR
-# SPARK-9183: Settings to avoid annoying messages when looking up nonexistent UDFs in SparkSQL with Hive support
-log4j.logger.org.apache.hadoop.hive.metastore.RetryingHMSHandler=FATAL
-log4j.logger.org.apache.hadoop.hive.ql.exec.FunctionRegistry=ERROR
-</code></pre>
-    </div>
-    <p>提交命令：</p>
-    <div class="highlighter-rouge"><pre class="highlight"><code>spark-submit --master spark://master01:7077,master02:7077 --jars /usr/tools/spark_234gsignalling/sparkStreamingKafka0.8-0.10Jars/spark-streaming-kafka-0-8_2.11-2.2.1.jar,/usr/tools/spark_234gsignalling/sparkStreamingKafka0.8-0.10Jars/kafka_2.11-0.8.2.1.jar,/usr/tools/spark_234gsignalling/sparkStreamingKafka0.8-0.10Jars/metrics-core-2.2.0.jar,/usr/tools/spark_234gsignalling/sparkStreamingKafka0.8-0.10Jars/kafka-clients-0.10.1.1.jar --files "/usr/tools/spark_234gsignalling/kafka_client_jaas.conf" --driver-java-options "-Dlog4j.configuration=file:/usr/tools/spark_234gsignalling/log4j4g.properties -Dapp.logging.name=NAME" --driver-memory 2g --total-executor-cores 36 --executor-cores 2 --executor-memory 10g --class com.sitech.signallingStreaming.Signalling234gMask 4gsignallingSpark-0.10kafka-c60.jar skhconf_4g hdfs://dcoshdfs/spark_log/4g_info_c60log
-</code></pre>
-    </div>
-    <p>提交命令中对于此次日志设置的主要是：</p>
-    <div class="highlighter-rouge"><pre class="highlight"><code>--driver-java-options "-Dlog4j.configuration=file:/usr/tools/spark_234gsignalling/log4j4g.properties -Dapp.logging.name=NAME"
+  </li>
+  <li>
+    <p>do-while</p>
+
+    <div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Solution</span> <span class="o">{</span>
+ <span class="cm">/**
+  * @param a: An integer
+  * @param b: An integer
+  * @return: The sum of a and b 
+  */</span>
+ <span class="kd">public</span> <span class="kt">int</span> <span class="nf">aplusb</span><span class="o">(</span><span class="kt">int</span> <span class="n">a</span><span class="o">,</span> <span class="kt">int</span> <span class="n">b</span><span class="o">)</span> <span class="o">{</span>
+     <span class="c1">// write your code here</span>
+     <span class="kt">int</span> <span class="n">sum</span><span class="o">=</span><span class="mi">0</span><span class="o">;</span>
+     <span class="kt">int</span> <span class="n">carry</span><span class="o">=</span><span class="mi">0</span><span class="o">;</span>
+     <span class="k">do</span> <span class="o">{</span>
+         <span class="n">sum</span><span class="o">=</span><span class="n">a</span><span class="o">^</span><span class="n">b</span><span class="o">;</span>
+         <span class="n">carry</span><span class="o">=(</span><span class="n">a</span><span class="o">&amp;</span><span class="n">b</span><span class="o">)&lt;&lt;</span><span class="mi">1</span><span class="o">;</span>
+         <span class="n">a</span><span class="o">=</span><span class="n">sum</span><span class="o">;</span>
+         <span class="n">b</span><span class="o">=</span><span class="n">carry</span><span class="o">;</span>
+     <span class="o">}</span> <span class="k">while</span> <span class="o">(</span><span class="n">carry</span><span class="o">!=</span><span class="mi">0</span><span class="o">);</span>
+     <span class="k">return</span> <span class="n">sum</span><span class="o">;</span>
+ <span class="o">}</span>
+<span class="o">}</span>
 </code></pre>
     </div>
   </li>
 </ol>
 
-<p>参考文章：</p>
-<ol>
-  <li><a href="https://www.iteblog.com/archives/1353.html">Spark应用程序运行的日志存在哪里</a></li>
-  <li><a href="https://blog.csdn.net/dylanzhouz/article/details/53098508">sparkstreaming日志切分配置</a></li>
-  <li><a href="http://bit1129.iteye.com/blog/2186358">spark日志log4j配置-控制台+文件同时输出</a></li>
-  <li><a href="https://www.cnblogs.com/sorco/p/7070922.html">spark深入：配置文件与日志(yarn)</a></li>
-  <li><a href="https://www.cnblogs.com/likui360/p/7992982.html">log4j配置1</a>,<a href="https://blog.csdn.net/sinat_30185177/article/details/73550377">log4j配置2</a></li>
-  <li><a href="http://spark.apache.org/docs/2.2.1/running-on-yarn.html">spark2.2-yarn</a>,<a href="http://spark.apache.org/docs/2.2.1/spark-standalone.html">spark2.2-standalone</a>,<a href="http://spark.apache.org/docs/2.2.1/running-on-mesos.html">spark2.2-mesos</a></li>
-</ol>
+<h2 id="拓展-交换2个数的值">拓展-交换2个数的值</h2>
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Test</span><span class="o">{</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span> <span class="n">args</span><span class="o">[]){</span>
+        <span class="kt">int</span> <span class="n">a</span><span class="o">=</span><span class="mi">10</span><span class="o">;</span><span class="kt">int</span> <span class="n">b</span><span class="o">=</span><span class="mi">20</span><span class="o">;</span>
+        <span class="n">a</span><span class="o">=</span><span class="n">a</span><span class="o">^</span><span class="n">b</span><span class="o">;</span>
+        <span class="n">b</span><span class="o">=</span><span class="n">b</span><span class="o">^</span><span class="n">a</span><span class="o">;</span>
+        <span class="n">a</span><span class="o">=</span><span class="n">a</span><span class="o">^</span><span class="n">b</span><span class="o">;</span>
+        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">a</span><span class="o">+</span><span class="s">"\t"</span><span class="o">+</span><span class="n">b</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre>
+</div>
 
-<p>至此，本篇内容完成。<br />
+<p>至此，本篇内容暂时完成，以后随着更新。<br />
 如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～<br />
 ©商业转载请联系作者获得授权，非商业转载请注明出处。</p>
 
@@ -649,7 +686,7 @@ log4j.logger.org.apache.hadoop.hive.ql.exec.FunctionRegistry=ERROR
         <div class="post-tags">
           
             
-            <a href="/tag/#/Spark" rel="tag"># Spark</a>
+            <a href="/tag/#/Algorithm" rel="tag"># Algorithm</a>
           
         </div>
       
@@ -665,18 +702,14 @@ log4j.logger.org.apache.hadoop.hive.ql.exec.FunctionRegistry=ERROR
         <div class="post-nav" id="post-nav-id">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/bigdata/2018/06/04/HDFS%E6%9D%83%E9%99%90%E4%BB%A5%E5%8F%8A%E7%9B%AE%E5%BD%95%E9%99%90%E9%A2%9D%E7%9B%B8%E5%85%B3/" rel="next" title="HDFS权限以及目录限额相关">
-                <i class="fa fa-chevron-left"></i> HDFS权限以及目录限额相关
-              </a>
-            
           </div>
 
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/16/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A82/" rel="prev" title="机器学习入门自学-描述统计学入门2">
-                机器学习入门自学-描述统计学入门2 <i class="fa fa-chevron-right"></i>
+              <a href="/bigdata/2018/06/04/HDFS%E6%9D%83%E9%99%90%E4%BB%A5%E5%8F%8A%E7%9B%AE%E5%BD%95%E9%99%90%E9%A2%9D%E7%9B%B8%E5%85%B3/" rel="prev" title="HDFS权限以及目录限额相关">
+                HDFS权限以及目录限额相关 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -841,7 +874,7 @@ log4j.logger.org.apache.hadoop.hive.ql.exec.FunctionRegistry=ERROR
             
               <div class="post-toc-content">
     <ol class=nav>
-      <li class="nav-item nav-level-1"> <a class="nav-link" href="#spark应用程序运行日志的存放"> <span class="nav-number">1</span> <span class="nav-text">Spark应用程序运行日志的存放</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#driver端日志"> <span class="nav-number">1.1</span> <span class="nav-text">Driver端日志</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#executor端日志"> <span class="nav-number">1.2</span> <span class="nav-text">Executor端日志</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#配置日志"> <span class="nav-number">2</span> <span class="nav-text">配置日志</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#standalone日志自动删除配置"> <span class="nav-number">2.1</span> <span class="nav-text">Standalone日志自动删除配置</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#调试屏蔽日志"> <span class="nav-number">2.2</span> <span class="nav-text">调试屏蔽日志</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#spark日志级别设置-log4j"> <span class="nav-number">2.3</span> <span class="nav-text">spark日志级别设置-log4j</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#log4j其他配置"> <span class="nav-number">2.4</span> <span class="nav-text">log4j其他配置</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#spark-streaming中应用的日志切分"> <span class="nav-number">2.5</span> <span class="nav-text">Spark Streaming中应用的日志切分</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#executor端日志切分在spark应用环境变量中配置"> <span class="nav-number">2.5.1</span> <span class="nav-text">Executor端日志切分，在spark应用环境变量中配置：</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#driver日志切分"> <span class="nav-number">2.5.2</span> <span class="nav-text">Driver日志切分</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-4"> <a class="nav-link" href="#使用示例-driver端单独设置log4j配置并且设置额外输出日志到文件中"> <span class="nav-number">2.5.2.1</span> <span class="nav-text">使用示例-Driver端单独设置log4j配置，并且设置额外输出日志到文件中：</span> </a> <ol class="nav-child"> <ol class="nav-child">
+      <li class="nav-item nav-level-1"> <a class="nav-link" href="#2018-06-06-1-ab问题"> <span class="nav-number">1</span> <span class="nav-text">2018-06-06-1-A+B问题</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#题目"> <span class="nav-number">1.1</span> <span class="nav-text">题目</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#解答"> <span class="nav-number">1.2</span> <span class="nav-text">解答</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#所用知识点-java位运算"> <span class="nav-number">1.2.1</span> <span class="nav-text">所用知识点-java位运算</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#位运算加法分析"> <span class="nav-number">1.2.2</span> <span class="nav-text">位运算加法分析</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-4"> <a class="nav-link" href="#思路分析"> <span class="nav-number">1.2.2.1</span> <span class="nav-text">思路分析</span> </a> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li> <li class="nav-item nav-level-4"> <a class="nav-link" href="#位运算分析"> <span class="nav-number">1.2.2.2</span> <span class="nav-text">位运算分析</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-5"> <a class="nav-link" href="#对应位相加不进位-sum"> <span class="nav-number">1.2.2.2.1</span> <span class="nav-text">对应位相加，不进位-sum</span> </a> <ol class="nav-child"> </li></ol> </li> <li class="nav-item nav-level-5"> <a class="nav-link" href="#进位-carry"> <span class="nav-number">1.2.2.2.2</span> <span class="nav-text">进位-carry</span> </a> <ol class="nav-child"> </li></ol> </li> <li class="nav-item nav-level-5"> <a class="nav-link" href="#小总结"> <span class="nav-number">1.2.2.2.3</span> <span class="nav-text">小总结</span> </a> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#代码"> <span class="nav-number">1.2.3</span> <span class="nav-text">代码</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#拓展-交换2个数的值"> <span class="nav-number">1.3</span> <span class="nav-text">拓展-交换2个数的值</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child">
     </ol>
   </div>
             
