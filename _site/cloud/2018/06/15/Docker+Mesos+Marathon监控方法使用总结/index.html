@@ -1,0 +1,2037 @@
+
+<!doctype html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/assets/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/assets/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/assets/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Docker,Mesos,Marathon," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="iLeaf" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/assets/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="本文主要关于Docker、Mesos、Marathon的监控方法的总结，主要使用java方法和相关restful方式获取监控数据。">
+<meta name="keywords" content="Docker, Mesos, Marathon">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Docker+Mesos+Marathon监控方法使用总结">
+<meta property="og:url" content="http://localhost:4000/cloud/2018/06/15/Docker+Mesos+Marathon%E7%9B%91%E6%8E%A7%E6%96%B9%E6%B3%95%E4%BD%BF%E7%94%A8%E6%80%BB%E7%BB%93/">
+<meta property="og:site_name" content="iLeaf">
+<meta property="og:description" content="本文主要关于Docker、Mesos、Marathon的监控方法的总结，主要使用java方法和相关restful方式获取监控数据。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-11-dockerservice内容.png?raw=true">
+<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-11-dockertcpSocket配置.png?raw=true">
+<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-11-dockerrestful获取尝试.png?raw=true">
+<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-13-container属性.png?raw=true">
+<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-13-networkSettings属性.png?raw=true">
+<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-13-containerInfo属性.png?raw=true">
+<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-13-ContainerState.png?raw=true">
+<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-13-ContainerConfig属性.png?raw=true">
+<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-13-HostConfig.png?raw=true">
+<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-13-ContainerStats.png?raw=true">
+<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-14-dockerhostInfo.png?raw=true">
+<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-14-restful获取容器列表.png?raw=true">
+<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-14-仓库镜像列表.png?raw=true">
+<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-14-镜像tags获取.png?raw=true">
+<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-15-mesos监控页面截图.png?raw=true">
+<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-15-mesos原生监控页面资源情况.png?raw=true">
+<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-15-mesosRestfulPost工具截图.png?raw=true">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Docker+Mesos+Marathon监控方法使用总结">
+<meta name="twitter:description" content="本文主要关于Docker、Mesos、Marathon的监控方法的总结，主要使用java方法和相关restful方式获取监控数据。">
+<meta name="twitter:image" content="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-11-dockerservice内容.png?raw=true">
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://localhost:4000/"/>
+
+
+
+
+
+  <title>Docker+Mesos+Marathon监控方法使用总结 | iLeaf</title>
+  
+
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?d509d2d894059ebd8e784708e52dcdc7";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"> <div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">iLeaf</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Leaf's Blog</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+<div id="posts" class="posts-expand">
+  
+  
+
+  
+
+  
+  
+  
+
+  <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/cloud/2018/06/15/Docker+Mesos+Marathon%E7%9B%91%E6%8E%A7%E6%96%B9%E6%B3%95%E4%BD%BF%E7%94%A8%E6%80%BB%E7%BB%93/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Liv Yeh">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/assets/images/IMG_8739.GIF">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="iLeaf">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+          
+          
+            Docker+Mesos+Marathon监控方法使用总结
+          
+        </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-15T00:00:00+08:00">
+                2018-06-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/Cloud" itemprop="url" rel="index">
+                    <span itemprop="name">Cloud</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+            
+                <div class="post-description">
+                    本文主要关于Docker、Mesos、Marathon的监控方法的总结，主要使用java方法和相关restful方式获取监控数据。
+                </div>
+            
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+  <p>本文主要关于Docker、Mesos、Marathon的监控方法的总结。<br />
+<strong>注意: 本文中使用的版本是Docker1.12.6、Mesos1.3.0、Marathon1.4.5。</strong></p>
+</blockquote>
+
+<p>Docker+Mesos+Marathon所搭建的平台监控所用到的后台方法已经基本上写完了，现在用一些时间总结下相关监控方法，满满用心总结的，不过用到的不止这些，还差很多以后再另开文章补充。在总结过程中也重新梳理了很多东西，现在分享出来，希望对大家有用啦，也省的自己以后忘了～哈哈。</p>
+
+<h1 id="docker管理-容器相关">Docker管理-容器相关</h1>
+<h2 id="前期准备开启docker远程访问">前期准备：开启Docker远程访问</h2>
+<p>Docker daemon可以有3种远程访问方式的socket：unix、tcp和fd。<br />
+其中Docker支持使用restful api远程获取信息，但是需要提前开启一个Tcp Socket，这样才能实现远程通信。<br />
+默认情况下，Docker守护进程Unix socket（/var/run/docker.sock）来进行本地进程通信，而不会监听任何端口，因此只能在本地使用docker客户端或者使用Docker API进行操作,并且需要root权限或者是docker group成员。如果想在其他主机上操作Docker主机，就需要让Docker守护进程打开一个Tcp Socket，这样才能实现远程通信。<br />
+补充说明：可以使用HTTPs方式，不过目前没有进行配置，可以后续更改。但是，如果你用和Https的socket，需要注意的是只支持TLS1.0及以上的协议，SSLv3或者更低的是不支持的。<br />
+官方网站描述如下<a href="https://docs.docker.com/v1.12/engine/reference/commandline/dockerd/">Daemon socket option</a>。<br />
+我们来使用开启TCP Socket的方式。<br />
+需要更改docker配置文件，修改OPTIONS，具体方式如下：</p>
+<ol>
+  <li>如果找不到docker配置文件，可以以下述方式查找：<br />
+找到docker.service文件：<br />
+systemctl show –property=FragmentPath docker
+    <div class="highlighter-rouge"><pre class="highlight"><code>---@---[~]$systemctl show --property=FragmentPath docker 
+FragmentPath=/usr/lib/systemd/system/docker.service
+</code></pre>
+    </div>
+    <p>找到docker.service文件并查看，发现docker文件位置：/etc/sysconfig/docker<br />
+<img src="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-11-dockerservice内容.png?raw=true" alt="DockerService内容" /></p>
+  </li>
+  <li>找到文件后编辑文件docker<br />
+在OPTIONS=后加上 -H=unix:///var/run/docker.sock -H=tcp://0.0.0.0:端口<br />
+说明：<br />
+1、确定sock文件位置：/var/run/docker.sock<br />
+2、可用指定ip：指定端口<br />
+3、重启docker<br />
+<img src="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-11-dockertcpSocket配置.png?raw=true" alt="DockerService内容" /><br />
+说明：<br />
+有资料表述，一般情况下执行以下操作即可：<br />
+1、vim /etc/sysconfig/docker（更改docker文件）<br />
+2、在OPTIONS=后加上 -H=unix:///var/run/docker.sock -H=tcp://0.0.0.0:端口即可<br />
+如若不成功，可尝试下述操作：<br />
+1、vim /usr/lib/systemd/system/docker.service （更改docker.service文件）<br />
+2、直接在ExecStart=/user/bin/dockerd后添加-H=tcp://0.0.0.0:端口 -H=unix:///var/run/docker.sock(注意顺序)  <br />
+3、执行命令：systemctl daemon-reload 、systemctl restart docker</li>
+  <li>测试使用：<br />
+配置之后，尝试使用docker restful api来获取信息。<br />
+<img src="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-11-dockerrestful获取尝试.png?raw=true" alt="2018-06-11-dockerrestful获取尝试" /><br />
+或者直接在机器上尝试查询：“sudo docker -H IP:端口 命令”来测试是否能够取到内容。</li>
+</ol>
+
+<h2 id="docker-client的选择">Docker-Client的选择</h2>
+<p>Docker-client的前期准备已经完毕，下面进行DockerAPI的使用。</p>
+<h3 id="docker版本与docker-api的对应关系-和-相关library">Docker版本与Docker API的对应关系 和 相关Library</h3>
+<p>Docker提供了Docker Engine API 去连接Docker daemon 来进行Docker的管理。Docker Engine API是Restful API，可以通过http客户端，比如说wget或者curl等来使用。<br />
+Docker官方提供Python和Go的SDK，可以直接使用。而在我们这里使用的是java语言，所以可以直接使用restful API的方式来获取相关信息或者直接使用他人封装好的Library。</p>
+<h4 id="docker版本和api版本对应">Docker版本和API版本对应</h4>
+<p>Docker的不同版本对用不同版本的API。具体以一个表格的形式列了出来，具体可以参考官方网站所写的内容:<a href="https://docs.docker.com/develop/sdk/#docker-ee-and-ce-api-mismatch">Docker版本和API对应表-API version matrix</a>。<br />
+通过查看这个表，我们知道，我现在用的docker版本是1.12.6，所以来说，所对应的API版本为1.24。<br />
+关于Docker Engine API 1.24的使用，可以参考官网<a href="https://docs.docker.com/engine/api/v1.24/">Docker Engine API 1.24</a>。</p>
+<h4 id="docker-unofficial-libraries">Docker unofficial libraries</h4>
+<p>Docker中出了官方提供的Python和Go的SDK之外，仍然有一些非官方的libraries可以使用，并且可使用的语言类型更加的广泛。关于可以使用的Library，官方在官网上也有所推荐，见<a href="https://docs.docker.com/develop/sdk/#unofficial-libraries">官网Unofficial libraries</a>所示。<br />
+目前，项目里面并没有直接使用Docker Engine API，而是使用Java的第三方Library,第三方Library也是对Docker Engine API的一个封装。关于Java的Library，Docker官方推荐有三种，docker-client、docker-java、docker-java-api，而这次在项目中，使用的是<a href="https://github.com/spotify/docker-client">spotify/docker-client</a>，在下面会将部分所用Library中的方法和Docker Engine API对应着介绍一下。</p>
+
+<h2 id="docker-client的使用">Docker-Client的使用</h2>
+<p>我们使用的是<a href="https://github.com/spotify/docker-client/blob/master/docs/user_manual.md">spotify/docker-client</a>，在github上有详细的使用说明，直接点击链接即可。所以就不详细介绍了，下面就直接列出来使用的几个方法记录一下。</p>
+<h3 id="引入jar包">引入jar包</h3>
+<p>我们使用的是spotify/docker-client，可以直接通过maven或者jar包的方式引入，maven如下：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>&lt;dependency&gt;
+  &lt;groupId&gt;com.spotify&lt;/groupId&gt;
+  &lt;artifactId&gt;docker-client&lt;/artifactId&gt;
+  &lt;version&gt;LATEST-VERSION&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+<p>针对Docker1.12.6，选择的是8.9.1版本。</p>
+
+<h3 id="开始使用">开始使用</h3>
+<p>因为项目中主要用到的是监控，所以基本上都是从服务器上查询的方法，关于对于创建容器、删除容器等操作，因为容器直接归于marathon管理，所以不在Docker这里进行容器创建、删除等操作了。</p>
+
+<h4 id="创建和关闭docker连接">创建和关闭Docker连接</h4>
+<h5 id="创建连接">创建连接</h5>
+<p>在之前的操作，开启了Docker RPC端口之后，可以在其他机器上创建远程Docker连接。<br />
+而且我们也没有开启https，所以可以直接使用如下方式：<br />
+传入容器宿主机IP+端口构成的uri，建立和宿主机的连接。</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>// use the builder
+String dockerUri ="http://"+hostIp+":"+port;
+final DockerClient docker = DefaultDockerClient.builder().uri(URI.create(dockerUri)).build();
+</code></pre>
+</div>
+<p>除了这种方式，还有其它几种方式创建docker连接，详细参考<a href="https://github.com/spotify/docker-client/blob/master/docs/user_manual.md#creating-a-docker-client">Creating a docker-client</a>。</p>
+<h5 id="关闭docker连接">关闭Docker连接</h5>
+<p>关闭连接直接通过创建的DockerClient docker连接对象，调用close方法即可。</p>
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="c1">// Close the docker client</span>
+<span class="n">docker</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
+</code></pre>
+</div>
+<h4 id="docker操作">Docker操作</h4>
+<h5 id="容器列表">容器列表</h5>
+<p>获取宿主机上的容器列表，方法如下：<br />
+这个方法能够列出宿主机上全部<strong>正在运行</strong>的容器的列表。</p>
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">List</span><span class="o">&lt;</span><span class="n">Container</span><span class="o">&gt;</span> <span class="n">containers</span> <span class="o">=</span> <span class="n">docker</span><span class="o">.</span><span class="na">listContainers</span><span class="o">(</span><span class="n">DockerClient</span><span class="o">.</span><span class="na">ListContainersParam</span><span class="o">.</span><span class="na">allContainers</span><span class="o">());</span>
+</code></pre>
+</div>
+<p>通过这个方法，可以返回List<Container>，其中的Container对象，可以取到的容器的id、名称、镜像信息、网络信息、状态等内容。</Container></p>
+
+<p><img src="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-13-container属性.png?raw=true" alt="container属性" /></p>
+
+<p>并且，其中包括网络信息可以通过networkSettings取到，包括内容如下：</p>
+
+<p><img src="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-13-networkSettings属性.png?raw=true" alt="networkSettings" /></p>
+
+<h5 id="容器详情">容器详情</h5>
+<p>上述获取容器列表的过程中取到的容器信息并不详细，如果想看容器的详细信息可使用inspect方法,需要传入的内容是容器的id，不过通过测试，不需要传入全部的完整id，部分。</p>
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">ContainerInfo</span> <span class="n">info</span> <span class="o">=</span> <span class="n">docker</span><span class="o">.</span><span class="na">inspectContainer</span><span class="o">(</span><span class="s">"containerID"</span><span class="o">);</span>
+</code></pre>
+</div>
+<p>通过这个方法可以获取到ContainerInfo对象，其中包括容器的详细信息，如下：<br />
+<img src="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-13-containerInfo属性.png?raw=true" alt="containerInfo" /></p>
+<h6 id="容器状态对象">容器状态对象</h6>
+<p>通过 ContainerState state = info.state();可以取到容器的状态对象ContainerState，其中属性如下。<br />
+<img src="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-13-ContainerState.png?raw=true" alt="ContainerState" /><br />
+取对象的state.status()，可以取到当前容器的状态，容器状态总共包括：created、restarting、running、paused、exited、dead共5种。</p>
+<h6 id="容器配置信息">容器配置信息</h6>
+<p>通过 ContainerConfig config = containerInfo.config();取到容器的配置信息，其中属性包括如下。<br />
+<img src="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-13-ContainerConfig属性.png?raw=true" alt="ContainerConfig" /><br />
+通过ContainerConfig可以获取到容器的hostname、env配置、启动容器的命令、所用镜像、工作目录、labels等信息。</p>
+<h6 id="容器hostconfig">容器HostConfig</h6>
+<p>通过 HostConfig hostConfig = containerInfo.hostConfig();可以取到容器的host配置信息，其中属性如下。<br />
+<img src="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-13-HostConfig.png?raw=true" alt="HostConfig" /><br />
+通过HostConfig对象，可以获取到容器和宿主机之间映射的目录、端口等信息，以及所给容器分配的cpu core数量（hostConfig.cpuShares()取到的数值除以1024）、memory（hostConfig.memory()）、swap的大小（hostConfig.memorySwap()-hostConfig.memory()）等信息。</p>
+<h6 id="容器网络信息">容器网络信息</h6>
+<p>通过NetworkSettings networkSettings = containerInfo.networkSettings();可以取到容器的网络信息，此对象和容器列表中取到的内容一致。通过它可以取到容器的网络模式、网关、ip、mac等信息。</p>
+<h5 id="容器内进程">容器内进程</h5>
+<p>上述操作均是获取容器的基本信息，如果获取容器内当时的进程信息，可以使用如下方法：<br />
+传入的ps_args为aux，和在容器内执行“ps aux”命令取到的数据一致，即“[USER, PID, %CPU, %MEM, VSZ, RSS, TTY, STAT, START, TIME, COMMAND]”等内容。<br />
+通过如下方法能取到TopResults对象，此对象内包括属性为process和titles，通过获取其中的process，可得到容器内的进程情况。</p>
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="c1">//例子</span>
+<span class="c1">//final TopResults topResults = docker.topContainer("containerID", "ps_args");</span>
+<span class="n">TopResults</span> <span class="n">topResults</span> <span class="o">=</span> <span class="n">docker</span><span class="o">.</span><span class="na">topContainer</span><span class="o">(</span><span class="s">"containerID"</span><span class="o">,</span> <span class="s">"aux"</span><span class="o">);</span>
+<span class="n">ImmutableList</span><span class="o">&lt;</span><span class="n">ImmutableList</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">processes</span> <span class="o">=</span> <span class="n">topResults</span><span class="o">.</span><span class="na">processes</span><span class="o">();</span>
+</code></pre>
+</div>
+<h5 id="容器资源使用情况">容器资源使用情况</h5>
+<p>在命令行中，我们可以通过docker stats来查看docker容器资源使用情况的信息，通过命令行能查询到如下内容：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>CONTAINER    CPU %    MEM USAGE / LIMIT    MEM %    NET I/O    BLOCK I/O
+</code></pre>
+</div>
+<p>docker-client也提供了方法，来通过如下方式获取docker stats信息：</p>
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">ContainerStats</span> <span class="n">stats</span> <span class="o">=</span> <span class="n">docker</span><span class="o">.</span><span class="na">stats</span><span class="o">(</span><span class="s">"containerID"</span><span class="o">);</span>
+</code></pre>
+</div>
+<p>通过此方法，能够取到ContainerStats对象，其中包含内容如下：<br />
+<img src="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-13-ContainerStats.png?raw=true" alt="ContainerStats" /><br />
+但是，我们取到的数据并不能直接使用，而需要通过计算，来得到更加直观的数据，下面进行一下详细说明。<br />
+而计算的过程，主要参考<a href="https://www.2cto.com/net/201701/582048.html">“dockerstats命令源码分析结果”</a>文章中，对于docker stats源码的分析。</p>
+<h6 id="cpu利用率计算">CPU利用率计算</h6>
+<ol>
+  <li>计算分析<br />
+在上述参考文章中提到:
+    <blockquote>
+      <p>docker daemon会记录这次读取/sys/fs/cgroup/cpuacct/docker/[containerId]/cpuacct.usage的值，作为cpu_total_usage；并记录了上一次读取的该值为pre_cpu_total_usage；读取/proc/stat中cpu field value，并进行累加，得到system_usage;并记录上一次的值为pre_system_usage；读取/sys/fs/cgroup/cpuacct/docker/[containerId]/cpuacct.usage_percpu中的记录，组成数组per_cpu_usage_array。</p>
+    </blockquote>
+
+    <p>因此，可以得到docker stats计算Cpu Percent的算法如下：</p>
+    <div class="highlighter-rouge"><pre class="highlight"><code>cpu_delta = cpu_total_usage - pre_cpu_total_usage;
+system_delta = system_usage - pre_system_usage;
+CPU % = ((cpu_delta / system_delta) * length(per_cpu_usage_array) ) * 100.0
+</code></pre>
+    </div>
+  </li>
+  <li>代码实现<br />
+所以说，将上述内容中得到的公式所需数据与我们通过取到的数据相对应，通过已经得到的stats对象，用方法可以取到两个CpuStats对象：
+    <div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">CpuStats</span> <span class="n">cpuStats</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="na">cpuStats</span><span class="o">();</span>
+<span class="n">CpuStats</span> <span class="n">precpuStats</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="na">precpuStats</span><span class="o">();</span>
+</code></pre>
+    </div>
+    <p>然后我们计算cpu利用率，就可以这样来计算：</p>
+    <div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">String</span> <span class="n">cpuPercent</span><span class="o">=</span><span class="s">"---"</span><span class="o">;</span>
+<span class="k">if</span> <span class="o">(</span><span class="kc">null</span><span class="o">!=</span><span class="n">cpuStats</span><span class="o">&amp;&amp;</span><span class="kc">null</span><span class="o">!=</span><span class="n">precpuStats</span><span class="o">){</span>
+ <span class="cm">/**
+ 	* 计算cpu利用率 %
+ 	* cpuDelta = cpuTotalUsage - preCpuTotalUsage;
+   	* systemDelta = systemUsage - preSystemUsage;
+   	* CPU % = ((cpuDelta / systemDelta) * length(per_cpu_usage_array) ) * 100.0
+ 	*/</span>
+ 	<span class="n">Long</span> <span class="n">cpuTotalUsage</span><span class="o">=</span><span class="n">cpuStats</span><span class="o">.</span><span class="na">cpuUsage</span><span class="o">().</span><span class="na">totalUsage</span><span class="o">();</span>
+ 	<span class="n">Long</span> <span class="n">preCpuTotalUsage</span> <span class="o">=</span><span class="n">precpuStats</span><span class="o">.</span><span class="na">cpuUsage</span><span class="o">().</span><span class="na">totalUsage</span><span class="o">();</span>
+ 	<span class="n">Long</span> <span class="n">cpuDelta</span> <span class="o">=</span><span class="n">cpuTotalUsage</span> <span class="o">-</span> <span class="n">preCpuTotalUsage</span><span class="o">;</span>
+ 	<span class="n">Long</span> <span class="n">systemUsage</span> <span class="o">=</span><span class="n">cpuStats</span><span class="o">.</span><span class="na">systemCpuUsage</span><span class="o">();</span>
+ 	<span class="n">Long</span> <span class="n">preSystemUsage</span> <span class="o">=</span><span class="n">precpuStats</span><span class="o">.</span><span class="na">systemCpuUsage</span><span class="o">();</span>
+ 	<span class="n">Long</span> <span class="n">systemDelta</span> <span class="o">=</span><span class="n">systemUsage</span><span class="o">-</span><span class="n">preSystemUsage</span><span class="o">;</span>
+ 	<span class="n">Integer</span> <span class="n">percpuUsageListSize</span> <span class="o">=</span> <span class="n">cpuStats</span><span class="o">.</span><span class="na">cpuUsage</span><span class="o">().</span><span class="na">percpuUsage</span><span class="o">().</span><span class="na">size</span><span class="o">();</span>
+ 	<span class="n">cpuPercent</span> <span class="o">=</span> <span class="o">((</span><span class="n">cpuDelta</span><span class="o">.</span><span class="na">floatValue</span><span class="o">()</span> <span class="o">/</span> <span class="n">systemDelta</span><span class="o">.</span><span class="na">floatValue</span><span class="o">())</span> <span class="o">*</span> <span class="n">percpuUsageListSize</span><span class="o">.</span><span class="na">floatValue</span><span class="o">())</span> <span class="o">*</span> <span class="mi">100</span><span class="o">+</span><span class="s">"%"</span><span class="o">;</span>
+ <span class="o">}</span>
+</code></pre>
+    </div>
+  </li>
+</ol>
+
+<h6 id="memory利用率计算">memory利用率计算</h6>
+<ol>
+  <li>计算分析<br />
+在上述参考文章中提到:
+    <blockquote>
+      <p>读取/sys/fs/cgroup/memory/docker/[containerId]/memory.usage_in_bytes的值，作为mem_usage；如果容器限制了内存，则读取/sys/fs/cgroup/memory/docker/[id]/memory.limit_in_bytes作为mem_limit，否则mem_limit = machine_mem。</p>
+    </blockquote>
+
+    <p>因此可以得到docker stats计算Memory数据的算法如下：</p>
+    <div class="highlighter-rouge"><pre class="highlight"><code>MEM USAGE = mem_usage
+MEM LIMIT = mem_limit
+MEM % = (mem_usage / mem_limit) * 100.0
+</code></pre>
+    </div>
+  </li>
+  <li>代码实现<br />
+通过已经得到的stats对象，用方法可以取到MemoryStats对象。
+    <div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">MemoryStats</span> <span class="n">memoryStats</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="na">memoryStats</span><span class="o">();</span>
+</code></pre>
+    </div>
+    <p>然后根据公式来计算memory利用率：</p>
+    <div class="language-java highlighter-rouge"><pre class="highlight"><code> <span class="n">String</span> <span class="n">memUsageFormat</span><span class="o">=</span><span class="s">"---"</span><span class="o">;</span>
+ <span class="n">String</span> <span class="n">memLimitFormat</span><span class="o">=</span><span class="s">"---"</span><span class="o">;</span>
+ <span class="n">String</span> <span class="n">memPercent</span><span class="o">=</span><span class="s">"---"</span><span class="o">;</span>
+ <span class="k">if</span> <span class="o">(</span><span class="kc">null</span><span class="o">!=</span><span class="n">memoryStats</span><span class="o">){</span>
+ 	<span class="cm">/**
+      * 计算memory利用率 %
+      * MEM USAGE = mem_usage
+        MEM LIMIT = mem_limit
+        MEM % = (mem_usage / mem_limit) * 100.0
+      */</span>
+        <span class="n">Long</span> <span class="n">memUsage</span><span class="o">=</span> <span class="n">memoryStats</span><span class="o">.</span><span class="na">usage</span><span class="o">();</span>
+        <span class="n">Long</span> <span class="n">memLimit</span><span class="o">=</span><span class="n">memoryStats</span><span class="o">.</span><span class="na">limit</span><span class="o">();</span>
+        <span class="n">memUsageFormat</span><span class="o">=</span> <span class="n">Utils</span><span class="o">.</span><span class="na">getDynamicSizeUnit</span><span class="o">(</span><span class="n">memUsage</span><span class="o">);</span>
+        <span class="n">memLimitFormat</span><span class="o">=</span><span class="n">Utils</span><span class="o">.</span><span class="na">getDynamicSizeUnit</span><span class="o">(</span><span class="n">memLimit</span><span class="o">);</span>
+        <span class="n">memPercent</span><span class="o">=(</span><span class="n">memUsage</span><span class="o">.</span><span class="na">floatValue</span><span class="o">()/</span><span class="n">memLimit</span><span class="o">.</span><span class="na">floatValue</span><span class="o">())*</span><span class="mi">100</span><span class="o">+</span><span class="s">"%"</span><span class="o">;</span>
+ <span class="o">}</span>
+</code></pre>
+    </div>
+  </li>
+</ol>
+
+<h6 id="network-io计算">Network IO计算</h6>
+<ol>
+  <li>计算分析<br />
+在上述参考文章中提到:
+    <blockquote>
+      <p>network stats的计算可以根据“获取属于该容器network namespace veth pairs在主机中对应的veth*虚拟网卡EthInterface数组，然后循环数组中每个网卡设备，读取/sys/class/net//statistics/rx_bytes得到rx_bytes, 读取/sys/class/net//statistics/tx_bytes得到对应的tx_bytes。将所有这些虚拟网卡对应的rx_bytes累加得到该容器的rx_bytes。将所有这些虚拟网卡对应的tx_bytes累加得到该容器的tx_bytes。</p>
+    </blockquote>
+
+    <p>因此我们可以得到network stats的计算算法如下：</p>
+    <div class="highlighter-rouge"><pre class="highlight"><code>NET I = rx_bytes
+NET O = tx_bytes
+</code></pre>
+    </div>
+  </li>
+  <li>代码实现<br />
+通过已经得到的stats对象，可以取到 ImmutableMap&lt;String, NetworkStats&gt;。
+    <div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">ImmutableMap</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">NetworkStats</span><span class="o">&gt;</span> <span class="n">networks</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="na">networks</span><span class="o">();</span>
+</code></pre>
+    </div>
+    <p>然后根据公式来计算network io：</p>
+    <div class="language-java highlighter-rouge"><pre class="highlight"><code> <span class="n">String</span> <span class="n">rxBytesSumFormat</span><span class="o">=</span><span class="s">"---"</span><span class="o">;</span>
+ <span class="n">String</span> <span class="n">txBytesSumFormat</span><span class="o">=</span><span class="s">"---"</span><span class="o">;</span>
+ <span class="k">if</span> <span class="o">(</span><span class="kc">null</span><span class="o">!=</span><span class="n">networks</span><span class="o">){</span>
+ 	<span class="cm">/**
+      * docker stats计算Network IO数据的算法：
+        NET I = rx_bytes(所有网卡累加)
+        NET O = tx_bytes（所有网卡累加）
+      */</span>
+        <span class="n">Long</span> <span class="n">rxBytesSum</span><span class="o">=</span><span class="mi">0L</span><span class="o">;</span>
+        <span class="n">Long</span> <span class="n">txBytesSum</span><span class="o">=</span><span class="mi">0L</span><span class="o">;</span>
+        <span class="k">for</span> <span class="o">(</span><span class="n">Map</span><span class="o">.</span><span class="na">Entry</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">NetworkStats</span><span class="o">&gt;</span> <span class="nl">entry:</span><span class="n">networks</span><span class="o">.</span><span class="na">entrySet</span><span class="o">()){</span>
+  	      <span class="n">rxBytesSum</span><span class="o">+=</span><span class="n">entry</span><span class="o">.</span><span class="na">getValue</span><span class="o">().</span><span class="na">rxBytes</span><span class="o">();</span>
+           <span class="n">txBytesSum</span><span class="o">+=</span><span class="n">entry</span><span class="o">.</span><span class="na">getValue</span><span class="o">().</span><span class="na">txBytes</span><span class="o">();</span>
+        <span class="o">}</span>
+   <span class="c1">//Utils.getDynamicSizeUnit()是一个动态单位转换的方法</span>
+        <span class="n">rxBytesSumFormat</span><span class="o">=</span><span class="n">Utils</span><span class="o">.</span><span class="na">getDynamicSizeUnit</span><span class="o">(</span><span class="n">rxBytesSum</span><span class="o">);</span>
+        <span class="n">txBytesSumFormat</span><span class="o">=</span><span class="n">Utils</span><span class="o">.</span><span class="na">getDynamicSizeUnit</span><span class="o">(</span><span class="n">txBytesSum</span><span class="o">);</span>
+ <span class="o">}</span>
+</code></pre>
+    </div>
+  </li>
+</ol>
+
+<h6 id="blk-io计算">Blk IO计算</h6>
+<ol>
+  <li>计算分析<br />
+在上述参考文章中提到:
+    <blockquote>
+      <p>Blk IO计算可以根据“获取每个块设备的IoServiceBytesRecursive数据：先去读取/sys/fs/cgroup/blkio/docker/[containerId]/blkio.io_serviced_recursive中是否有有效值，如果有，则读取/sys/fs/cgroup/blkio/docker/[containerId]/blkio.io_service_bytes_recursive的值返回； 如果没有，就去读取/sys/fs/cgroup/blkio/docker/[containerId]/blkio.throttle.io_service_bytes中的值返回；将每个块设备的IoServiceBytesRecursive数据中所有read field对应value进行累加，得到该容器的blk_read值；将每个块设备的IoServiceBytesRecursive数据中所有write field对应value进行累加，得到该容器的blk_write值。</p>
+    </blockquote>
+
+    <p>因此，我们可以得到Blk IO计算算法如下：</p>
+    <div class="highlighter-rouge"><pre class="highlight"><code>BLOCK I = blk_read
+BLOCK O = blk_write
+</code></pre>
+    </div>
+  </li>
+  <li>代码实现
+    <div class="language-java highlighter-rouge"><pre class="highlight"><code> <span class="n">String</span> <span class="n">blkReadFormat</span><span class="o">=</span><span class="s">"---"</span><span class="o">;</span>
+ <span class="n">String</span> <span class="n">blkWriteFormat</span><span class="o">=</span><span class="s">"---"</span><span class="o">;</span>
+ <span class="k">if</span> <span class="o">(</span><span class="kc">null</span><span class="o">!=</span><span class="n">blockIoStats</span><span class="o">){</span>
+ 	<span class="cm">/**
+      * docker stats计算Block IO数据的算法：
+        BLOCK I = blkRead
+        BLOCK O = blkWrite
+      */</span>
+        <span class="n">ImmutableList</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">&gt;</span> <span class="n">objects</span> <span class="o">=</span> <span class="n">blockIoStats</span><span class="o">.</span><span class="na">ioServiceBytesRecursive</span><span class="o">();</span>
+        <span class="n">Long</span> <span class="n">blkRead</span> <span class="o">=</span><span class="mi">0L</span><span class="o">;</span>
+        <span class="n">Long</span> <span class="n">blkWrite</span> <span class="o">=</span><span class="mi">0L</span><span class="o">;</span>
+        <span class="c1">//因为是Object，不好遍历，所以转变成了jsonobj遍历</span>
+        <span class="k">for</span> <span class="o">(</span><span class="n">Object</span> <span class="nl">obj:</span> <span class="n">objects</span><span class="o">)</span> <span class="o">{</span>
+        	<span class="n">String</span> <span class="n">jsonString</span><span class="o">=</span> <span class="n">JSON</span><span class="o">.</span><span class="na">toJSONString</span><span class="o">(</span><span class="n">obj</span><span class="o">);</span>
+             <span class="n">JSONObject</span> <span class="n">jsonObj</span> <span class="o">=</span> <span class="n">JSON</span><span class="o">.</span><span class="na">parseObject</span><span class="o">(</span><span class="n">jsonString</span><span class="o">);</span>
+             <span class="k">if</span> <span class="o">(</span><span class="s">"Read"</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">jsonObj</span><span class="o">.</span><span class="na">getString</span><span class="o">(</span><span class="s">"op"</span><span class="o">))){</span>
+         	    <span class="n">blkRead</span><span class="o">+=</span><span class="n">jsonObj</span><span class="o">.</span><span class="na">getLong</span><span class="o">(</span><span class="s">"value"</span><span class="o">);</span>
+             <span class="o">}</span><span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="s">"Write"</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">jsonObj</span><span class="o">.</span><span class="na">getString</span><span class="o">(</span><span class="s">"op"</span><span class="o">))){</span>
+         <span class="n">blkWrite</span><span class="o">+=</span><span class="n">jsonObj</span><span class="o">.</span><span class="na">getLong</span><span class="o">(</span><span class="s">"value"</span><span class="o">);</span>
+             <span class="o">}</span>
+        <span class="o">}</span>
+        <span class="n">blkReadFormat</span><span class="o">=</span><span class="n">Utils</span><span class="o">.</span><span class="na">getDynamicSizeUnit</span><span class="o">(</span><span class="n">blkRead</span><span class="o">);</span>
+        <span class="n">blkWriteFormat</span><span class="o">=</span><span class="n">Utils</span><span class="o">.</span><span class="na">getDynamicSizeUnit</span><span class="o">(</span><span class="n">blkWrite</span><span class="o">);</span>
+ <span class="o">}</span>
+</code></pre>
+    </div>
+  </li>
+</ol>
+
+<h6 id="获取时间">获取时间</h6>
+<p>至此，以上将docker stats所需要的数据均计算出来了，之后我们只需获取下当前的采集时间即可。</p>
+<div class="language-java highlighter-rouge"><pre class="highlight"><code> <span class="n">Date</span> <span class="n">read</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="na">read</span><span class="o">();</span>
+</code></pre>
+</div>
+
+<h5 id="容器其他">容器其他</h5>
+<p>上面说的基本上是关于docker容器监控所用的方法，剩下的都是直接操作容器的工具，先不写出来了，有需要的可以直接参考官方说明<a href="https://github.com/spotify/docker-client/blob/master/docs/user_manual.md#creating-a-docker-client">spotify/docker-client</a>。</p>
+
+<h4 id="容器宿主机监控">容器宿主机监控</h4>
+<p>以上说明了容器的基础监控，我们在应用中，如果需要监控容器所在宿主机的情况，也可以使用下述方法：</p>
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">Info</span> <span class="n">info</span> <span class="o">=</span> <span class="n">docker</span><span class="o">.</span><span class="na">info</span><span class="o">();</span>
+</code></pre>
+</div>
+<p>获取到了Info对象，通过此对象可以取到宿主机上运行的容器状态、资源情况等，具体可获取到的如下。<br />
+<img src="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-14-dockerhostInfo.png?raw=true" alt="Info" /></p>
+
+<h4 id="其他">其他</h4>
+<p>除了以上说的那些，还可以获取、操作Networks、Images等。因为我们这里自己创建的一个镜像库，所以不直接使用docker-client的方法获取镜像信息，下面会统一再说明镜像库的搭建和列表的获取。<br />
+至此，docker-client所用到的方法都说明完毕了，其他没提到的还是直接去看官方说明吧<a href="https://github.com/spotify/docker-client/blob/master/docs/user_manual.md#creating-a-docker-client">spotify/docker-client</a>。</p>
+
+<h2 id="engine-api的使用">Engine API的使用</h2>
+<p>上述进行说明了Docker-client的使用，我们也可以直接通过Engine API v1.24来进行Docker的操作。<br />
+也是开启TCP端口之后，直接发送request到宿主机地址：端口，然后会收到json格式的response。<br />
+这里直接使用工具测试，获取到容器的列表信息，如下图。<br />
+<img src="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-14-restful获取容器列表.png?raw=true" alt="2018-06-14-restful获取容器列表" /><br />
+此后，如果需要，可以直接参考官方说明<a href="https://docs.docker.com/engine/api/v1.24/">Engine API v1.24</a>，不过需要注意的是，我这里使用的docker对应的是v1.24的，其他版本的要选择不同对应版本的api哦，在本文最开始也选择docker-client的“Docker版本和API版本对应”处也说明了，忘记了的话回过头去看哦。</p>
+
+<h1 id="docker管理-docker镜像仓库">Docker管理-Docker镜像仓库</h1>
+<p>我们上述说明了使用Docker-Client获取Docker容器的一些基础信息，而镜像我们是单独部署了一个镜像服务器，因此，不直接使用docker-client来获取镜像列表。下面会先说明镜像服务器的部署，之后说下如何获取镜像服务器中的镜像列表。</p>
+<h2 id="简单说明镜像服务器的部署">简单说明镜像服务器的部署</h2>
+<p>Docke官方提供了Docker Hub网站来作为一个公开的集中仓库。然而，本地访问Docker Hub速度往往很慢，并且很多时候我们需要一个本地的私有仓库只供网内使用。<br />
+Docker仓库实际上提供两方面的功能，一个是镜像管理，一个是认证。前者主要由docker-registry项目来实现，通过http服务来上传下载；后者可以通过docker-index（闭源）项目或者利用现成认证方案（如nginx）实现http请求管理。<br />
+目前来说，我们只需要在内网建立一个存储镜像的地方，因此只使用docker registry来搭建一个私有镜像库。<br />
+下面简单说明下仓库搭建过程，也可以直接参考官方部署<a href="https://docs.docker.com/registry/deploying/">“Deploy a registry server”</a>。</p>
+<ol>
+  <li>官方提供了registry镜像，我们直接下载：
+    <div class="highlighter-rouge"><pre class="highlight"><code>docker pull registry
+</code></pre>
+    </div>
+  </li>
+  <li>默认情况下，会将仓库存放于容器内,这样的话如果容器被删除，则存放于容器中的镜像也会丢失，所以我们需要指定一个本地目录挂载到容器内的存放镜像的目录下。所以，我们以如下命令来启动一个docker容器：
+    <div class="highlighter-rouge"><pre class="highlight"><code>docker run --privileged=true -d -v /datacenter02/registry:/var/lib/registry -p 5000:5000 --restart=always --name registry registry
+</code></pre>
+    </div>
+  </li>
+  <li>查看启动的容器
+    <div class="highlighter-rouge"><pre class="highlight"><code>---@---[~]#docker ps -a
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                    NAMES
+458a9e2301a6        registry            "/entrypoint.sh /etc/"   7 months ago        Up 7 months         0.0.0.0:5000-&gt;5000/tcp   registry
+</code></pre>
+    </div>
+  </li>
+  <li>测试使用<br />
+创建一个小的镜像，然后测试push
+    <div class="highlighter-rouge"><pre class="highlight"><code>docker push 132.-.-.-:5000/busybox（这里的ip没写全，用-代替了，自己写的时候写全）
+</code></pre>
+    </div>
+    <p>可以看到push失败，报关于https的错误类似如下。</p>
+    <div class="highlighter-rouge"><pre class="highlight"><code>Error response from daemon: invalid registry endpoint https://132.-.-.-:5000/v1/: Get https://132.-.-.-:5000/v1/_ping: http: server gave HTTP response to HTTPS client. If this private registry supports only HTTP or HTTPS with an unknown CA certificate, please add `--insecure-registry 132.-.-.-:5000` to the daemon's arguments. In the case of HTTPS, if you have access to the registry's CA certificate, no need for the flag; simply place the CA certificate at /etc/docker/certs.d/132.-.-.-:5000/ca.crt
+</code></pre>
+    </div>
+  </li>
+  <li>配置http访问<br />
+因为Docker从1.3.X之后，与docker registry交互默认使用的是https，然而此处搭建的私有仓库只提供http服务，所以当与私有仓库交互时就会报上面的错误。为了解决这个问题需要在启动docker server时增加启动参数为默认使用http访问。<br />
+我们需要修改docker配置文件，在docker配置文件中增加“–insecure-registry 132.-.-.-:5000”，其中IP为了不泄露用-代替了，自己写的时候需要写全：
+    <div class="highlighter-rouge"><pre class="highlight"><code># If you have a registry secured with https but do not have proper certs
+# distributed, you can tell docker to not look for full authorization by
+# adding the registry to the INSECURE_REGISTRY line and uncommenting it.
+# INSECURE_REGISTRY='--insecure-registry'
+INSECURE_REGISTRY='--insecure-registry 132.-.-.-:5000'
+</code></pre>
+    </div>
+    <p>之后重启docker服务。<br />
+之后再次测试，可以发现没有报错啦，push成功。</p>
+  </li>
+  <li>命令行仓库管理<br />
+有文章说，查询私有仓库中的所有镜像，使用docker search命令，但是我这里经过尝试，发现会报错：“Error response from daemon: Unexpected status code 404”。<br />
+后来发现，docker search是v1版本的API，我们现在的是v2版本，所以不能使用。<br />
+如果需要查询，则也是直接curl使用v2版本的API：
+    <div class="highlighter-rouge"><pre class="highlight"><code>---@---[~]#curl 132.90.130.13:5000/v2/_catalog
+{"repositories":["alluxio","basic","go","go1.10","go_zhzj","hdfs_datanode","hello-mine","hiveonspark","hiveonspark-gx","hivespark","jdk","jtwspark1.6.3","kafka","ninecon","nm","rm1","rm2","spark-2.3.0","spark2","spark2.2.1","spark2.2.1-gx","spark2.2.1-jtw","spark2.2.1-rx-demo","sparkdemo","sparkrx1.6.3","sparkrx2.2.1","tensorflow"]}
+</code></pre>
+    </div>
+    <p>详细的将在下面说明。</p>
+  </li>
+</ol>
+
+<h2 id="镜像仓库器管理">镜像仓库器管理</h2>
+<p>对于Docker Registry，Docker官方提供了HTTP API V2用于与其交互，用来管理docker images。对于此，在官方网站上也有说明：<a href="https://docs.docker.com/registry/spec/api/">HTTP API V2</a>。<br />
+因为我们只用到了镜像管理功能，所以下面只是用到的说明获取仓库内的镜像列表以及tags的方法，其他的需要自己参考官网啦。</p>
+<h3 id="镜像列表">镜像列表</h3>
+<p>我们使用下述方式来获取仓库里面的镜像列表，获取也是请求之后来获取一个包含信息（仓库、镜像名称）的json串，官方给出的request和response例子如下：<br />
+request:</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>GET /v2/_catalog
+</code></pre>
+</div>
+<p>response:</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>200 OK
+Content-Type: application/json
+
+{
+  "repositories": [
+    &lt;name&gt;,
+    ...
+  ]
+}
+</code></pre>
+</div>
+<p>我这里直接使用json工具，获取到我们仓库中的镜像列表：<br />
+<img src="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-14-仓库镜像列表.png?raw=true" alt="镜像列表" /></p>
+<h3 id="镜像tags">镜像tags</h3>
+<p>但是，对于一个镜像来说，有不同的tags来标明它的版本，所以单单靠上述方法获取镜像的名称还是不够的，还需获取到tags。官方也给出了相关的例子：<br />
+request:</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>GET /v2/&lt;name&gt;/tags/list
+</code></pre>
+</div>
+<p>response:</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>200 OK
+Content-Type: application/json
+
+{
+    "name": &lt;name&gt;,
+    "tags": [
+        &lt;tag&gt;,
+        ...
+    ]
+}
+</code></pre>
+</div>
+<p>之后，我也使用json工具，获取了仓库中“spark2.2.1”的tags信息如下：<br />
+<img src="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-14-镜像tags获取.png?raw=true" alt="镜像tags获取" /></p>
+
+<p>至此，我们就可以得到仓库里面镜像对我们来说的有用的信息了。</p>
+
+<h3 id="代码实现">代码实现</h3>
+<p>而在后台程序里，直接使用了最原始的httpclient写了restful工具类，直接获取镜像名称和相关tags信息，后来封装成一个对象放到list中返回直接使用，也可以直接使用restful的相关框架就比较方便了，就不详细说明了。</p>
+<div class="language-java highlighter-rouge"><pre class="highlight"><code>  <span class="cm">/**
+     * 获取镜像服务器内的镜像列表
+     * http://..../v2/_catalog
+     * @throws IOException
+     */</span>
+    <span class="kd">public</span>  <span class="kd">static</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span>   <span class="nf">getImagesList</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
+        <span class="n">String</span> <span class="n">url</span> <span class="o">=</span> <span class="s">"http://"</span><span class="o">+</span> <span class="n">ConstantOp</span><span class="o">.</span><span class="na">IMAGES_REPOSITORIES_IP</span><span class="o">+</span><span class="s">":"</span><span class="o">+</span><span class="n">ConstantOp</span><span class="o">.</span><span class="na">IMAGES_REPOSITORIES_PORT</span><span class="o">+</span><span class="s">"/v2/_catalog"</span><span class="o">;</span>
+        <span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">images</span><span class="o">=</span><span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>
+        <span class="n">RestfulHttpCli</span><span class="o">.</span><span class="na">HttpResponse</span> <span class="n">response</span> <span class="o">=</span> <span class="n">RestfulHttpCli</span><span class="o">.</span><span class="na">getClient</span><span class="o">(</span><span class="n">url</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">get</span><span class="o">()</span>              <span class="c1">//设置post请求</span>
+                <span class="o">.</span><span class="na">addHeader</span><span class="o">(</span><span class="s">"Content-Type"</span><span class="o">,</span><span class="s">"application/json"</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">addHeader</span><span class="o">(</span><span class="s">"Accept"</span><span class="o">,</span> <span class="s">"application/json"</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">addHeader</span><span class="o">(</span><span class="s">"charset"</span><span class="o">,</span><span class="s">"utf-8"</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">request</span><span class="o">();</span>         <span class="c1">//发起请求</span>
+        <span class="c1">//响应状态码</span>
+        <span class="c1">//  System.out.println(response.getCode());</span>
+        <span class="c1">//最终发起请求的地址</span>
+        <span class="c1">//  System.out.println(response.getRequestUrl());</span>
+        <span class="k">if</span><span class="o">(</span><span class="n">response</span><span class="o">.</span><span class="na">getCode</span><span class="o">()</span> <span class="o">==</span> <span class="mi">200</span><span class="o">){</span>
+            <span class="c1">//请求成功</span>
+            <span class="n">String</span> <span class="n">content</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="na">getContent</span><span class="o">();</span>
+            <span class="c1">//格式化json</span>
+            <span class="n">JSONObject</span> <span class="n">jsonObject</span> <span class="o">=</span> <span class="n">JSON</span><span class="o">.</span><span class="na">parseObject</span><span class="o">(</span><span class="n">content</span><span class="o">);</span>
+            <span class="n">JSONArray</span> <span class="n">repositories</span> <span class="o">=</span> <span class="n">jsonObject</span><span class="o">.</span><span class="na">getJSONArray</span><span class="o">(</span><span class="s">"repositories"</span><span class="o">);</span>
+            <span class="n">images</span> <span class="o">=</span> <span class="n">repositories</span><span class="o">.</span><span class="na">toJavaList</span><span class="o">(</span><span class="n">String</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="k">return</span> <span class="n">images</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="cm">/**
+     * 获取镜像服务器内的镜像tags
+     * 如http://..../v2/_catalog
+     * @throws IOException
+     */</span>
+    <span class="kd">public</span>  <span class="kd">static</span> <span class="n">String</span>  <span class="nf">getTagsList</span><span class="o">(</span><span class="n">String</span> <span class="n">image_name</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
+        <span class="n">String</span> <span class="n">url</span> <span class="o">=</span> <span class="s">"http://"</span><span class="o">+</span> <span class="n">ConstantOp</span><span class="o">.</span><span class="na">IMAGES_REPOSITORIES_IP</span><span class="o">+</span><span class="s">":"</span><span class="o">+</span><span class="n">ConstantOp</span><span class="o">.</span><span class="na">IMAGES_REPOSITORIES_PORT</span><span class="o">+</span><span class="s">"/v2/{image_name}/tags/list"</span><span class="o">;</span>
+        <span class="n">String</span> <span class="n">tags_str</span><span class="o">=</span><span class="s">"---"</span><span class="o">;</span>
+        <span class="n">RestfulHttpCli</span><span class="o">.</span><span class="na">HttpResponse</span> <span class="n">response</span> <span class="o">=</span> <span class="n">RestfulHttpCli</span><span class="o">.</span><span class="na">getClient</span><span class="o">(</span><span class="n">url</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">get</span><span class="o">()</span>              <span class="c1">//设置post请求</span>
+                <span class="o">.</span><span class="na">addHeader</span><span class="o">(</span><span class="s">"Content-Type"</span><span class="o">,</span><span class="s">"application/json"</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">addHeader</span><span class="o">(</span><span class="s">"Accept"</span><span class="o">,</span> <span class="s">"application/json"</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">addHeader</span><span class="o">(</span><span class="s">"charset"</span><span class="o">,</span><span class="s">"utf-8"</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">addPathParam</span><span class="o">(</span><span class="s">"image_name"</span><span class="o">,</span> <span class="n">image_name</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">request</span><span class="o">();</span>         <span class="c1">//发起请求</span>
+        <span class="k">if</span><span class="o">(</span><span class="n">response</span><span class="o">.</span><span class="na">getCode</span><span class="o">()</span> <span class="o">==</span> <span class="mi">200</span><span class="o">){</span>
+            <span class="c1">//请求成功</span>
+            <span class="n">String</span> <span class="n">content</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="na">getContent</span><span class="o">();</span>
+            <span class="c1">//格式化json</span>
+            <span class="n">JSONObject</span> <span class="n">jsonObject</span> <span class="o">=</span> <span class="n">JSON</span><span class="o">.</span><span class="na">parseObject</span><span class="o">(</span><span class="n">content</span><span class="o">);</span>
+            <span class="n">JSONArray</span> <span class="n">tags</span> <span class="o">=</span> <span class="n">jsonObject</span><span class="o">.</span><span class="na">getJSONArray</span><span class="o">(</span><span class="s">"tags"</span><span class="o">);</span>
+            <span class="n">tags_str</span> <span class="o">=</span> <span class="n">StringUtils</span><span class="o">.</span><span class="na">join</span><span class="o">(</span><span class="n">tags</span><span class="o">,</span> <span class="s">","</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="k">return</span> <span class="n">tags_str</span><span class="o">;</span>
+    <span class="o">}</span>
+    
+    <span class="cm">/**
+     * 获取镜像服务器中的image列表，返回 List&lt;ImagesDetails&gt;
+     * @return
+     * @throws IOException
+     */</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">ImagesDetails</span><span class="o">&gt;</span>   <span class="nf">getImagesDetailsList</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
+        <span class="n">List</span><span class="o">&lt;</span><span class="n">ImagesDetails</span><span class="o">&gt;</span>  <span class="n">imagesDetailsList</span><span class="o">=</span><span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>
+        <span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">imagesList</span> <span class="o">=</span> <span class="n">getImagesList</span><span class="o">();</span>
+        <span class="k">if</span> <span class="o">(</span><span class="kc">null</span><span class="o">!=</span><span class="n">imagesList</span><span class="o">){</span>
+            <span class="k">for</span> <span class="o">(</span><span class="n">String</span> <span class="nl">image_name:</span><span class="n">imagesList</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">ImagesDetails</span> <span class="n">imagesDetails</span><span class="o">=</span><span class="k">new</span> <span class="n">ImagesDetails</span><span class="o">();</span>
+                <span class="n">imagesDetails</span><span class="o">.</span><span class="na">setName</span><span class="o">(</span><span class="n">image_name</span><span class="o">);</span>
+                <span class="n">imagesDetails</span><span class="o">.</span><span class="na">setTags</span><span class="o">(</span><span class="n">getTagsList</span><span class="o">(</span><span class="n">image_name</span><span class="o">));</span>
+                <span class="n">imagesDetailsList</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">imagesDetails</span><span class="o">);</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+        <span class="k">return</span> <span class="n">imagesDetailsList</span><span class="o">;</span>
+    <span class="o">}</span>
+</code></pre>
+</div>
+<p>至此，完成了镜像仓库列表获取的全部工具类。</p>
+
+<p>以上也将Docker监控的总结暂时告一段落，下面进行Mesos的说明。</p>
+
+<h1 id="mesos管理">Mesos管理</h1>
+<p>对于Mesos管理，官方提供2中方式：HTTP Endpoints和Operator HTTP API。</p>
+<h2 id="http-endpoints">HTTP Endpoints</h2>
+<p>对于Mesos master和Mesos agent均可以直接使用HTTP Endpoints，而且使用方式很简单，如下：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>http://ip:port/endpoint
+如：
+http://masterIp:5050/metrics/snapshot
+http://slaveIp:5050/metrics/snapshot
+</code></pre>
+</div>
+<p>具体使用可以参考官方网站说明：<a href="http://mesos.apache.org/documentation/latest/endpoints/#http-endpoints">HTTP Endpoints</a>。<br />
+通过观察，发现mesos原生监控页面中，是使用的这种方式，直接在前台进行调用的此api，所以，如果端口没开，当终端访问页面的时候，会无法获取数据。<br />
+下面就是从前台控制台看到的获取的内容，会调用定时获取snapshot和state2个内容。<br />
+<img src="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-15-mesos监控页面截图.png?raw=true" alt="2018-06-15-mesos监控页面截图" /> <br />
+不过需要注意的是，如果使用的是Mesos1.1或之后的版本，不建议使用此种方式，可以使用下面说的新的<a href="http://mesos.apache.org/documentation/latest/operator-http-api/">v1 Operator HTTP API</a>。</p>
+
+<h2 id="operator-http-api">Operator HTTP API</h2>
+<p>对于Mesos master和agents均支持/api/v1 endpoint。不过这个api仅支持post请求。并且请求内容需要是json格式（Content-Type: application/json）或者protobuf格式（Content-Type: application/x-protobuf）。<br />
+对于<a href="http://mesos.apache.org/documentation/latest/operator-http-api/#master-api">Master</a>和<a href="http://mesos.apache.org/documentation/latest/operator-http-api/#agent-api">Agent</a>均提供了丰富的api，直接点击连接即可查看官方的说明，我就不在这里一一列出来了，直接说一下用到的一个方法。</p>
+<h3 id="使用mesos-api">使用mesos api</h3>
+<p>对于mesos的api，我这里只使用了master的GET_METRICS方法，目的是想自己做一个监控，能监控到mesos中的全部的资源使用情况，如下图mesos原生监控页面里面所示：<br />
+<img src="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-15-mesos原生监控页面资源情况.png?raw=true" alt="2018-06-15-mesos原生监控页面资源情况" /><br />
+所以，为了获取这些内容，可以直接选择官方的master的<a href="http://mesos.apache.org/documentation/latest/operator-http-api/#get_metrics">GET_METRICS</a>方法，官方给出的请求例子如下：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>GET_METRICS HTTP Request (JSON):
+
+POST /api/v1  HTTP/1.1
+
+Host: masterhost:5050
+Content-Type: application/json
+Accept: application/json
+
+{
+  "type": "GET_METRICS",
+  "get_metrics": {
+    "timeout": {
+      "nanoseconds": 5000000000
+    }
+  }
+}
+</code></pre>
+</div>
+<p>然后我们可以直接使用工具进行获取测试：<br />
+<img src="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-15-mesosRestfulPost工具截图.png?raw=true" alt="2018-06-15-mesosRestfulPost工具截图" /><br />
+通过post方式发送对应json到“http://masterIP:5050/api/v1”即可取到了相应json格式的监控数据。<br />
+而在程序中，也是用了最原始的方法直接使用的httpclient写的restful工具类，通过提交post请求后，获取到对应的响应内容，也可以直接使用restful的框架会比较方便，其他的具体就不详细说了，直接贴下代码：<br />
+不过这里因为取到的json不是全部使用了，所以json解析是对应取到的数据提取自己有用的东西，使用了最笨的方法，求别嫌弃(,,• . •̀,) 。</p>
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="cm">/**
+     * 生成mesos的访问连接
+     * @param hostIp
+     * @return
+     */</span>
+    <span class="kd">public</span> <span class="n">String</span> <span class="nf">generateUrl</span><span class="o">(</span><span class="n">String</span> <span class="n">hostIp</span><span class="o">){</span>
+        <span class="c1">//格式如：http://-.-.-.-:5050/api/v1</span>
+        <span class="k">return</span> <span class="s">"http://"</span><span class="o">+</span><span class="n">hostIp</span><span class="o">+</span><span class="s">":"</span><span class="o">+</span> <span class="n">ConstantOp</span><span class="o">.</span><span class="na">MESOS_PORT</span><span class="o">+</span><span class="s">"/api/v1"</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="n">MasterMesosMetrics</span> <span class="nf">getMasterMetrics</span><span class="o">(</span><span class="n">String</span> <span class="n">mesosMasterIp</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
+        <span class="n">String</span> <span class="n">url</span> <span class="o">=</span> <span class="n">generateUrl</span><span class="o">(</span><span class="n">mesosMasterIp</span><span class="o">);</span>
+        <span class="n">MasterMesosMetrics</span> <span class="n">masterMesosMetrics</span> <span class="o">=</span> <span class="k">new</span> <span class="n">MasterMesosMetrics</span><span class="o">();</span>
+        <span class="n">RestfulHttpCli</span><span class="o">.</span><span class="na">HttpResponse</span> <span class="n">request</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+        <span class="n">request</span> <span class="o">=</span> <span class="n">RestfulHttpCli</span><span class="o">.</span><span class="na">getClient</span><span class="o">(</span><span class="n">url</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">post</span><span class="o">()</span>   
+                <span class="o">.</span><span class="na">addHeader</span><span class="o">(</span><span class="s">"Content-Type"</span><span class="o">,</span> <span class="s">"application/json"</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">addHeader</span><span class="o">(</span><span class="s">"Accept"</span><span class="o">,</span> <span class="s">"application/json"</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">addHeader</span><span class="o">(</span><span class="s">"charset"</span><span class="o">,</span> <span class="s">"utf-8"</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">body</span><span class="o">(</span><span class="s">"{\n"</span> <span class="o">+</span>
+                        <span class="s">"  \"type\": \"GET_METRICS\",\n"</span> <span class="o">+</span>
+                        <span class="s">"  \"get_metrics\": {\n"</span> <span class="o">+</span>
+                        <span class="s">"    \"timeout\": {\n"</span> <span class="o">+</span>
+                        <span class="s">"      \"nanoseconds\": 5\n"</span> <span class="o">+</span>
+                        <span class="s">"    }\n"</span> <span class="o">+</span>
+                        <span class="s">"  }\n"</span> <span class="o">+</span>
+                        <span class="s">"}"</span><span class="o">).</span><span class="na">request</span><span class="o">();</span>
+<span class="c1">//        System.out.println(request.getCode());</span>
+<span class="c1">//        System.out.println(request.getRequestUrl());</span>
+        <span class="k">if</span> <span class="o">(</span><span class="mi">200</span> <span class="o">==</span> <span class="n">request</span><span class="o">.</span><span class="na">getCode</span><span class="o">())</span> <span class="o">{</span>
+            <span class="n">String</span> <span class="n">content</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="na">getContent</span><span class="o">();</span>
+            <span class="c1">//格式化json</span>
+            <span class="n">JSONObject</span> <span class="n">contentObject</span> <span class="o">=</span> <span class="n">JSON</span><span class="o">.</span><span class="na">parseObject</span><span class="o">(</span><span class="n">content</span><span class="o">);</span>
+            <span class="n">JSONObject</span> <span class="n">get_metrics</span> <span class="o">=</span> <span class="n">contentObject</span><span class="o">.</span><span class="na">getJSONObject</span><span class="o">(</span><span class="s">"get_metrics"</span><span class="o">);</span>
+            <span class="n">JSONArray</span> <span class="n">metrics</span> <span class="o">=</span> <span class="n">get_metrics</span><span class="o">.</span><span class="na">getJSONArray</span><span class="o">(</span><span class="s">"metrics"</span><span class="o">);</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">metrics</span><span class="o">.</span><span class="na">size</span><span class="o">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span><span class="mi">0</span><span class="o">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">metrics</span><span class="o">.</span><span class="na">size</span><span class="o">();</span> <span class="n">j</span><span class="o">++)</span> <span class="o">{</span>
+                    <span class="c1">// 遍历 jsonarray 数组，把每一个对象转成 json 对象</span>
+                    <span class="n">JSONObject</span> <span class="n">job</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="na">getJSONObject</span><span class="o">(</span><span class="n">j</span><span class="o">);</span>
+                    <span class="n">Object</span> <span class="n">name</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="s">"name"</span><span class="o">);</span>
+                    <span class="c1">//agents</span>
+                    <span class="k">if</span> <span class="o">(</span><span class="s">"master/slaves_active"</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">name</span><span class="o">)){</span>
+                        <span class="n">masterMesosMetrics</span><span class="o">.</span><span class="na">setSlavesActive</span><span class="o">(</span><span class="n">job</span><span class="o">.</span><span class="na">getInteger</span><span class="o">(</span><span class="s">"value"</span><span class="o">));</span>
+                    <span class="o">}</span><span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="s">"master/slaves_inactive"</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">name</span><span class="o">)){</span>
+                        <span class="n">masterMesosMetrics</span><span class="o">.</span><span class="na">setSlavesInactive</span><span class="o">(</span><span class="n">job</span><span class="o">.</span><span class="na">getInteger</span><span class="o">(</span><span class="s">"value"</span><span class="o">));</span>
+                    <span class="o">}</span><span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="s">"master/slaves_disconnected"</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">name</span><span class="o">)){</span>
+                        <span class="n">masterMesosMetrics</span><span class="o">.</span><span class="na">setSlavesDisconnected</span><span class="o">(</span><span class="n">job</span><span class="o">.</span><span class="na">getInteger</span><span class="o">(</span><span class="s">"value"</span><span class="o">));</span>
+                        <span class="c1">//tasks</span>
+                    <span class="o">}</span><span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="s">"master/tasks_staging"</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">name</span><span class="o">)){</span>
+                        <span class="n">masterMesosMetrics</span><span class="o">.</span><span class="na">setTasksStaging</span><span class="o">(</span><span class="n">job</span><span class="o">.</span><span class="na">getInteger</span><span class="o">(</span><span class="s">"value"</span><span class="o">));</span>
+                    <span class="o">}</span><span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="s">"master/tasks_starting"</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">name</span><span class="o">)){</span>
+                        <span class="n">masterMesosMetrics</span><span class="o">.</span><span class="na">setTasksStarting</span><span class="o">(</span><span class="n">job</span><span class="o">.</span><span class="na">getInteger</span><span class="o">(</span><span class="s">"value"</span><span class="o">));</span>
+                    <span class="o">}</span><span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="s">"master/tasks_running"</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">name</span><span class="o">)){</span>
+                        <span class="n">masterMesosMetrics</span><span class="o">.</span><span class="na">setTasksRunning</span><span class="o">(</span><span class="n">job</span><span class="o">.</span><span class="na">getInteger</span><span class="o">(</span><span class="s">"value"</span><span class="o">));</span>
+                    <span class="o">}</span><span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="s">"master/tasks_unreachable"</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">name</span><span class="o">)){</span>
+                        <span class="n">masterMesosMetrics</span><span class="o">.</span><span class="na">setTasksUnreachable</span><span class="o">(</span><span class="n">job</span><span class="o">.</span><span class="na">getInteger</span><span class="o">(</span><span class="s">"value"</span><span class="o">));</span>
+                    <span class="o">}</span><span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="s">"master/tasks_killing"</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">name</span><span class="o">)){</span>
+                        <span class="n">masterMesosMetrics</span><span class="o">.</span><span class="na">setTasksKilling</span><span class="o">(</span><span class="n">job</span><span class="o">.</span><span class="na">getInteger</span><span class="o">(</span><span class="s">"value"</span><span class="o">));</span>
+                    <span class="o">}</span><span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="s">"master/tasks_finished"</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">name</span><span class="o">)){</span>
+                        <span class="n">masterMesosMetrics</span><span class="o">.</span><span class="na">setTasksFinished</span><span class="o">(</span><span class="n">job</span><span class="o">.</span><span class="na">getInteger</span><span class="o">(</span><span class="s">"value"</span><span class="o">));</span>
+                    <span class="o">}</span><span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="s">"master/tasks_killed"</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">name</span><span class="o">)){</span>
+                        <span class="n">masterMesosMetrics</span><span class="o">.</span><span class="na">setTasksKilled</span><span class="o">(</span><span class="n">job</span><span class="o">.</span><span class="na">getInteger</span><span class="o">(</span><span class="s">"value"</span><span class="o">));</span>
+                    <span class="o">}</span><span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="s">"master/tasks_failed"</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">name</span><span class="o">)){</span>
+                        <span class="n">masterMesosMetrics</span><span class="o">.</span><span class="na">setTasksFailed</span><span class="o">(</span><span class="n">job</span><span class="o">.</span><span class="na">getInteger</span><span class="o">(</span><span class="s">"value"</span><span class="o">));</span>
+                    <span class="o">}</span><span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="s">"master/tasks_lost"</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">name</span><span class="o">)){</span>
+                        <span class="n">masterMesosMetrics</span><span class="o">.</span><span class="na">setTasksLost</span><span class="o">(</span><span class="n">job</span><span class="o">.</span><span class="na">getInteger</span><span class="o">(</span><span class="s">"value"</span><span class="o">));</span>
+                        <span class="c1">//resources</span>
+                        <span class="c1">//cpus</span>
+                    <span class="o">}</span><span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="s">"master/cpus_total"</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">name</span><span class="o">)){</span>
+                        <span class="n">masterMesosMetrics</span><span class="o">.</span><span class="na">setCpusTotal</span><span class="o">(</span><span class="n">job</span><span class="o">.</span><span class="na">getInteger</span><span class="o">(</span><span class="s">"value"</span><span class="o">));</span>
+                    <span class="o">}</span><span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="s">"master/cpus_used"</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">name</span><span class="o">)){</span>
+                        <span class="n">masterMesosMetrics</span><span class="o">.</span><span class="na">setCpusUsed</span><span class="o">(</span><span class="n">job</span><span class="o">.</span><span class="na">getInteger</span><span class="o">(</span><span class="s">"value"</span><span class="o">));</span>
+                    <span class="o">}</span><span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="s">"master/cpus_percent"</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">name</span><span class="o">)){</span>
+                        <span class="c1">//cpuused/cputotal</span>
+                        <span class="n">masterMesosMetrics</span><span class="o">.</span><span class="na">setCpusPercent</span><span class="o">(</span><span class="n">job</span><span class="o">.</span><span class="na">getDouble</span><span class="o">(</span><span class="s">"value"</span><span class="o">));</span>
+                        <span class="c1">//gpu</span>
+                    <span class="o">}</span><span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="s">"master/gpus_total"</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">name</span><span class="o">)){</span>
+                        <span class="n">masterMesosMetrics</span><span class="o">.</span><span class="na">setGpusTotal</span><span class="o">(</span><span class="n">job</span><span class="o">.</span><span class="na">getInteger</span><span class="o">(</span><span class="s">"value"</span><span class="o">));</span>
+                    <span class="o">}</span><span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="s">"master/gpus_used"</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">name</span><span class="o">)){</span>
+                        <span class="n">masterMesosMetrics</span><span class="o">.</span><span class="na">setGpusUsed</span><span class="o">(</span><span class="n">job</span><span class="o">.</span><span class="na">getInteger</span><span class="o">(</span><span class="s">"value"</span><span class="o">));</span>
+                    <span class="o">}</span><span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="s">"master/gpus_percent"</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">name</span><span class="o">)){</span>
+                        <span class="n">masterMesosMetrics</span><span class="o">.</span><span class="na">setGpusPercent</span><span class="o">(</span><span class="n">job</span><span class="o">.</span><span class="na">getDouble</span><span class="o">(</span><span class="s">"value"</span><span class="o">));</span>
+                        <span class="c1">//mem</span>
+                    <span class="o">}</span><span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="s">"master/mem_total"</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">name</span><span class="o">)){</span>
+                       <span class="n">masterMesosMetrics</span><span class="o">.</span><span class="na">setMemTotal</span><span class="o">(</span><span class="n">job</span><span class="o">.</span><span class="na">getInteger</span><span class="o">(</span><span class="s">"value"</span><span class="o">));</span>
+                    <span class="o">}</span><span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="s">"master/mem_used"</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">name</span><span class="o">)){</span>
+                      <span class="n">masterMesosMetrics</span><span class="o">.</span><span class="na">setMemUsed</span><span class="o">(</span><span class="n">job</span><span class="o">.</span><span class="na">getInteger</span><span class="o">(</span><span class="s">"value"</span><span class="o">));</span>
+                    <span class="o">}</span><span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="s">"master/mem_percent"</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">name</span><span class="o">)){</span>
+                        <span class="n">masterMesosMetrics</span><span class="o">.</span><span class="na">setMemPercent</span><span class="o">(</span><span class="n">job</span><span class="o">.</span><span class="na">getDouble</span><span class="o">(</span><span class="s">"value"</span><span class="o">));</span>
+                        <span class="c1">//disk</span>
+                    <span class="o">}</span><span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="s">"master/disk_total"</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">name</span><span class="o">)){</span>
+                        <span class="n">masterMesosMetrics</span><span class="o">.</span><span class="na">setDiskTotal</span><span class="o">(</span><span class="n">job</span><span class="o">.</span><span class="na">getInteger</span><span class="o">(</span><span class="s">"value"</span><span class="o">));</span>
+                    <span class="o">}</span><span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="s">"master/disk_used"</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">name</span><span class="o">)){</span>
+                        <span class="n">masterMesosMetrics</span><span class="o">.</span><span class="na">setDiskUsed</span><span class="o">(</span><span class="n">job</span><span class="o">.</span><span class="na">getInteger</span><span class="o">(</span><span class="s">"value"</span><span class="o">));</span>
+                    <span class="o">}</span><span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="s">"master/disk_percent"</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">name</span><span class="o">)){</span>
+                        <span class="n">masterMesosMetrics</span><span class="o">.</span><span class="na">setDiskPercent</span><span class="o">(</span><span class="n">job</span><span class="o">.</span><span class="na">getDouble</span><span class="o">(</span><span class="s">"value"</span><span class="o">));</span>
+                    <span class="o">}</span><span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="s">"master/uptime_secs"</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">name</span><span class="o">)){</span>
+                        <span class="n">masterMesosMetrics</span><span class="o">.</span><span class="na">setUptimeSecs</span><span class="o">(</span><span class="n">job</span><span class="o">.</span><span class="na">getInteger</span><span class="o">(</span><span class="s">"value"</span><span class="o">));</span>
+                    <span class="o">}</span>
+                <span class="o">}</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+        <span class="k">return</span> <span class="n">masterMesosMetrics</span><span class="o">;</span>
+    <span class="o">}</span>
+</code></pre>
+</div>
+<p>至此，关于mesos的监控就这么多了，都是直接使用的httpApi官网都列明白了就不复制过来了，再贴一遍官网连接，有需要的直接去查吧：<a href="http://mesos.apache.org/documentation/latest/endpoints/#http-endpoints">HTTP Endpoints</a>和<a href="http://mesos.apache.org/documentation/latest/operator-http-api/#operator-http-api">Operator HTTP API</a>。</p>
+
+<h1 id="marathon管理">Marathon管理</h1>
+<p>对于Marathon的管理，官方也提供了2种方式，1为直接使用marathon的restful api；2是官方也提供了封装好的方法，直接使用就可以啦。</p>
+<h2 id="marathon-client">marathon-client</h2>
+<p>对于marathon-client，也是对于restful api的一种封装，官方也给出的详细的使用说明:<a href="https://github.com/mesosphere/marathon-client">marathon-client</a>。<br />
+我们使用的marathon版本是Marathon1.4.5，所以来说，可以使用下列依赖：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>&lt;dependency&gt;
+  &lt;groupId&gt;com.mesosphere&lt;/groupId&gt;
+  &lt;artifactId&gt;marathon-client&lt;/artifactId&gt;
+  &lt;version&gt;0.6.0&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+</div>
+<p>导入依赖之后，我们就可以直接使用了。<br />
+首先，使用<strong>MarathonClient.getInstance()</strong>创建Marathon实例对象，之后就可以直接使用其对应的各种方法了，在这里就不和docker-client似的详细说明了，因为这里没有参与过多就不贴详细使用代码啦，官方使用说明挺好的（<a href="https://github.com/mesosphere/marathon-client">marathon-client</a>），所以直接放上来一个小例子来参考吧(IP全用-.-.-.-代替了)。</p>
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span> <span class="n">args</span><span class="o">[])</span> <span class="kd">throws</span> <span class="n">Exception</span><span class="o">{</span>
+        <span class="n">String</span> <span class="n">endpoint</span> <span class="o">=</span> <span class="s">"http://-.-.-.-:8080"</span><span class="o">;</span>
+        <span class="n">Marathon</span> <span class="n">marathon</span> <span class="o">=</span> <span class="n">MarathonClient</span><span class="o">.</span><span class="na">getInstance</span><span class="o">(</span><span class="n">endpoint</span><span class="o">);</span>
+
+        <span class="n">App</span> <span class="n">app</span> <span class="o">=</span> <span class="k">new</span> <span class="n">App</span><span class="o">();</span>
+        <span class="n">app</span><span class="o">.</span><span class="na">setId</span><span class="o">(</span><span class="s">"spark-with-api"</span><span class="o">);</span>
+        <span class="n">app</span><span class="o">.</span><span class="na">setCmd</span><span class="o">(</span><span class="s">"/bin/bash  /usr/tools/demo.sh user1 user1234"</span><span class="o">);</span>
+        <span class="n">app</span><span class="o">.</span><span class="na">setCpus</span><span class="o">(</span><span class="k">new</span> <span class="n">Double</span><span class="o">(</span><span class="mi">4</span><span class="o">));</span>
+        <span class="n">app</span><span class="o">.</span><span class="na">setMem</span><span class="o">(</span><span class="k">new</span> <span class="n">Double</span><span class="o">(</span><span class="mi">4096</span><span class="o">));</span>
+        <span class="n">app</span><span class="o">.</span><span class="na">setInstances</span><span class="o">(</span><span class="k">new</span> <span class="n">Integer</span><span class="o">(</span><span class="mi">1</span><span class="o">));</span>
+        <span class="n">Container</span> <span class="n">container</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Container</span><span class="o">();</span>
+
+        <span class="c1">//设置docker镜像配置</span>
+        <span class="n">Docker</span> <span class="n">docker</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Docker</span><span class="o">();</span>
+        <span class="n">docker</span><span class="o">.</span><span class="na">setImage</span><span class="o">(</span><span class="s">"-.-.-.-:5000/sparkwithhadoop_1.6.3:2.2"</span><span class="o">);</span>
+        <span class="n">docker</span><span class="o">.</span><span class="na">setNetwork</span><span class="o">(</span><span class="s">"BRIDGE"</span><span class="o">);</span>
+        <span class="n">docker</span><span class="o">.</span><span class="na">setPrivileged</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+
+        <span class="c1">//设置容器的参数</span>
+        <span class="n">Collection</span><span class="o">&lt;</span><span class="n">Parameter</span><span class="o">&gt;</span> <span class="n">parameters</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Parameter</span><span class="o">&gt;();</span>
+        <span class="n">parameters</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="k">new</span> <span class="n">Parameter</span><span class="o">(</span><span class="s">"net"</span><span class="o">,</span><span class="s">"pub_net"</span><span class="o">));</span>
+        <span class="n">parameters</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="k">new</span> <span class="n">Parameter</span><span class="o">(</span><span class="s">"ip"</span><span class="o">,</span><span class="s">"-.-.-.-"</span><span class="o">));</span>
+        <span class="n">parameters</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="k">new</span> <span class="n">Parameter</span><span class="o">(</span><span class="s">"hostname"</span><span class="o">,</span><span class="s">"master1"</span><span class="o">));</span>
+        <span class="n">docker</span><span class="o">.</span><span class="na">setParameters</span><span class="o">(</span><span class="n">parameters</span><span class="o">);</span>
+
+        <span class="c1">//设置端口映射</span>
+        <span class="n">Collection</span><span class="o">&lt;</span><span class="n">Port</span><span class="o">&gt;</span> <span class="n">portMappings</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Port</span><span class="o">&gt;();</span>
+        <span class="n">Port</span> <span class="n">port22</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Port</span><span class="o">();</span>
+        <span class="n">port22</span><span class="o">.</span><span class="na">setContainerPort</span><span class="o">(</span><span class="mi">22</span><span class="o">);</span>
+        <span class="n">port22</span><span class="o">.</span><span class="na">setProtocol</span><span class="o">(</span><span class="s">"tcp"</span><span class="o">);</span>
+        <span class="n">portMappings</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">port22</span><span class="o">);</span>
+        
+        <span class="n">Port</span> <span class="n">port7077</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Port</span><span class="o">();</span>
+        <span class="n">port7077</span><span class="o">.</span><span class="na">setContainerPort</span><span class="o">(</span><span class="mi">7077</span><span class="o">);</span>
+        <span class="n">port7077</span><span class="o">.</span><span class="na">setProtocol</span><span class="o">(</span><span class="s">"tcp"</span><span class="o">);</span>
+        <span class="n">portMappings</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">port7077</span><span class="o">);</span>
+        
+        <span class="n">Port</span> <span class="n">port7070</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Port</span><span class="o">();</span>
+        <span class="n">port7070</span><span class="o">.</span><span class="na">setContainerPort</span><span class="o">(</span><span class="mi">7070</span><span class="o">);</span>
+        <span class="n">port7070</span><span class="o">.</span><span class="na">setProtocol</span><span class="o">(</span><span class="s">"tcp"</span><span class="o">);</span>
+        <span class="n">portMappings</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">port7070</span><span class="o">);</span>
+        <span class="n">docker</span><span class="o">.</span><span class="na">setPortMappings</span><span class="o">(</span><span class="n">portMappings</span><span class="o">);</span>
+        
+        <span class="n">container</span><span class="o">.</span><span class="na">setDocker</span><span class="o">(</span><span class="n">docker</span><span class="o">);</span>
+        <span class="n">container</span><span class="o">.</span><span class="na">setType</span><span class="o">(</span><span class="s">"DOCKER"</span><span class="o">);</span>
+        
+        <span class="c1">//设置容器的挂载目录</span>
+        <span class="n">Collection</span><span class="o">&lt;</span><span class="n">Volume</span><span class="o">&gt;</span> <span class="n">volumes</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">Volume</span><span class="o">&gt;();</span> 
+        <span class="n">LocalVolume</span> <span class="n">v1</span> <span class="o">=</span> <span class="k">new</span> <span class="n">LocalVolume</span><span class="o">();</span>
+        <span class="n">v1</span><span class="o">.</span><span class="na">setContainerPath</span><span class="o">(</span><span class="s">"/usr/tools/hd"</span><span class="o">);</span>
+        <span class="n">v1</span><span class="o">.</span><span class="na">setHostPath</span><span class="o">(</span><span class="s">"/app/dcos/"</span><span class="o">);</span>
+        <span class="n">v1</span><span class="o">.</span><span class="na">setMode</span><span class="o">(</span><span class="s">"RW"</span><span class="o">);</span>
+        <span class="n">volumes</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">v1</span><span class="o">);</span>
+        <span class="n">container</span><span class="o">.</span><span class="na">setVolumes</span><span class="o">(</span><span class="n">volumes</span><span class="o">);</span>
+        
+        <span class="n">app</span><span class="o">.</span><span class="na">setContainer</span><span class="o">(</span><span class="n">container</span><span class="o">);</span>
+        
+        <span class="c1">//设置健康检查</span>
+        <span class="n">List</span><span class="o">&lt;</span><span class="n">HealthCheck</span><span class="o">&gt;</span> <span class="n">healthChecks</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;</span><span class="n">HealthCheck</span><span class="o">&gt;();</span>
+        <span class="n">HealthCheck</span> <span class="n">h1</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HealthCheck</span><span class="o">();</span>
+        <span class="n">h1</span><span class="o">.</span><span class="na">setProtocol</span><span class="o">(</span><span class="s">"MESOS_HTTP"</span><span class="o">);</span>
+        <span class="n">h1</span><span class="o">.</span><span class="na">setGracePeriodSeconds</span><span class="o">(</span><span class="mi">300</span><span class="o">);</span>
+        <span class="n">h1</span><span class="o">.</span><span class="na">setIntervalSeconds</span><span class="o">(</span><span class="mi">60</span><span class="o">);</span>
+        <span class="n">h1</span><span class="o">.</span><span class="na">setTimeoutSeconds</span><span class="o">(</span><span class="mi">60</span><span class="o">);</span>
+        <span class="n">h1</span><span class="o">.</span><span class="na">setMaxConsecutiveFailures</span><span class="o">(</span><span class="mi">3</span><span class="o">);</span>
+        <span class="n">h1</span><span class="o">.</span><span class="na">setPortIndex</span><span class="o">(</span><span class="mi">2</span><span class="o">);</span>
+        <span class="n">healthChecks</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">h1</span><span class="o">);</span>
+        <span class="n">app</span><span class="o">.</span><span class="na">setHealthChecks</span><span class="o">(</span><span class="n">healthChecks</span><span class="o">);</span>
+        <span class="n">marathon</span><span class="o">.</span><span class="na">createApp</span><span class="o">(</span><span class="n">app</span><span class="o">);</span>
+    <span class="o">}</span>
+</code></pre>
+</div>
+
+<h2 id="marathon-restful-api">Marathon restful api</h2>
+<p>另外一种管理marathon的方式就是直接使用其<a href="http://mesosphere.github.io/marathon/api-console/index.html">Marathon REST API</a>。<br />
+不过它和docker和mesos的有所不同，他们是只有get或post请求，而在marathon中，是正常的restful api使用方式，不同的请求操作有不同的含义。<br />
+拿/v2/apps来举例：<br />
+如果是GET，则可以获取到对应的正在运行的applications的列表。<br />
+如果是POST的话，则是创建或者开启一个新的application，提交的请求将创建的application所需要的参数带着就可以啦。<br />
+具体的这里的restful api的使用方式就不细说了，直接看官方说明之后按照restful api正常使用方式使用就可以啦。<br />
+再贴一遍，官方的详细说明如下：<a href="http://mesosphere.github.io/marathon/api-console/index.html">Marathon REST API</a>。</p>
+
+<p>好了，marathon的管理方式也说明到这里。</p>
+
+<hr />
+<p>至此，本篇内容完成。<br />
+本文由2018-06-11开始整理，于2018-06-15整理完成。<br />
+如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～<br />
+©商业转载请联系作者获得授权，非商业转载请注明出处。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            
+            <a href="/tag/#/Docker" rel="tag"># Docker</a>
+          
+            
+            <a href="/tag/#/Mesos" rel="tag"># Mesos</a>
+          
+            
+            <a href="/tag/#/Marathon" rel="tag"># Marathon</a>
+          
+        </div>
+      
+
+      
+      
+      
+      
+      
+
+      
+      
+        <div class="post-nav" id="post-nav-id">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/base/2018/06/06/lintcode%E7%AE%97%E6%B3%95%E7%BB%83%E4%B9%A0%E6%89%93%E5%8D%A1/" rel="prev" title="lintcode算法练习打卡">
+                lintcode算法练习打卡 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+      
+
+      
+    </footer>
+  </article>
+
+  <div class="post-spread">
+    
+  </div>
+</div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        
+        
+        
+
+
+
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/assets/images/IMG_8739.GIF"
+               alt="Liv Yeh" />
+          <p class="site-author-name" itemprop="name">Liv Yeh</p>
+           
+              <p class="site-description motion-element" itemprop="description">Yesterday you said tomorrow.</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/">
+                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+        
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              
+              
+              <span class="links-of-author-item">
+                <a href="mailto:leafming@foxmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                  E-Mail
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+
+
+
+
+            
+              <div class="post-toc-content">
+    <ol class=nav>
+      <li class="nav-item nav-level-1"> <a class="nav-link" href="#docker管理-容器相关"> <span class="nav-number">1</span> <span class="nav-text">Docker管理-容器相关</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#前期准备开启docker远程访问"> <span class="nav-number">1.1</span> <span class="nav-text">前期准备：开启Docker远程访问</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#docker-client的选择"> <span class="nav-number">1.2</span> <span class="nav-text">Docker-Client的选择</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#docker版本与docker-api的对应关系-和-相关library"> <span class="nav-number">1.2.1</span> <span class="nav-text">Docker版本与Docker API的对应关系 和 相关Library</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-4"> <a class="nav-link" href="#docker版本和api版本对应"> <span class="nav-number">1.2.1.1</span> <span class="nav-text">Docker版本和API版本对应</span> </a> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li> <li class="nav-item nav-level-4"> <a class="nav-link" href="#docker-unofficial-libraries"> <span class="nav-number">1.2.1.2</span> <span class="nav-text">Docker unofficial libraries</span> </a> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#docker-client的使用"> <span class="nav-number">1.3</span> <span class="nav-text">Docker-Client的使用</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#引入jar包"> <span class="nav-number">1.3.1</span> <span class="nav-text">引入jar包</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#开始使用"> <span class="nav-number">1.3.2</span> <span class="nav-text">开始使用</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-4"> <a class="nav-link" href="#创建和关闭docker连接"> <span class="nav-number">1.3.2.1</span> <span class="nav-text">创建和关闭Docker连接</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-5"> <a class="nav-link" href="#创建连接"> <span class="nav-number">1.3.2.1.1</span> <span class="nav-text">创建连接</span> </a> <ol class="nav-child"> </li></ol> </li> <li class="nav-item nav-level-5"> <a class="nav-link" href="#关闭docker连接"> <span class="nav-number">1.3.2.1.2</span> <span class="nav-text">关闭Docker连接</span> </a> <ol class="nav-child"> </li></ol> </li></ol> </li> <li class="nav-item nav-level-4"> <a class="nav-link" href="#docker操作"> <span class="nav-number">1.3.2.2</span> <span class="nav-text">Docker操作</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-5"> <a class="nav-link" href="#容器列表"> <span class="nav-number">1.3.2.2.1</span> <span class="nav-text">容器列表</span> </a> <ol class="nav-child"> </li></ol> </li> <li class="nav-item nav-level-5"> <a class="nav-link" href="#容器详情"> <span class="nav-number">1.3.2.2.2</span> <span class="nav-text">容器详情</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-6"> <a class="nav-link" href="#容器状态对象"> <span class="nav-number">1.3.2.2.2.1</span> <span class="nav-text">容器状态对象</span> </a> </li> <li class="nav-item nav-level-6"> <a class="nav-link" href="#容器配置信息"> <span class="nav-number">1.3.2.2.2.2</span> <span class="nav-text">容器配置信息</span> </a> </li> <li class="nav-item nav-level-6"> <a class="nav-link" href="#容器hostconfig"> <span class="nav-number">1.3.2.2.2.3</span> <span class="nav-text">容器HostConfig</span> </a> </li> <li class="nav-item nav-level-6"> <a class="nav-link" href="#容器网络信息"> <span class="nav-number">1.3.2.2.2.4</span> <span class="nav-text">容器网络信息</span> </a> </li></ol> </li> <li class="nav-item nav-level-5"> <a class="nav-link" href="#容器内进程"> <span class="nav-number">1.3.2.2.3</span> <span class="nav-text">容器内进程</span> </a> <ol class="nav-child"> </li></ol> </li> <li class="nav-item nav-level-5"> <a class="nav-link" href="#容器资源使用情况"> <span class="nav-number">1.3.2.2.4</span> <span class="nav-text">容器资源使用情况</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-6"> <a class="nav-link" href="#cpu利用率计算"> <span class="nav-number">1.3.2.2.4.1</span> <span class="nav-text">CPU利用率计算</span> </a> </li> <li class="nav-item nav-level-6"> <a class="nav-link" href="#memory利用率计算"> <span class="nav-number">1.3.2.2.4.2</span> <span class="nav-text">memory利用率计算</span> </a> </li> <li class="nav-item nav-level-6"> <a class="nav-link" href="#network-io计算"> <span class="nav-number">1.3.2.2.4.3</span> <span class="nav-text">Network IO计算</span> </a> </li> <li class="nav-item nav-level-6"> <a class="nav-link" href="#blk-io计算"> <span class="nav-number">1.3.2.2.4.4</span> <span class="nav-text">Blk IO计算</span> </a> </li> <li class="nav-item nav-level-6"> <a class="nav-link" href="#获取时间"> <span class="nav-number">1.3.2.2.4.5</span> <span class="nav-text">获取时间</span> </a> </li></ol> </li> <li class="nav-item nav-level-5"> <a class="nav-link" href="#容器其他"> <span class="nav-number">1.3.2.2.5</span> <span class="nav-text">容器其他</span> </a> <ol class="nav-child"> </li></ol> </li></ol> </li> <li class="nav-item nav-level-4"> <a class="nav-link" href="#容器宿主机监控"> <span class="nav-number">1.3.2.3</span> <span class="nav-text">容器宿主机监控</span> </a> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li> <li class="nav-item nav-level-4"> <a class="nav-link" href="#其他"> <span class="nav-number">1.3.2.4</span> <span class="nav-text">其他</span> </a> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#engine-api的使用"> <span class="nav-number">1.4</span> <span class="nav-text">Engine API的使用</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#docker管理-docker镜像仓库"> <span class="nav-number">2</span> <span class="nav-text">Docker管理-Docker镜像仓库</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#简单说明镜像服务器的部署"> <span class="nav-number">2.1</span> <span class="nav-text">简单说明镜像服务器的部署</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#镜像仓库器管理"> <span class="nav-number">2.2</span> <span class="nav-text">镜像仓库器管理</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#镜像列表"> <span class="nav-number">2.2.1</span> <span class="nav-text">镜像列表</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#镜像tags"> <span class="nav-number">2.2.2</span> <span class="nav-text">镜像tags</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#代码实现"> <span class="nav-number">2.2.3</span> <span class="nav-text">代码实现</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#mesos管理"> <span class="nav-number">3</span> <span class="nav-text">Mesos管理</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#http-endpoints"> <span class="nav-number">3.1</span> <span class="nav-text">HTTP Endpoints</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#operator-http-api"> <span class="nav-number">3.2</span> <span class="nav-text">Operator HTTP API</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#使用mesos-api"> <span class="nav-number">3.2.1</span> <span class="nav-text">使用mesos api</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#marathon管理"> <span class="nav-number">4</span> <span class="nav-text">Marathon管理</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#marathon-client"> <span class="nav-number">4.1</span> <span class="nav-text">marathon-client</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#marathon-restful-api"> <span class="nav-number">4.2</span> <span class="nav-text">Marathon restful api</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child">
+    </ol>
+  </div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liv Yeh</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://jekyllrb.com">Jekyll</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/simpleyyt/jekyll-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+   
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/assets/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/assets/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/assets/js/src/post-details.js?v=5.1.1"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+    
+
+  
+
+
+
+
+
+  
+
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+  
+
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+</body>
+</html>
+
