@@ -671,7 +671,7 @@ Accept: application/json
   
 # Marathon管理  
 对于Marathon的管理，官方也提供了2种方式，1为直接使用marathon的restful api；2是官方也提供了封装好的方法，直接使用就可以啦。  
-## marathon-client  
+## Marathon-client  
 对于marathon-client，也是对于restful api的一种封装，官方也给出的详细的使用说明:[marathon-client](https://github.com/mesosphere/marathon-client)。  
 我们使用的marathon版本是Marathon1.4.5，所以来说，可以使用下列依赖：  
 ```  
