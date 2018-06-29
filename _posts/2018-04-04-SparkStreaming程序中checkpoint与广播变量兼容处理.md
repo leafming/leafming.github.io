@@ -218,6 +218,8 @@ object GetKafkaPoolBroadcast extends Logging {
     })
 ```
 这样，就不会再尝试从checkpoint中恢复广播变量，而可以避免“java.lang.ClassCastException:B cannot be cast to KafkaPool”这个问题啦。  
+  
+---  
 至此，本篇内容完成。  
 如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～  
 ©商业转载请联系作者获得授权，非商业转载请注明出处。

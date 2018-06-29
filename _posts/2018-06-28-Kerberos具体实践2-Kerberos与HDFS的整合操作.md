@@ -2,13 +2,13 @@
 layout: post
 title: "Kerberos具体实践2-Kerberos与HDFS的整合操作"
 date: 2018-06-28
-description: 本文主要关于Kerberos的简单应用。因为工作测试需要，自己装了一套集群进行了Kerberos的部署，并且与HDFS、ZK进行整合，然后将操作过程进行了整理，以便后续再查看。本文主要涉及到其与HDFS的整合操作，此文为2018-05-05文章Kerberos具体实践1的，上文后续说明了Kerberos集群的安装以及基本命令的使用；由于篇幅有限，下文继续说明Kerberos与ZK整合操作。
+description: 本文属于Kerberos具体实践整理的第二部分，主要涉及kerberos与HDFS的整合操作。
 categories:
 - BigData
 tags:
 - Kerberos
 ---
-> 本文属于Kerberos具体实践整理的第二部分，主要涉及kerberos与HDFS的整合操作。
+> 本文主要关于Kerberos的简单应用。因为工作测试需要，自己装了一套集群进行了Kerberos的部署，并且与HDFS、ZK进行整合，然后将操作过程进行了整理，以便后续再查看。本文主要涉及到其与HDFS的整合操作，此文为2018-05-05文章Kerberos具体实践1的后续，上文说明了Kerberos集群的安装以及基本命令的使用；由于篇幅有限，下文在2018-06-29文章Kerberos具体实践3中继续说明Kerberos与ZK整合操作。  
 
 # HDFS整合Kerberos（部署）
 ## 创建认证规则
@@ -1151,7 +1151,7 @@ keytool -keystore truststore -alias CARoot -import -file test_ca_cert
         ```
     3. 再次使用上述命令查看切换状态。
   
-
+---
 至此，本篇内容完成。以上内容基本上是完全关于HDFS中的Kerberos部署，HDFS结合Kerberos的整体部署完毕，若配置中使用了HA，则需要进行下文ZK配置之后才能完成完整部署。  
 
 如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～  

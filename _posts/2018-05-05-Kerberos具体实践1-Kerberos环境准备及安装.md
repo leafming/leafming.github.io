@@ -2,14 +2,14 @@
 layout: post
 title: "Kerberos具体实践1-Kerberos环境准备及安装"
 date: 2018-05-05
-description: 本文主要关于Kerberos的简单应用。因为工作测试需要，自己装了一套集群进行了Kerberos的部署，并且与HDFS、ZK进行整合，然后将操作过程进行了整理，以便后续再查看。本文主要涉及到Kerberos集群的安装以及基本命令的使用，后续会继续说明其与HDFS、ZK的整合操作。
+description: 本文属于Kerberos具体实践整理的第一部分，主要涉及到Kerberos集群的安装以及基本命令的使用。
 categories:
 - BigData
 tags:
 - Kerberos
 ---
-> 本文属于Kerberos具体实践整理的第一部分，主要涉及到Kerberos集群的安装以及基本命令的使用。
-
+> 本文主要关于Kerberos的简单应用。因为工作测试需要，自己装了一套集群进行了Kerberos的部署，并且与HDFS、ZK进行整合，然后将操作过程进行了整理，以便后续再查看。本文主要涉及到Kerberos集群的>安装以及基本命令的使用，后续会继续说明其与HDFS、ZK的整合操作。  
+  
 # 概述
 ## 为什么要将HDFS和Kerberos整合  
 HDFS权限控制过于简单，直接使用hadoop的acl进行权限控制，可能会出现在程序中使用**System.setProperty("HADOOP_USER_NAME","root");**直接更改用户，伪装成任意用户使用。因此，需要加强HDFS权限控制，则采用进行kerberos认证的方式。  
@@ -357,7 +357,7 @@ $ klist -k /etc/krb5.keytab
      3 kadmin/admin@LASHOU-INC.COM
    -----------------
 ```
-
+---  
 至此，本篇内容完成。以上为Kerberos单KDC版搭建过程，下篇文章进行HDFS和Kerberos整合操作的整理。  
 如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～  
 ©商业转载请联系作者获得授权，非商业转载请注明出处。

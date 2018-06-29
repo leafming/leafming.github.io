@@ -200,7 +200,8 @@ spark 主程序中，在每个executor中使用广播变量。
 # 结果对比  
 使用Kafka连接池更改程序之前以及之后的处理速度对比如下图所示，写入90W条数据由原来的17953ms变为了1966ms，效率大大提高。  
 ![compare](https://github.com/leafming/bak/blob/master/images/spark/2018-04-02SparkStreamingKafka.png?raw=true)  
-  
+
+---  
 内容即以上，会在下篇文章([SparkStreaming程序中checkpoint与广播变量兼容处理](https://leafming.github.io/bigdata/2018/04/04/SparkStreaming程序中checkpoint与广播变量兼容处理/))解决spark streaming中checkpoint和广播变量使用冲突的问题，敬请期待。  
 如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～  
 ©商业转载请联系作者获得授权，非商业转载请注明出处。 

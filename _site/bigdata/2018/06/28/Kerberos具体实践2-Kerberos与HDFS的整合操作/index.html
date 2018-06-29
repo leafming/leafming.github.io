@@ -111,17 +111,17 @@
 
 
 
-<meta name="description" content="本文主要关于Kerberos的简单应用。因为工作测试需要，自己装了一套集群进行了Kerberos的部署，并且与HDFS、ZK进行整合，然后将操作过程进行了整理，以便后续再查看。本文主要涉及到其与HDFS的整合操作，此文为2018-05-05文章Kerberos具体实践1的，上文后续说明了Kerberos集群的安装以及基本命令的使用；由于篇幅有限，下文继续说明Kerberos与ZK整合操作。">
+<meta name="description" content="本文属于Kerberos具体实践整理的第二部分，主要涉及kerberos与HDFS的整合操作。">
 <meta name="keywords" content="Kerberos">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Kerberos具体实践2-Kerberos与HDFS的整合操作">
-<meta property="og:url" content="http://localhost:4000/bigdata/2018/06/28/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B52-%E4%B8%8EHDFS-ZK%E7%9A%84%E6%95%B4%E5%90%88%E6%93%8D%E4%BD%9C/">
+<meta property="og:url" content="http://localhost:4000/bigdata/2018/06/28/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B52-Kerberos%E4%B8%8EHDFS%E7%9A%84%E6%95%B4%E5%90%88%E6%93%8D%E4%BD%9C/">
 <meta property="og:site_name" content="iLeaf">
-<meta property="og:description" content="本文主要关于Kerberos的简单应用。因为工作测试需要，自己装了一套集群进行了Kerberos的部署，并且与HDFS、ZK进行整合，然后将操作过程进行了整理，以便后续再查看。本文主要涉及到其与HDFS的整合操作，此文为2018-05-05文章Kerberos具体实践1的，上文后续说明了Kerberos集群的安装以及基本命令的使用；由于篇幅有限，下文继续说明Kerberos与ZK整合操作。">
+<meta property="og:description" content="本文属于Kerberos具体实践整理的第二部分，主要涉及kerberos与HDFS的整合操作。">
 <meta property="og:locale" content="zh-Hans">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Kerberos具体实践2-Kerberos与HDFS的整合操作">
-<meta name="twitter:description" content="本文主要关于Kerberos的简单应用。因为工作测试需要，自己装了一套集群进行了Kerberos的部署，并且与HDFS、ZK进行整合，然后将操作过程进行了整理，以便后续再查看。本文主要涉及到其与HDFS的整合操作，此文为2018-05-05文章Kerberos具体实践1的，上文后续说明了Kerberos集群的安装以及基本命令的使用；由于篇幅有限，下文继续说明Kerberos与ZK整合操作。">
+<meta name="twitter:description" content="本文属于Kerberos具体实践整理的第二部分，主要涉及kerberos与HDFS的整合操作。">
 
 
 <script type="text/javascript" id="hexo.configurations">
@@ -336,7 +336,7 @@
   
 
   <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://localhost:4000/bigdata/2018/06/28/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B52-%E4%B8%8EHDFS-ZK%E7%9A%84%E6%95%B4%E5%90%88%E6%93%8D%E4%BD%9C/">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/bigdata/2018/06/28/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B52-Kerberos%E4%B8%8EHDFS%E7%9A%84%E6%95%B4%E5%90%88%E6%93%8D%E4%BD%9C/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Liv Yeh">
@@ -419,7 +419,7 @@
           
             
                 <div class="post-description">
-                    本文主要关于Kerberos的简单应用。因为工作测试需要，自己装了一套集群进行了Kerberos的部署，并且与HDFS、ZK进行整合，然后将操作过程进行了整理，以便后续再查看。本文主要涉及到其与HDFS的整合操作，此文为2018-05-05文章Kerberos具体实践1的，上文后续说明了Kerberos集群的安装以及基本命令的使用；由于篇幅有限，下文继续说明Kerberos与ZK整合操作。
+                    本文属于Kerberos具体实践整理的第二部分，主要涉及kerberos与HDFS的整合操作。
                 </div>
             
           
@@ -435,7 +435,7 @@
 
       
         <blockquote>
-  <p>本文属于Kerberos具体实践整理的第二部分，主要涉及kerberos与HDFS的整合操作。</p>
+  <p>本文主要关于Kerberos的简单应用。因为工作测试需要，自己装了一套集群进行了Kerberos的部署，并且与HDFS、ZK进行整合，然后将操作过程进行了整理，以便后续再查看。本文主要涉及到其与HDFS的整合操作，此文为2018-05-05文章Kerberos具体实践1的后续，上文说明了Kerberos集群的安装以及基本命令的使用；由于篇幅有限，下文在2018-06-29文章Kerberos具体实践3中继续说明Kerberos与ZK整合操作。</p>
 </blockquote>
 
 <h1 id="hdfs整合kerberos部署">HDFS整合Kerberos（部署）</h1>
@@ -1691,6 +1691,7 @@ keytool -keystore truststore -alias CARoot -import -file test_ca_cert
   </li>
 </ol>
 
+<hr />
 <p>至此，本篇内容完成。以上内容基本上是完全关于HDFS中的Kerberos部署，HDFS结合Kerberos的整体部署完毕，若配置中使用了HA，则需要进行下文ZK配置之后才能完成完整部署。</p>
 
 <p>如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～<br />
@@ -1741,6 +1742,10 @@ keytool -keystore truststore -alias CARoot -import -file test_ca_cert
       
         <div class="post-nav" id="post-nav-id">
           <div class="post-nav-next post-nav-item">
+            
+              <a href="/bigdata/2018/06/29/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B53-Kerberos%E4%B8%8EZK%E7%9A%84%E6%95%B4%E5%90%88%E6%93%8D%E4%BD%9C/" rel="next" title="Kerberos具体实践3-Kerberos与ZK的整合操作">
+                <i class="fa fa-chevron-left"></i> Kerberos具体实践3-Kerberos与ZK的整合操作
+              </a>
             
           </div>
 
@@ -1828,7 +1833,7 @@ keytool -keystore truststore -alias CARoot -import -file test_ca_cert
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-count">12</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>

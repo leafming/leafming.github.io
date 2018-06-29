@@ -1,5 +1,583 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-06-28T17:45:29+08:00</updated><id>http://localhost:4000/</id><title type="html">iLeaf</title><subtitle>Yesterday you said tomorrow.</subtitle><author><name>Liv Yeh</name></author><entry><title type="html">Kerberos具体实践2-Kerberos与HDFS的整合操作</title><link href="http://localhost:4000/bigdata/2018/06/28/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B52-%E4%B8%8EHDFS-ZK%E7%9A%84%E6%95%B4%E5%90%88%E6%93%8D%E4%BD%9C/" rel="alternate" type="text/html" title="Kerberos具体实践2-Kerberos与HDFS的整合操作" /><published>2018-06-28T00:00:00+08:00</published><updated>2018-06-28T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/06/28/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B52-%E4%B8%8EHDFS%E3%80%81ZK%E7%9A%84%E6%95%B4%E5%90%88%E6%93%8D%E4%BD%9C</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/06/28/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B52-%E4%B8%8EHDFS-ZK%E7%9A%84%E6%95%B4%E5%90%88%E6%93%8D%E4%BD%9C/">&lt;blockquote&gt;
-  &lt;p&gt;本文属于Kerberos具体实践整理的第二部分，主要涉及kerberos与HDFS的整合操作。&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-06-29T15:43:17+08:00</updated><id>http://localhost:4000/</id><title type="html">iLeaf</title><subtitle>Yesterday you said tomorrow.</subtitle><author><name>Liv Yeh</name></author><entry><title type="html">Kerberos具体实践4-Kerberos主从KDC部署</title><link href="http://localhost:4000/bigdata/2018/06/29/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B54-Kerberos%E4%B8%BB%E4%BB%8EKDC%E9%83%A8%E7%BD%B2/" rel="alternate" type="text/html" title="Kerberos具体实践4-Kerberos主从KDC部署" /><published>2018-06-29T00:00:00+08:00</published><updated>2018-06-29T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/06/29/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B54-Kerberos%E4%B8%BB%E4%BB%8EKDC%E9%83%A8%E7%BD%B2</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/06/29/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B54-Kerberos%E4%B8%BB%E4%BB%8EKDC%E9%83%A8%E7%BD%B2/">&lt;blockquote&gt;
+  &lt;p&gt;本文主要关于Kerberos的简单应用。因为工作测试需要，自己装了一套集群进行了Kerberos的部署，并且与HDFS、ZK进行整合，然后将操作过程进行了整理，以便后续再查看。本文主要涉及Kerberos主从KDC部署，此文为2018-06-29文章Kerberos具体实践3的后续；本文为本系列的最后一篇。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h1 id=&quot;kerberos主从kdc部署&quot;&gt;Kerberos主从KDC部署&lt;/h1&gt;
+&lt;p&gt;在进行生产环境中进行Kerberos部署时，最好配置1个master KDC以及多个slave KDC来保证Kerberos服务的可靠性。每个KDC都能够包括一个Kerberos数据库的副本。在master KDC中包含一个可写的realm数据库副本，并且他会定期同步到slave KDC中。所有数据库的更改（如更改密码）都是由master KDC负责。当主KDC不可用，slave KDCs提供Kerberos的票据授予服务，不负责数据库管理。&lt;/p&gt;
+
+&lt;p&gt;规划：&lt;br /&gt;
+node1   - master KDC  &lt;br /&gt;
+node2  - slave KDC&lt;br /&gt;
+-HADOOP.COM - realm name&lt;br /&gt;
+.k5.ATHENA.MIT.EDU  - stash file&lt;br /&gt;
+root/admin         - admin principal&lt;/p&gt;
+
+&lt;p&gt;主从KDC部署可在远单节点KDC的基础上进行配置更改，配置内容基本与单节点情况相似，关键细节参考上述单节点部署。&lt;br /&gt;
+本次操作即，当配置好单节点KDC之后，再其基础上进行更改。&lt;/p&gt;
+
+&lt;h2 id=&quot;准备工作-添加主体&quot;&gt;准备工作-添加主体&lt;/h2&gt;
+&lt;p&gt;部署单节点KDC完毕，node1为主KDC，在主KDC服务器上启动kadmin。&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;在主KDC服务器上，向数据库中添加主机主体（如果尚未完成）：&lt;br /&gt;
+每个kdc都要有host key在kerberos数据库中。这些keys用于双向认证的时候，从主kdc向从属KDC传播数据库转储文件。&lt;br /&gt;
+如果需要将从KDC和主KDC交换的话，要使从KDC服务器正常工作，它必须有主机主体。&lt;br /&gt;
+注：当主体实例名为主机名时，无论名称服务中的域名是大写还是小写，都必须以小写字母指定FQDN。
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kadmin：addprinc -randkey host/node2
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;在主KDC服务器上，创建kiprop主体。&lt;br /&gt;
+kiprop主体用于授权来自主KDC服务器的更新。
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kadmin：addprinc -randkey kiprop/node1
+kadmin：addprinc -randkey kiprop/node2
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;在node2上安装kerberos-server&quot;&gt;在node2上安装Kerberos-server&lt;/h2&gt;
+&lt;p&gt;node2:&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ yum install krb5-server -y 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;修改配置文件&quot;&gt;修改配置文件&lt;/h2&gt;
+&lt;p&gt;kdc 服务器涉及到三个配置文件：&lt;br /&gt;
+/etc/krb5.conf&lt;br /&gt;
+/var/kerberos/krb5kdc/kdc.conf&lt;br /&gt;
+/var/kerberos/krb5kdc/kadm5.acl&lt;/p&gt;
+&lt;h3 id=&quot;krb5conf配置-node1&quot;&gt;krb5.conf配置-node1&lt;/h3&gt;
+&lt;p&gt;在主KDC服务器（node1）上编辑krb5.conf文件，基本和单节点KDC配置类似，仅在[realms]部分加入slave kdc信息，并且设置admin_server为主kdc即可，如下：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;#node1上操作krb5.conf，之后再拷贝到其他机器
+[realms]
+HADOOP.COM = {
+  kdc = node1
+  kdc = node2
+  admin_server = node1
+  default_domain = HADOOP.COM
+ }
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;配置文件整体示例：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[logging]
+ default = FILE:/var/log/krb5libs.log
+ kdc = FILE:/var/log/krb5kdc.log
+ admin_server = FILE:/var/log/kadmind.log
+
+[libdefaults]
+ dns_lookup_realm = false
+ ticket_lifetime = 24h
+ renew_lifetime = 7d
+ # forwardable = true
+ rdns = false
+ default_realm = HADOOP.COM
+ udp_preference_limit = 1
+
+[realms]
+HADOOP.COM = {
+  kdc = node1
+  kdc = node2
+  admin_server = node1
+  #default_domain = HADOOP.COM
+ }
+
+[kdc]
+ profile=/var/kerberos/krb5kdc/kdc.conf
+
+# [domain_realm]
+# .hadoop.com = HADOOP.COM
+# hadoop.com = HADOOP.COM
+# # if the domain name and realm name are equivalent,
+# # this entry is not needed
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;kdcconf配置-node1&quot;&gt;kdc.conf配置-node1&lt;/h3&gt;
+&lt;p&gt;在主KDC服务器（node1）上编辑kdc.conf文件，realms部分添加用于增量传播和选择主KDC服务器将在日志中保留的更新数的行。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[realms]
+HADOOP.COM={
+    ...
+  iprop_enable = true
+  iprop_master_ulogsize = 1000
+    ...
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;kadm5acl配置-node1&quot;&gt;kadm5.acl配置-node1&lt;/h3&gt;
+&lt;p&gt;在主KDC服务器上，向kadm5.acl添加kiprop项。&lt;br /&gt;
+通过此项，主KDC服务器可以接受对kdc2服务器的kerberos数据库增量传播请求。&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[root@node1 ~]# cat /var/kerberos/krb5kdc/kadm5.acl
+root/admin@HADOOP.COM    *
+kiprop/node2@HADOOP.COM p
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;在kdc服务器上重启kadmin以使用kadm5acl文件中新的内容&quot;&gt;在KDC服务器上，重启kadmin以使用kadm5.acl文件中新的内容&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[root@node1 etc]# service kadmin restart
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h3 id=&quot;将主kdc服务器上以下文件复制到所有从kdc上&quot;&gt;将主KDC服务器上以下文件复制到所有从KDC上&lt;/h3&gt;
+&lt;p&gt;主KDC和从KDC间的数据库扩展，传播的是master的数据库内容的拷贝，而不是配置文件、stash文件或kadm5 ACL文件。
+需要在所有的从 KDC 服务器上执行该步骤，因为主 KDC 服务器已经更新了每个 KDC 服务器需要的信息。
+因此以下文件必须手动从主KDC拷贝到从KDC的对应目录上。&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;krb5.conf&lt;/li&gt;
+  &lt;li&gt;kdc.conf&lt;/li&gt;
+  &lt;li&gt;kadm5.acl（kadm5.acl is only needed to allow a slave to swap with the master KDC.）&lt;/li&gt;
+  &lt;li&gt;master key stash file&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ scp /etc/krb5.conf node2:/etc/krb5.conf
+$ scp /var/kerberos/krb5kdc/kdc.conf node2:/var/kerberos/krb5kdc/kdc.conf
+$ scp /var/kerberos/krb5kdc/.k5.HADOOP.COM node2:/var/kerberos/krb5kdc/.k5.HADOOP.COM
+#此步骤有人说可以在新的从 KDC 服务器上，使用kdb5_util创建一个存储文件。（需测试）
+$ scp /var/kerberos/krb5kdc/kadm5.acl node2:/var/kerberos/krb5kdc/kadm5.acl
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;从主服务器其他配置操作&quot;&gt;从、主服务器其他配置操作&lt;/h2&gt;
+&lt;h3 id=&quot;在所有的从kdc服务器上将主kdc服务器和每个从kdc服务器的项添加到数据库传播配置文件kpropdacl中&quot;&gt;在所有的从KDC服务器上，将主KDC服务器和每个从KDC服务器的项添加到数据库传播配置文件kpropd.acl中&lt;/h3&gt;
+&lt;p&gt;在master KDC和slave KDCs之间传输数据库是通过kpropd daemon来实现，因此需要明确的定义允许在slave机器的新数据库上提供kerberos dump更新的主体。&lt;br /&gt;
+在所有从KDC服务器上，在KDC state文件夹中创建kpropd.acl文件，将主KDC服务器和每个从KDC服务器的主机主体项添加到其中。&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[root@node2 krb5kdc]# cat kpropd.acl
+host/node1@HADOOP.COM
+host/node2@HADOOP.COM
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;说明：从KDC服务器上的kpropd.acl文件提供主机主体名称的列表(每个名称占一行)，用于指定该KDC可以通过传播从其接收更新数据库的系统。如果希望主KDC和从KDC能够交换，则需要在全部KDC的kpropd.acl列出全部KDC服务器的host主体。否则，如果仅使用主KDC服务器传播到所有从KDC服务器，则每个从KDC服务器上的kpropd.acl文件仅需包含主KDC服务器的主机主体名称。&lt;/p&gt;
+
+&lt;h3 id=&quot;在所有从kdc服务器上确保未填充kerberos访问控制列表文件kadm5acl&quot;&gt;在所有从KDC服务器上，确保未填充kerberos访问控制列表文件kadm5.acl。&lt;/h3&gt;
+&lt;p&gt;如果该文件中包含kiprop项，请将其删除。&lt;/p&gt;
+
+&lt;h3 id=&quot;在新的从kdc服务器上更改kdcconf某个项&quot;&gt;在新的从KDC服务器上，更改kdc.conf某个项&lt;/h3&gt;
+&lt;p&gt;使用定义“iprop_slave_poll = 2m”替换“iprop_master_ulogsize = 1000”。该项将轮询时间设为2分钟。&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[realms]
+HADOOP.COM={
+    ...
+  iprop_enable = true
+  iprop_slave_poll = 2m
+    ...
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h3 id=&quot;在新的从kdc服务器上启动kadmin命添加主体到密钥表&quot;&gt;在新的从KDC服务器上，启动kadmin命，添加主体到密钥表。&lt;/h3&gt;
+&lt;p&gt;必须使用在配置主KDC服务器时创建的一个admin主体名称登录。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;echo root@1234|kinit root/admin
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;ol&gt;
+  &lt;li&gt;使用kadmin将从KDC服务器的主机主体添加到从KDC服务器的密钥表文件中。&lt;br /&gt;
+该项可使kprop及其他基于Kerberos的应用程序正常工作。请注意，当主体实例为主机名时，无论名称服务中的域名是大写还是小写，都必须以小写字母指定FQDN。&lt;br /&gt;
+注：添加自己的host主体到自己的密钥表文件中。
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;#在node2上执行  
+kadmin: ktadd host/node2  
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+    &lt;p&gt;理想情况下，应该在自己本地导出自己的keytab。如果不可行，则应该创建一个加密的会话来在网络中传输。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;将kiprop主体添加到从KDC服务器的密钥表文件中。&lt;br /&gt;
+通过将kiprop主体添加到krb5.keytab文件，允许kpropd命令在启动增量传播时对其自身进行验证。
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;#在node2执行
+kadmin: ktadd kiprop/node2
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;在新的从kdc服务器上启动kerberos传播守护进程不是增量传播是否需要此步骤todo记不清了&quot;&gt;在新的从KDC服务器上，启动Kerberos传播守护进程。（不是增量传播是否需要此步骤@TODO记不清了）&lt;/h3&gt;
+&lt;p&gt;如果需要启动增量传播，需要启动kpropd作为一个独立的进程。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kpropd
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;至此，slave KDC可以接受数据库传播，需要将数据库从master server中传过来。&lt;br /&gt;
+注意：目前不能够启动slave KDC，因为还没有复制master的database。&lt;/p&gt;
+
+&lt;h2 id=&quot;将数据库复制到每一个slave-kdc中&quot;&gt;将数据库复制到每一个slave KDC中&lt;/h2&gt;
+&lt;p&gt;在master KDC（node1）上创建dump file：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[root@node1 kerberos]# kdb5_util dump /var/kerberos/krb5kdc/slave_datatrans 
+[root@node1 kerberos]# ls
+krb5  krb5kdc  slave_datatrans  slave_datatrans.dump_ok
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;手动传播脚本传播&quot;&gt;手动传播（脚本传播）&lt;/h3&gt;
+&lt;ol&gt;
+  &lt;li&gt;手动传播操作&lt;br /&gt;
+手动传输数据库文件到每一个slave KDC上：
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[root@node1 kerberos]#  kprop -f /var/kerberos/krb5kdc/slave_datatrans  node2
+Database propagation to node2: SUCCEEDED
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+    &lt;blockquote&gt;
+      &lt;p&gt;补充说明：Kerberos的数据库在master KDC上，因此需要定期的把这个数据库复制到slave KDCs上。如何设置数据库复制的频率，需要跟进传播时间以及用户等待密码生效的最大时间而设置。如果传播时间比这个最大限制时间长，（比如有一个很大的数据库，并且有很多slave，或者频繁的网络延迟），则可能希望能通过并行传播来减少传播延迟。因此，可以将数据库先从主节点传播给一部分从节点，然后从从节点再传播给其他节点。  &lt;br /&gt;
+因为此时没有配置开启增量传播，因此，需要手动或脚本定时复制数据库，类似如下。&lt;/p&gt;
+    &lt;/blockquote&gt;
+
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;#脚本方式：
+#!/bin/sh
+kdclist = &quot;kerberos-1.mit.edu kerberos-2.mit.edu&quot;
+kdb5_util dump /usr/local/var/krb5kdc/slave_datatrans
+for kdc in $kdclist
+do
+ kprop -f /usr/local/var/krb5kdc/slave_datatrans $kdc
+done
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+    &lt;p&gt;需要设置一个定时任务去运行这个脚本，或者在切换之前执行。&lt;br /&gt;
+至此，slave KDC中有了Kerberos database的复制, slave上/var/kerberos/krb5kdc/会多出一些文件。&lt;br /&gt;
+现在即可启动krb5kdc daemon:&lt;/p&gt;
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[root@node2 kerberos]# systemctl start krb5kdc.service
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;启动遇到问题处理
+    &lt;ol&gt;
+      &lt;li&gt;手动传输数据库文件报错：
+        &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; kprop: No route to host while connecting to server
+&lt;/code&gt;&lt;/pre&gt;
+        &lt;/div&gt;
+        &lt;p&gt;处理：Make sure that the hostname of the slave (as given to kprop) is correct, and that any firewalls between the master and the slave allow a connection on port 754.&lt;/p&gt;
+      &lt;/li&gt;
+      &lt;li&gt;从节点启动可以直接打“krb5kdc”来启动，但是直接krb5kdc和systemctl start krb5kdc.service只能使用一种。&lt;br /&gt;
+报错：
+        &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; [root@node2 krb5kdc]# systemctl status krb5kdc.service -l
+ ● krb5kdc.service - Kerberos 5 KDC
+   Loaded: loaded (/usr/lib/systemd/system/krb5kdc.service; disabled; vendor preset: disabled)
+Active: failed (Result: exit-code) since Tue 2017-09-19 16:06:57 CST; 17s ago
+   Process: 9097 ExecStart=/usr/sbin/krb5kdc -P /var/run/krb5kdc.pid $KRB5KDC_ARGS (code=exited, status=1/FAILURE)
+ Sep 19 16:06:57 node2 systemd[1]: Starting Kerberos 5 KDC...
+ Sep 19 16:06:57 node2 systemd[1]: krb5kdc.service: control process exited, code=exited status=1
+ Sep 19 16:06:57 node2 systemd[1]: Failed to start Kerberos 5 KDC.
+ Sep 19 16:06:57 node2 systemd[1]: Unit krb5kdc.service entered failed state.
+ Sep 19 16:06:57 node2 systemd[1]: krb5kdc.service failed.
+&lt;/code&gt;&lt;/pre&gt;
+        &lt;/div&gt;
+        &lt;p&gt;处理：&lt;/p&gt;
+        &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; [root@node2 krb5kdc]# ps -ef | grep krb5
+ root      5080     1  0 15:47 ?        00:00:00 krb5kdc
+ root      9330  2940  0 16:07 pts/0    00:00:00 grep --color=auto krb5
+ [root@node2 krb5kdc]# kill 5080
+ [root@node2 krb5kdc]# systemctl start krb5kdc.service
+ [root@node2 krb5kdc]# systemctl status krb5kdc.service -l
+ ● krb5kdc.service - Kerberos 5 KDC
+Loaded: loaded (/usr/lib/systemd/system/krb5kdc.service; disabled; vendor preset: disabled)
+Active: active (running) since Tue 2017-09-19 16:08:09 CST; 2s ago
+   Process: 9345 ExecStart=/usr/sbin/krb5kdc -P /var/run/krb5kdc.pid $KRB5KDC_ARGS (code=exited, status=0/SUCCESS)
+  Main PID: 9348 (krb5kdc)
+Memory: 2.7M
+CGroup: /system.slice/krb5kdc.service
+        └─9348 /usr/sbin/krb5kdc -P /var/run/krb5kdc.pid    
+ Sep 19 16:08:09 node2 systemd[1]: Starting Kerberos 5 KDC...
+ Sep 19 16:08:09 node2 systemd[1]: PID file /var/run/krb5kdc.pid not readable (yet?) after start.
+ Sep 19 16:08:09 node2 systemd[1]: Started Kerberos 5 KDC.
+&lt;/code&gt;&lt;/pre&gt;
+        &lt;/div&gt;
+      &lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;增量传播目前配置增量传播后有些问题无法主从切换-因此此部分内容仅供参考未证实可用todo手动传播正常可以使用&quot;&gt;增量传播（目前配置增量传播后，有些问题无法主从切换-因此此部分内容仅供参考，未证实可用@TODO，手动传播正常可以使用）&lt;/h3&gt;
+&lt;p&gt;当开启增量数据库传播，当master KDC更改了，则会将更改信息写到一个更新日志中，日志处于一个固定的缓存大小。
+在每一个slave KDC 上会有一个进程链接master KDC上的一个服务，并且定期请求自上次检查以来所做的更改。默认情况下，每2分钟检查一次。如果数据库刚刚在前几秒进行了修改(currently the threshold is hard-coded at 10 seconds)，则slave不能检查到更新，而是暂停并在不久之后再次尝试。这减少了当一个管理员试图在同一时间进行很多数据库更改而导致增量更新查询造成延迟的可能性。&lt;br /&gt;
+每个realm的增量更新在kdc.conf中配置。&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;主、从配置文件如上面步骤已经配置&lt;/li&gt;
+  &lt;li&gt;创建kiprop/hostname主体（master 和slave KDC）和keytab  （已经操作则不用再进行）&lt;br /&gt;
+master和slave KDC必须在Kerberos database中含有kiprop/hostname主体，并且创建默认keytab。&lt;br /&gt;
+在1.13版本后，kiprop/hostname principal会自动在master KDC中创建，但是在slave KDCs需手动创建。 &lt;br /&gt;
+If incremental propagation is enabled, the principal kiprop/slavehostname@REALM (where slavehostname is the name of the slave KDC host, and REALM is the name of the Kerberos realm) must be present in the slave’s keytab file.&lt;/li&gt;
+  &lt;li&gt;slave KDC运行kpropd&lt;br /&gt;
+当增量传播开启之后，slave kdc 的kpropd进程会链接master kdc的kadmind，并且开始请求更新。&lt;br /&gt;
+通常情况下，kprop在增量传播支持中是禁用的。然而，如果很长时间内slave不能从master kdc中取到更新（比如因为网络原因），那么在master上的slave没来得急检索的日志可能被覆盖。在这种情况下，slave会通知master KDC转储当前的数据库到一文件中，并且调用一次kprop传播，并且通过特殊选项的设置，也能够更新日志中的关于slave应该获取增量更新的位置传输过去。因此，keytab和acl需要进行上述的kprop配置。&lt;br /&gt;
+如果环境中有大量的slave，则希望将他们安排在一个层次性结构中，而不是让master为每一个slave提供更新。这么做的情况下，在每一个中间的slave上使用kadmind -proponly命令，并且使用kpropd -A upstreamhostname 将下游slaves指向对应的的上游slave。&lt;br /&gt;
+当前实现中有几个已知的限制：
+    &lt;ul&gt;
+      &lt;li&gt;The incremental update protocol does not transport changes to policy objects. Any policy changes on the master will result in full resyncs to all slaves.&lt;/li&gt;
+      &lt;li&gt;The slave’s KDB module must support locking; it cannot be using the LDAP KDB module.&lt;/li&gt;
+      &lt;li&gt;The master and slave must be able to initiate TCP connections in both directions, without an intervening NAT.  &lt;br /&gt;
+ 直接输入如下，启动kpropd作为一个独立的进程。
+        &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; kpropd
+&lt;/code&gt;&lt;/pre&gt;
+        &lt;/div&gt;
+        &lt;p&gt;关闭：pkill kpropd&lt;/p&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;测试启动kdc&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;master和slave-kdc切换&quot;&gt;master和slave KDC切换&lt;/h2&gt;
+&lt;p&gt;通过手动同步数据库的方式，将数据库从主KDC复制到从KDC之后，可进行KDC主从的切换操作。&lt;br /&gt;
+仅当主 KDC 服务器由于某种原因出现故障，或者需要重新安装主 KDC 服务器(例如，由于安 装了新硬件)时，才应将主KDC服务器与从KDC 服务器进行交换。&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;切换步骤：
+    &lt;ul&gt;
+      &lt;li&gt;如果master KDC正在运行，则需要在老的master KDC上执行：&lt;br /&gt;
+0、原主kdc上的kpropd.acl文件去掉[root@node1 krb5kdc]# mv kpropd.acl.bak kpropd.acl；注释掉kadm5.acl中的kiprop项。 &lt;br /&gt;
+1、kill kadmind进程 systemctl stop kadmin.service&lt;br /&gt;
+2、关闭传播数据库的定时任务&lt;br /&gt;
+3、手动执行数据库传播脚本，保证从节点们都有最新的数据库复制&lt;/li&gt;
+      &lt;li&gt;在新的master KDC上执行：&lt;br /&gt;
+0、新主kdc上增加kpropd.acl文件[root@node2 krb5kdc]# mv kpropd.acl kpropd.acl.bak；增加kadm5.acl中的kiprop项，和原主kdc一致。&lt;br /&gt;
+1、开启kadmin进程 systemctl start kadmin.service&lt;br /&gt;
+2、运行传播数据库的定时任务&lt;br /&gt;
+3、切换 master KDC 的cname。如果不能够这么做，则需要去更改每一个client节点的krb5.conf文件里面配置的Kerberos realm。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;测试主从是否生效(成功)
+    &lt;ol&gt;
+      &lt;li&gt;从第三台服务器，使用kinit获取ticket，正常情况下会从master上获取&lt;/li&gt;
+      &lt;li&gt;关闭master上的kdc服务&lt;/li&gt;
+      &lt;li&gt;再次从第三台服务器上，使用kinit 获取ticket，如果成功，说明生效。也可以观察kdc的日志，在/var/log/krb5kdc.log。&lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+  &lt;li&gt;错误处理
+    &lt;ol&gt;
+      &lt;li&gt;found kpropd.acl-报错如下：
+        &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; [root@node1 krb5kdc]# systemctl status kadmin.service
+ ● kadmin.service - Kerberos 5 Password-changing and Administration
+Loaded: loaded (/usr/lib/systemd/system/kadmin.service; enabled; vendor preset: disabled)
+Active: failed (Result: exit-code) since Tue 2017-09-19 15:29:26 CST; 8s ago
+   Process: 32161 ExecStart=/usr/sbin/_kadmind -P /var/run/kadmind.pid $KADMIND_ARGS (code=exited, status=6)
+  Main PID: 5242 (code=exited, status=2)
+ Sep 19 15:29:26 node1 systemd[1]: Starting Kerberos 5 Password-changing and Administration...
+ Sep 19 15:29:26 node1 _kadmind[32161]: Error. This appears to be a slave server, found kpropd.acl
+ Sep 19 15:29:26 node1 systemd[1]: kadmin.service: control process exited, code=exited status=6
+ Sep 19 15:29:26 node1 systemd[1]: Failed to start Kerberos 5 Password-changing and Administration.
+ Sep 19 15:29:26 node1 systemd[1]: Unit kadmin.service entered failed state.
+ Sep 19 15:29:26 node1 systemd[1]: kadmin.service failed.
+&lt;/code&gt;&lt;/pre&gt;
+        &lt;/div&gt;
+        &lt;p&gt;问题解决：&lt;br /&gt;
+ 成为主节点的KDC，不能有kpropd.acl文件，删除原主kpropd.acl。 &lt;br /&gt;
+ 解决参照：&lt;a href=&quot;http://compgroups.net/comp.protocols.kerberos/kerberos-master-slave-setup-database/3021964&quot;&gt;报错解决&lt;/a&gt;。&lt;/p&gt;
+      &lt;/li&gt;
+      &lt;li&gt;密钥版本不匹配-Decrypt integrity check failed
+        &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; [root@node1 krb5kdc]#  kprop -f /var/kerberos/krb5kdc/slave_datatrans  node2
+ kprop: Server rejected authentication (during sendauth exchange) while authenticating to server
+ kprop: Key version is not available signalled from server
+ Error text from server: Key version is not available
+ 或者报错：
+ kprop: Decrypt integrity check failed while getting initial credentials
+&lt;/code&gt;&lt;/pre&gt;
+        &lt;/div&gt;
+        &lt;p&gt;原因：您的票证可能无效。&lt;br /&gt;
+ 解决方法分析：&lt;br /&gt;
+ 请检验以下两种情况：&lt;/p&gt;
+        &lt;ul&gt;
+          &lt;li&gt;确保您的凭证有效。使用 kdestroy 销毁票证，然后使用 kinit 创建新的票证。&lt;/li&gt;
+          &lt;li&gt;确保目标主机的密钥表文件的服务密钥版本正确。使用 kadmin 查看 Kerberos 数据库中服务主体（例如 host/FQDN-hostname）的密钥版本号。另外，在目标主机上使用 klist -k，以确保该主机具有相同的密钥版本号。可用“kvno  host/node2@HADOOP.COM”命令查看版本号。  &lt;br /&gt;
+ 实际解决：&lt;br /&gt;
+ 我出错的原因是因为主KDC和从KDC中都有host/node2@HADOOP.COM和host/node1@HADOOP.COM的keytab内容，然后导致互相获取kvno的时候版本不匹配。&lt;br /&gt;
+ 1」.主从同时删除keytab文件和kdestroy
+            &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; #node1和node2上执行
+ rm -rf krb5.keytab
+ kadmin:kdestroy
+&lt;/code&gt;&lt;/pre&gt;
+            &lt;/div&gt;
+            &lt;p&gt;2」.分别执行：&lt;br /&gt;
+ node1上：&lt;/p&gt;
+            &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; [root@node1 krb5kdc]# kvno  host/node1@HADOOP.COM
+ kvno: No credentials cache found (filename: /tmp/krb5cc_0) while getting client principal name
+ kadmin: ktadd host/node1  
+ [root@node1 krb5kdc]# kinit -k -t /etc/krb5.keytab host/node1@HADOOP.COM
+&lt;/code&gt;&lt;/pre&gt;
+            &lt;/div&gt;
+            &lt;p&gt;node2上：&lt;/p&gt;
+            &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; kadmin: ktadd host/node2  
+ [root@node2 tmp]# kinit -k -t /etc/krb5.keytab   host/node2@HADOOP.COM
+&lt;/code&gt;&lt;/pre&gt;
+            &lt;/div&gt;
+            &lt;p&gt;3」.查看密钥版本是否互相匹配&lt;br /&gt;
+ node1上：&lt;/p&gt;
+            &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; [root@node1 krb5kdc]# klist -k
+ #此处此命令可查看到自己的kvno
+ [root@node1 krb5kdc]# kvno  host/node1@HADOOP.COM
+ host/node1@HADOOP.COM: kvno = 4
+ [root@node2 tmp]# kvno host/node2@HADOOP.COM
+ host/node2@HADOOP.COM: kvno = 6
+ #看此是否与node2的对应kvno匹配
+&lt;/code&gt;&lt;/pre&gt;
+            &lt;/div&gt;
+            &lt;p&gt;node2上：&lt;/p&gt;
+            &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; [root@node2 krb5kdc]# klist -k
+ #此处此命令可查看到自己的kvno
+ [root@node2 tmp]# kvno host/node2@HADOOP.COM
+ host/node2@HADOOP.COM: kvno = 6
+ [root@node2 krb5kdc]# kvno  host/node1@HADOOP.COM
+ host/node1@HADOOP.COM: kvno = 4
+ #看此是否与node1的对应kvno匹配
+&lt;/code&gt;&lt;/pre&gt;
+            &lt;/div&gt;
+            &lt;p&gt;之后即可解决。&lt;br /&gt;
+ 问题处理参考：&lt;a href=&quot;http://compgroups.net/comp.protocols.kerberos/decrypt-integrity-check-failed-3/1946334&quot;&gt;密钥版本不匹配&lt;/a&gt;。&lt;/p&gt;
+          &lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;hr /&gt;
+&lt;p&gt;至此，本篇内容完成。&lt;br /&gt;
+以上，此文章以及0505、0628三篇内容基本上是完全关于Kerberos相关知识，HDFS、ZK结合Kerberos的部署等内容，由于时间有限以及测试不够充分，仍存在很多漏洞以及待处理的问题，以后有机会再深入学习一下。&lt;/p&gt;
+
+&lt;p&gt;如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～&lt;br /&gt;
+©商业转载请联系作者获得授权，非商业转载请注明出处。&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="Kerberos" /><summary type="html">本文主要关于Kerberos的简单应用。因为工作测试需要，自己装了一套集群进行了Kerberos的部署，并且与HDFS、ZK进行整合，然后将操作过程进行了整理，以便后续再查看。本文主要涉及Kerberos主从KDC部署，此文为2018-06-29文章Kerberos具体实践3的后续；本文为本系列的最后一篇。 Kerberos主从KDC部署 在进行生产环境中进行Kerberos部署时，最好配置1个master KDC以及多个slave KDC来保证Kerberos服务的可靠性。每个KDC都能够包括一个Kerberos数据库的副本。在master KDC中包含一个可写的realm数据库副本，并且他会定期同步到slave KDC中。所有数据库的更改（如更改密码）都是由master KDC负责。当主KDC不可用，slave KDCs提供Kerberos的票据授予服务，不负责数据库管理。</summary></entry><entry><title type="html">Kerberos具体实践3-Kerberos与ZK的整合操作</title><link href="http://localhost:4000/bigdata/2018/06/29/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B53-Kerberos%E4%B8%8EZK%E7%9A%84%E6%95%B4%E5%90%88%E6%93%8D%E4%BD%9C/" rel="alternate" type="text/html" title="Kerberos具体实践3-Kerberos与ZK的整合操作" /><published>2018-06-29T00:00:00+08:00</published><updated>2018-06-29T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/06/29/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B53-Kerberos%E4%B8%8EZK%E7%9A%84%E6%95%B4%E5%90%88%E6%93%8D%E4%BD%9C</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/06/29/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B53-Kerberos%E4%B8%8EZK%E7%9A%84%E6%95%B4%E5%90%88%E6%93%8D%E4%BD%9C/">&lt;blockquote&gt;
+  &lt;p&gt;本文主要关于Kerberos的简单应用。因为工作测试需要，自己装了一套集群进行了Kerberos的部署，并且与HDFS、ZK进行整合，然后将操作过程进行了整理，以便后续再查看。本文主要涉及到其与ZK的整合操做，此文为2018-06-28文章Kerberos具体实践2的后续。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h1 id=&quot;zookeeper整合kerberos&quot;&gt;Zookeeper整合Kerberos&lt;/h1&gt;
+&lt;p&gt;关于zookeeper上配置Kerberos，参考&lt;a href=&quot;https://yq.aliyun.com/articles/25626&quot;&gt;zookeeper配置Kerberos认证&lt;/a&gt;。&lt;/p&gt;
+&lt;h2 id=&quot;zookeeper-server配置&quot;&gt;Zookeeper Server配置&lt;/h2&gt;
+&lt;p&gt;若hdfs配置过程中需要配置zookeeper与Kerberos结合，则目前先需要配置server即可。&lt;/p&gt;
+&lt;h3 id=&quot;创建认证规则并生成keytabzookeeper-server&quot;&gt;创建认证规则并生成keytab（zookeeper-server）&lt;/h3&gt;
+&lt;p&gt;zk整合Kerberos需要先创建启动zk用户的认证规则以及keytab，由于本次操作中，zk和hadoop均使用hadoop用户启动，则在本次操作中，不必再需要去创建新的认证规则和keytab，直接使用原来的hdfs.keytab即可。&lt;/p&gt;
+
+&lt;p&gt;补充：&lt;br /&gt;
+若有创建需要（如需要使用zookeeper用户启动zk服务），可再继续再次参考下述操作（其实同hdfs的操作）。&lt;br /&gt;
+在node1节点，即KDC server节点上执行下面命令，在KCD server上（这里是 node1）创建zookeeper principal：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kadmin.local -q &quot;addprinc -randkey zookeeper/node1@HADOOP.COM&quot;   
+kadmin.local -q &quot;addprinc -randkey zookeeper/node2@HADOOP.COM&quot;  
+kadmin.local -q &quot;addprinc -randkey zookeeper/node3@HADOOP.COM&quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;执行如下命令，在当前目录中创建keytab，名为zookeeper.keytab：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kadmin.local -q &quot;xst  -k zookeeper.keytab  zookeeper/node1@HADOOP.COM &quot;
+kadmin.local -q &quot;xst  -k zookeeper.keytab  zookeeper/node2@HADOOP.COM &quot;
+kadmin.local -q &quot;xst  -k zookeeper.keytab  zookeeper/node3@HADOOP.COM &quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h3 id=&quot;部署keytabzookeeper-server&quot;&gt;部署Keytab（zookeeper-server）&lt;/h3&gt;
+&lt;p&gt;拷贝node1上生成的keytab(新创建的就是zookeeper.keytab)文件到其他节点的某一目录上（如/opt/zookeeper/conf，为了在zk配置文件种找到keytab），并为其设置属主和权限400（如chown zookeeper:hadoop zookeeper.keytab ;chmod 400 *.keytab），同HDFS配置过程中的操作。&lt;br /&gt;
+此次测试中，启动zk和启动hdfs的用户都是hadoop，并且在进行hdfs配置kerberos的过程中，已经将hdfs.keytab复制到其他节点的/opt/hadoop_krb5/conf/hdfs.keytab目录下了，并且也设置了权限所以此次我不再进行操作。&lt;/p&gt;
+&lt;h3 id=&quot;修改zookeeper配置文件zookeeper-server&quot;&gt;修改zookeeper配置文件（zookeeper-server）&lt;/h3&gt;
+&lt;p&gt;在node1节点上修改/opt/zookeeper-3.4.8/conf/（zookeeper安装目录下的conf）zoo.cfg文件，添加下面内容：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;authProvider.1=org.apache.zookeeper.server.auth.SASLAuthenticationProvider
+jaasLoginRenew=3600000
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;将修改的上面文件同步到其他节点：node2、node3：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ scp /opt/zookeeper-3.4.8/conf/zoo.cfg node2:/opt/zookeeper-3.4.8/conf/zoo.cfg
+$ scp /opt/zookeeper-3.4.8/conf/zoo.cfg node3:/opt/zookeeper-3.4.8/conf/zoo.cfg
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h3 id=&quot;创建jaas文件zookeeper-server&quot;&gt;创建jaas文件（zookeeper-server）&lt;/h3&gt;
+&lt;p&gt;在node1的配置文件目录/opt/zookeeper-3.4.8/conf/（zookeeper安装目录下的conf）创建 jaas.conf文件，内容如下：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Server {
+  com.sun.security.auth.module.Krb5LoginModule required
+  useKeyTab=true
+  keyTab=&quot;/opt/hadoop_krb5/conf/hdfs.keytab&quot;【上述操作创建出的keytab，因为本次操作中zk用hadoop用户启动的，和hdfs一样，则没用重新生产keytab，和hdfs的用一个】
+  storeKey=true
+  useTicketCache=false【这里有踩过的一个小坑：如果krb5.conf 去掉了default_ccache_name = KEYRING:persistent:%{uid}，则一定用false，要不然zk起不来】
+  principal=&quot;hadoop/node1@HADOOP.COM&quot;;
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;其中，keytab填写真实的keytab的绝对路径，principal填写对应的认证的用户和机器名称。需要在 node2和node3节点也创建该文件，注意每个节点的principal有所不同。&lt;/p&gt;
+&lt;h3 id=&quot;创建javaenv文件zookeeper-server&quot;&gt;创建java.env文件（zookeeper-server）&lt;/h3&gt;
+&lt;p&gt;在node1的配置文件目录/opt/zookeeper-3.4.8/conf/（zookeeper安装目录下的conf）创建 java.env文件，内容如下：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;export JVMFLAGS=&quot;-Djava.security.auth.login.config=/opt/zookeeper-3.4.8/conf/jaas.conf&quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;并将该文件同步到其他节点：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ scp /opt/zookeeper-3.4.8/conf/java.env node2:/opt/zookeeper-3.4.8/conf/java.env
+$ scp /opt/zookeeper-3.4.8/conf/java.env node3:/opt/zookeeper-3.4.8/conf/java.env
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;以上Zookeeper-server配置完毕。&lt;/p&gt;
+&lt;h3 id=&quot;重新启动zookeeper&quot;&gt;重新启动zookeeper&lt;/h3&gt;
+&lt;p&gt;启动方式和平常无异，如成功使用安全方式启动，日志中看到如下日志：&lt;br /&gt;
+2017-09-18 10:23:30,067 … - successfully logged in.&lt;/p&gt;
+
+&lt;h2 id=&quot;zookeeper-client配置未测试&quot;&gt;Zookeeper Client配置（未测试）&lt;/h2&gt;
+&lt;h3 id=&quot;创建认证规则生成keytab&quot;&gt;创建认证规则生成keytab&lt;/h3&gt;
+&lt;p&gt;在node1节点，即KDC server节点上执行下面命令：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ cd /var/kerberos/krb5kdc/
+kadmin.local -q &quot;addprinc -randkey zkcli/node1@HADOOP.COM &quot;
+kadmin.local -q &quot;addprinc -randkey zkcli/node2@HADOOP.COM&quot;
+kadmin.local -q &quot;addprinc -randkey zkcli/node3@HADOOP.COM&quot;
+
+kadmin.local -q &quot;xst  -k zkcli.keytab  zkcli/node1@HADOOP.COM&quot;
+kadmin.local -q &quot;xst  -k zkcli.keytab  zkcli/node2@HADOOP.COM &quot;
+kadmin.local -q &quot;xst  -k zkcli.keytab  zkcli/node3@HADOOP.COM &quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;拷贝 zkcli.keytab文件到其他节点的zk配置目录：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ scp zkcli.keytab node1:/etc/zookeeper/conf
+$ scp zkcli.keytab node2:/etc/zookeeper/conf
+$ scp zkcli.keytab node3:/etc/zookeeper/conf
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;并设置属主和权限，分别在node1、node2、node3 上执行：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ ssh node1 &quot;cd /etc/zookeeper/conf/;chown zookeeper:hadoop zkcli.keytab ;chmod 400 *.keytab&quot;
+$ ssh node2 &quot;cd /etc/zookeeper/conf/;chown zookeeper:hadoop zkcli.keytab ;chmod 400 *.keytab&quot;
+$ ssh node3 &quot;cd /etc/zookeeper/conf/;chown zookeeper:hadoop zkcli.keytab ;chmod 400 *.keytab&quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h3 id=&quot;创建jaas配置文件&quot;&gt;创建jaas配置文件&lt;/h3&gt;
+&lt;p&gt;在node1的zk配置文件目录创建 client-jaas.conf 文件，内容如下：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Client {
+  com.sun.security.auth.module.Krb5LoginModule required
+  useKeyTab=true
+  keyTab=&quot;/etc/zookeeper/conf/zkcli.keytab&quot;
+  storeKey=true
+  useTicketCache=false
+  principal=&quot;zkcli@HADOOP.COM&quot;;
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;同步到其他client节点：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ scp client-jaas.conf node2:/etc/zookeeper/conf
+$ scp client-jaas.conf node3:/etc/zookeeper/conf
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h3 id=&quot;创建javaenv文件&quot;&gt;创建java.env文件&lt;/h3&gt;
+&lt;p&gt;然后，在zk安装目录conf目录创建或者修改java.env，内容如下：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;export CLIENT_JVMFLAGS=&quot;-Djava.security.auth.login.config=/etc/zookeeper/conf/client-jaas.conf&quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;如果，zookeeper-client 和 zookeeper-server 安装在同一个节点上，则 java.env 中的 java.security.auth.login.config 参数会被覆盖，这一点从 zookeeper-client 命令启动日志可以看出来。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;并将该文件同步到其他节点：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ scp /etc/zookeeper/conf/java.env node2:/etc/zookeeper/conf/java.env
+$ scp /etc/zookeeper/conf/java.env node3:/etc/zookeeper/conf/java.env
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;h3 id=&quot;启动并验证&quot;&gt;启动并验证&lt;/h3&gt;
+&lt;p&gt;启动客户端：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ zookeeper-client -server node1:2181
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;创建一个znode 节点：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;k: node1:2181(CONNECTED) 0] create /znode1 sasl:zkcli@HADOOP.COM:cdwra
+    Created /znode1
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;验证该节点是否创建以及其 ACL：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[zk: node1:2181(CONNECTED) 1] getAcl /znode1
+    'world,'anyone
+    : cdrwa
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;p&gt;以上为ZK整合Kerberos操作部分。&lt;/p&gt;
+
+&lt;hr /&gt;
+&lt;p&gt;至此，本篇内容完成。&lt;br /&gt;
+以上，此文章是关于ZK结合Kerberos的部署等内容，下篇将补充说明主从KDC的搭建。&lt;/p&gt;
+
+&lt;p&gt;如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～&lt;br /&gt;
+©商业转载请联系作者获得授权，非商业转载请注明出处。&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="Kerberos" /><summary type="html">本文主要关于Kerberos的简单应用。因为工作测试需要，自己装了一套集群进行了Kerberos的部署，并且与HDFS、ZK进行整合，然后将操作过程进行了整理，以便后续再查看。本文主要涉及到其与ZK的整合操做，此文为2018-06-28文章Kerberos具体实践2的后续。 Zookeeper整合Kerberos 关于zookeeper上配置Kerberos，参考zookeeper配置Kerberos认证。 Zookeeper Server配置 若hdfs配置过程中需要配置zookeeper与Kerberos结合，则目前先需要配置server即可。 创建认证规则并生成keytab（zookeeper-server） zk整合Kerberos需要先创建启动zk用户的认证规则以及keytab，由于本次操作中，zk和hadoop均使用hadoop用户启动，则在本次操作中，不必再需要去创建新的认证规则和keytab，直接使用原来的hdfs.keytab即可。 补充： 若有创建需要（如需要使用zookeeper用户启动zk服务），可再继续再次参考下述操作（其实同hdfs的操作）。 在node1节点，即KDC server节点上执行下面命令，在KCD server上（这里是 node1）创建zookeeper principal： kadmin.local -q &quot;addprinc -randkey zookeeper/node1@HADOOP.COM&quot; kadmin.local -q &quot;addprinc -randkey zookeeper/node2@HADOOP.COM&quot; kadmin.local -q &quot;addprinc -randkey zookeeper/node3@HADOOP.COM&quot; 执行如下命令，在当前目录中创建keytab，名为zookeeper.keytab： kadmin.local -q &quot;xst -k zookeeper.keytab zookeeper/node1@HADOOP.COM &quot; kadmin.local -q &quot;xst -k zookeeper.keytab zookeeper/node2@HADOOP.COM &quot; kadmin.local -q &quot;xst -k zookeeper.keytab zookeeper/node3@HADOOP.COM &quot; 部署Keytab（zookeeper-server） 拷贝node1上生成的keytab(新创建的就是zookeeper.keytab)文件到其他节点的某一目录上（如/opt/zookeeper/conf，为了在zk配置文件种找到keytab），并为其设置属主和权限400（如chown zookeeper:hadoop zookeeper.keytab ;chmod 400 *.keytab），同HDFS配置过程中的操作。 此次测试中，启动zk和启动hdfs的用户都是hadoop，并且在进行hdfs配置kerberos的过程中，已经将hdfs.keytab复制到其他节点的/opt/hadoop_krb5/conf/hdfs.keytab目录下了，并且也设置了权限所以此次我不再进行操作。 修改zookeeper配置文件（zookeeper-server） 在node1节点上修改/opt/zookeeper-3.4.8/conf/（zookeeper安装目录下的conf）zoo.cfg文件，添加下面内容： authProvider.1=org.apache.zookeeper.server.auth.SASLAuthenticationProvider jaasLoginRenew=3600000 将修改的上面文件同步到其他节点：node2、node3： $ scp /opt/zookeeper-3.4.8/conf/zoo.cfg node2:/opt/zookeeper-3.4.8/conf/zoo.cfg $ scp /opt/zookeeper-3.4.8/conf/zoo.cfg node3:/opt/zookeeper-3.4.8/conf/zoo.cfg 创建jaas文件（zookeeper-server） 在node1的配置文件目录/opt/zookeeper-3.4.8/conf/（zookeeper安装目录下的conf）创建 jaas.conf文件，内容如下： Server { com.sun.security.auth.module.Krb5LoginModule required useKeyTab=true keyTab=&quot;/opt/hadoop_krb5/conf/hdfs.keytab&quot;【上述操作创建出的keytab，因为本次操作中zk用hadoop用户启动的，和hdfs一样，则没用重新生产keytab，和hdfs的用一个】 storeKey=true useTicketCache=false【这里有踩过的一个小坑：如果krb5.conf 去掉了default_ccache_name = KEYRING:persistent:%{uid}，则一定用false，要不然zk起不来】 principal=&quot;hadoop/node1@HADOOP.COM&quot;; }; 其中，keytab填写真实的keytab的绝对路径，principal填写对应的认证的用户和机器名称。需要在 node2和node3节点也创建该文件，注意每个节点的principal有所不同。 创建java.env文件（zookeeper-server） 在node1的配置文件目录/opt/zookeeper-3.4.8/conf/（zookeeper安装目录下的conf）创建 java.env文件，内容如下： export JVMFLAGS=&quot;-Djava.security.auth.login.config=/opt/zookeeper-3.4.8/conf/jaas.conf&quot; 并将该文件同步到其他节点： $ scp /opt/zookeeper-3.4.8/conf/java.env node2:/opt/zookeeper-3.4.8/conf/java.env $ scp /opt/zookeeper-3.4.8/conf/java.env node3:/opt/zookeeper-3.4.8/conf/java.env 以上Zookeeper-server配置完毕。 重新启动zookeeper 启动方式和平常无异，如成功使用安全方式启动，日志中看到如下日志： 2017-09-18 10:23:30,067 … - successfully logged in.</summary></entry><entry><title type="html">Kerberos具体实践2-Kerberos与HDFS的整合操作</title><link href="http://localhost:4000/bigdata/2018/06/28/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B52-Kerberos%E4%B8%8EHDFS%E7%9A%84%E6%95%B4%E5%90%88%E6%93%8D%E4%BD%9C/" rel="alternate" type="text/html" title="Kerberos具体实践2-Kerberos与HDFS的整合操作" /><published>2018-06-28T00:00:00+08:00</published><updated>2018-06-28T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/06/28/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B52-Kerberos%E4%B8%8EHDFS%E7%9A%84%E6%95%B4%E5%90%88%E6%93%8D%E4%BD%9C</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/06/28/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B52-Kerberos%E4%B8%8EHDFS%E7%9A%84%E6%95%B4%E5%90%88%E6%93%8D%E4%BD%9C/">&lt;blockquote&gt;
+  &lt;p&gt;本文主要关于Kerberos的简单应用。因为工作测试需要，自己装了一套集群进行了Kerberos的部署，并且与HDFS、ZK进行整合，然后将操作过程进行了整理，以便后续再查看。本文主要涉及到其与HDFS的整合操作，此文为2018-05-05文章Kerberos具体实践1的后续，上文说明了Kerberos集群的安装以及基本命令的使用；由于篇幅有限，下文在2018-06-29文章Kerberos具体实践3中继续说明Kerberos与ZK整合操作。&lt;/p&gt;
 &lt;/blockquote&gt;
 
 &lt;h1 id=&quot;hdfs整合kerberos部署&quot;&gt;HDFS整合Kerberos（部署）&lt;/h1&gt;
@@ -1255,10 +1833,11 @@ keytool -keystore truststore -alias CARoot -import -file test_ca_cert
   &lt;/li&gt;
 &lt;/ol&gt;
 
+&lt;hr /&gt;
 &lt;p&gt;至此，本篇内容完成。以上内容基本上是完全关于HDFS中的Kerberos部署，HDFS结合Kerberos的整体部署完毕，若配置中使用了HA，则需要进行下文ZK配置之后才能完成完整部署。&lt;/p&gt;
 
 &lt;p&gt;如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～&lt;br /&gt;
-©商业转载请联系作者获得授权，非商业转载请注明出处。&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="Kerberos" /><summary type="html">本文属于Kerberos具体实践整理的第二部分，主要涉及kerberos与HDFS的整合操作。</summary></entry><entry><title type="html">Docker+Mesos+Marathon监控方法使用总结</title><link href="http://localhost:4000/cloud/2018/06/15/Docker+Mesos+Marathon%E7%9B%91%E6%8E%A7%E6%96%B9%E6%B3%95%E4%BD%BF%E7%94%A8%E6%80%BB%E7%BB%93/" rel="alternate" type="text/html" title="Docker+Mesos+Marathon监控方法使用总结" /><published>2018-06-15T00:00:00+08:00</published><updated>2018-06-15T00:00:00+08:00</updated><id>http://localhost:4000/cloud/2018/06/15/Docker+Mesos+Marathon%E7%9B%91%E6%8E%A7%E6%96%B9%E6%B3%95%E4%BD%BF%E7%94%A8%E6%80%BB%E7%BB%93</id><content type="html" xml:base="http://localhost:4000/cloud/2018/06/15/Docker+Mesos+Marathon%E7%9B%91%E6%8E%A7%E6%96%B9%E6%B3%95%E4%BD%BF%E7%94%A8%E6%80%BB%E7%BB%93/">&lt;blockquote&gt;
+©商业转载请联系作者获得授权，非商业转载请注明出处。&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="Kerberos" /><summary type="html">本文主要关于Kerberos的简单应用。因为工作测试需要，自己装了一套集群进行了Kerberos的部署，并且与HDFS、ZK进行整合，然后将操作过程进行了整理，以便后续再查看。本文主要涉及到其与HDFS的整合操作，此文为2018-05-05文章Kerberos具体实践1的后续，上文说明了Kerberos集群的安装以及基本命令的使用；由于篇幅有限，下文在2018-06-29文章Kerberos具体实践3中继续说明Kerberos与ZK整合操作。</summary></entry><entry><title type="html">Docker+Mesos+Marathon监控方法使用总结</title><link href="http://localhost:4000/cloud/2018/06/15/Docker+Mesos+Marathon%E7%9B%91%E6%8E%A7%E6%96%B9%E6%B3%95%E4%BD%BF%E7%94%A8%E6%80%BB%E7%BB%93/" rel="alternate" type="text/html" title="Docker+Mesos+Marathon监控方法使用总结" /><published>2018-06-15T00:00:00+08:00</published><updated>2018-06-15T00:00:00+08:00</updated><id>http://localhost:4000/cloud/2018/06/15/Docker+Mesos+Marathon%E7%9B%91%E6%8E%A7%E6%96%B9%E6%B3%95%E4%BD%BF%E7%94%A8%E6%80%BB%E7%BB%93</id><content type="html" xml:base="http://localhost:4000/cloud/2018/06/15/Docker+Mesos+Marathon%E7%9B%91%E6%8E%A7%E6%96%B9%E6%B3%95%E4%BD%BF%E7%94%A8%E6%80%BB%E7%BB%93/">&lt;blockquote&gt;
   &lt;p&gt;本文主要关于Docker、Mesos、Marathon的监控方法的总结。&lt;br /&gt;
 &lt;strong&gt;注意: 本文中使用的版本是Docker1.12.6、Mesos1.3.0、Marathon1.4.5。&lt;/strong&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
@@ -2310,9 +2889,10 @@ a和b都是32位整数么？-是&lt;br /&gt;
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
+&lt;hr /&gt;
 &lt;p&gt;至此，本篇内容暂时完成，以后随着更新。&lt;br /&gt;
 如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～&lt;br /&gt;
-©商业转载请联系作者获得授权，非商业转载请注明出处。&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="Algorithm" /><summary type="html">本文主要关于lintcode 中的算法练习,以后有时间无聊了就来记录一道算法题目，以后随着更新吧，更新时间不定哦～ 2018-06-06-1-A+B问题 题目 给出两个整数a和b, 求他们的和, 但不能使用+等数学运算符。 说明 a和b都是32位整数么？-是 我可以使用位运算符么？-当然可以 样例 如果a=1并且b=2，返回3。 解答 所用知识点-java位运算 java里int型是4个字节，即32位，用二进制表示java里的1即000……0001，且都是有符号的数，最高位代表符号位，即32位能表示的最大整数是2的32次方-1。 &amp;amp; 与运算符 ：按位与，当且仅当两个对应的位置都是1，结果才是1，否则结果为0。(有0则0) | 或运算符 ：按位或，当且仅当两个对应的位置都是0，结果才是0，否则结果是1。(有1则1) ~ 非运算符 ：按位取反。 ^异或运算符 ：当运算符两边不同的时候结果为1，两边相同的时候结果为0。 位移运算符（同理）：位移运算符可以简单的理解为乘除法，像左移是除法，向右移是乘法。左移：在低位补0；右移：正数右移高位补0，负数右移高位补1。num1,相当于num乘以2;num1,相当于num除以2。82不要理解为8/2，位移两位就是除以2的2次方也就是8/4；注意91的结果是4，即最低位的1会移没了。 无符号右移 ：忽略符号位，空位都以0补齐。使用了“零扩展”：无论正负，都在高位插入0。valuenum–num 指定要移位值value 移动的位数。无符号右移运算符只是对32位和64位的值有意义。 位运算加法分析 本题目下述分析均参考或学习文章位运算-加法运算、交换两个数值。 思路分析 参考上述文章，是从最熟悉的十进制分析。 思路1:十进制加法计算过程从末尾到高位进行计算，基本上是同位数字相加，有进位的情况再加上进位，即每次计算的时候是某一位的2个数字相加，最多3个数字即再多加一个进位。如15+9，个位5+9=14，结果末尾数为4，进位1；十位即1+0+1（进位）=2，因此结果为24。 思路2:加法过程分为对应位数字相加结果和进位数字相加结果，再求2个结果的和，直到没有进位即为最终结果。再如15+9，5+9=4（个位），进位为1；1+0=1（十位），进位为0；即本位结果位14，进位为10；因此15+9即可转化为，14+10，即个位4+0=4，进位为0；十位1+1=2，进位为0；所以结果为24，进位结果是0，所以不用再计算，即可得出最终结果24。总结上诉，即将加法分为了对应位相加（不进位）和进位值2部分，再求2个结果和，并且之后重复计算，直到进位值为0。因此，可以发现停止计算的条件可以设置为进位值为0。 位运算分析 下面在二进制位运算层面实现。 二进制和十进制差别：逢十进一和逢二进一。 对应位相加，不进位-sum 在二进制中，则1位数相加，思考结果为： 0 + 0 = 0 0 + 1 = 1 1 + 0 = 1 1 + 1 = 0（不进位） 可以发现相同为0，不同为1，则当二进制的不进位加法，可以用异或^来表示。 0 ^ 0 = 0 0 ^ 1 = 1 1 ^ 0 = 1 1 ^ 1 = 0 因此，在二进制中，对应位置相加（本位操作）可以使用异或^符号来实现，即a^b。 进位-carry 如果进行情况下，如果获取进位，只得到进位值，进位值的结果，思考如下： 注意这里是只得到进位值 0 + 0 = 0 0 + 1 = 0 1 + 0 = 0 1 + 1 = 1 由此可看出，有0就为0，因此可以用位运算&amp;amp;来代替。 0 &amp;amp; 0 = 0 0 &amp;amp; 1 = 0 1 &amp;amp; 0 = 0 1 &amp;amp; 1 = 1 但是进位应该是进到高位，因此可以使用左移操作符将进位的1左进一位。 在位运算中，我们用“«”表示向左移动一位，也就是“进位”。 0«1 = 0，值还是0，1«1 = 10，值为2。 因此，进位可以如下表示： (x&amp;amp;y)&amp;lt;&amp;lt;1 tips：左移一位在二进制的意义可以理解为x2，对应于十进制即为x10，也就实现了进位。 小总结 因此总结一下： 到这里，我们基本上拥有了这样两个表达式： x^y //执行加法 (x&amp;amp;y)&amp;lt;&amp;lt;1 //进位操作 因此，应我们上面的思路2，可以得到加法表达公式抽象为：a+b = a^b + (a&amp;amp;b)«1，之后迭代或循环实现重复性操作即可。当进位为0的时候，+操作的某一个值就会是0，也就不用再重复计算了，算法停止。 因此可以通过进位是0来判断结束。 下面测试一下： 计算11+01=100，用推算的表达式：a^b=11^01=10，a&amp;amp;b=11&amp;amp;01=01，(a&amp;amp;b)&amp;lt;&amp;lt;1=01&amp;lt;&amp;lt;1=10，所以下述需要做的是10+10，但是我们不用普通的加法，即可以再执行一下**a+b = a^b + (a&amp;amp;b)&amp;lt;&amp;lt;1**，即a^b=10^10=00,a&amp;amp;b=10&amp;amp;10=10,(a&amp;amp;b)&amp;lt;&amp;lt;1=10&amp;lt;&amp;lt;1=100,加法操作的某一个值已经是0了，但是进位值为100，可以看看一会继续计算，进位会不会变成0，00+100，即00^100=100,000&amp;amp;100=000,000&amp;lt;&amp;lt;1=000,因此现在进位为0了，因此不用再计算了，即结果为100。 代码 递归 public class Solution { /** * @param a: An integer * @param b: An integer * @return: The sum of a and b */ public int aplusb(int a, int b) { // write your code here if(0==b){a //没有进位的时候完成运算 return a; } //加法、进位左移，传入参数完成递归 return aplusb(a^b,(a&amp;amp;b)&amp;lt;&amp;lt;1); } } 一行递归: public class Solution { /** * @param a: An integer * @param b: An integer * @return: The sum of a and b */ public int aplusb(int a, int b) { return b==0?a:aplusb(a^b,(a&amp;amp;b)&amp;lt;&amp;lt;1); } } while public class Solution { /** * @param a: An integer * @param b: An integer * @return: The sum of a and b */ public int aplusb(int a, int b) { // write your code here int sum=a^b; int carry=(a&amp;amp;b)&amp;lt;&amp;lt;1; while(carry!=0){ a=sum; b=carry; sum=a^b; carry=(a&amp;amp;b)&amp;lt;&amp;lt;1; } return sum; } } \\错误答案(四不像，不要while加递归，死循环了)： \\public class Solution { \\ public int aplusb(int a, int b) { \\ // write your code here \\ int sum=a^b; \\ int carry=(a&amp;amp;b)&amp;lt;&amp;lt;1; \\ while(0!=carry){ \\ aplusb(sum,carry); \\ } \\ return sum; \\ } \\} do-while public class Solution { /** * @param a: An integer * @param b: An integer * @return: The sum of a and b */ public int aplusb(int a, int b) { // write your code here int sum=0; int carry=0; do { sum=a^b; carry=(a&amp;amp;b)&amp;lt;&amp;lt;1; a=sum; b=carry; } while (carry!=0); return sum; } } 拓展-交换2个数的值 public class Test{ public static void main(String args[]){ int a=10;int b=20; a=a^b; b=b^a; a=a^b; System.out.println(a+&quot;\t&quot;+b); } } 2018-06-11-169-汉诺塔问题 题目 题目：汉诺塔问题（又称为河内塔问题），是一个大家熟知的问题。在A，B，C三根柱子上，有n个不同大小的圆盘（假设半径分别为1-n吧），一开始他们都叠在A上，你的目标是在最少的合法移动步数内将所有盘子从A塔移动到C塔。 游戏中的每一步规则如下： 每一步只允许移动一个盘子（从一根柱子最上方到另一个柱子的最上方） 移动的过程中，你必须保证大的盘子不能在小的盘子上方（小的可以放在大的上面，最大盘子下面不能有任何其他大小的盘子) 解答 递归实现: 三个位置，其中有一个时缓冲期，在这个题目里，从A移动到C，B是缓冲区。 当n=0时不用做任何动作； 当n&amp;gt;0时， 首先，将n-1个圆盘从A经C移动到B（移动到缓冲区）； 然后，即那个1个圆盘从A移动到C（起点到终点）； 最后，将n-1个圆盘从B经A移动到C（缓冲区到终点）。 public class Solution { List &amp;lt;String&amp;gt; hanoi=new ArrayList(); /** * @param n: the number of disks * @return: the order of moves */ public List&amp;lt;String&amp;gt; towerOfHanoi(int n) { // write your code here move(n,&quot;A&quot;,&quot;B&quot;,&quot;C&quot;); return hanoi; } public void move(int n,String start, String tmp,String to){ if (n==0){ }else{ move(n-1,start,to,tmp); String moving=&quot;from &quot;+start+&quot; to &quot;+to; hanoi.add(moving); move(n-1,tmp,start,to); } } }</summary></entry><entry><title type="html">HDFS权限以及目录限额相关</title><link href="http://localhost:4000/bigdata/2018/06/04/HDFS%E6%9D%83%E9%99%90%E4%BB%A5%E5%8F%8A%E7%9B%AE%E5%BD%95%E9%99%90%E9%A2%9D%E7%9B%B8%E5%85%B3/" rel="alternate" type="text/html" title="HDFS权限以及目录限额相关" /><published>2018-06-04T00:00:00+08:00</published><updated>2018-06-04T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/06/04/HDFS%E6%9D%83%E9%99%90%E4%BB%A5%E5%8F%8A%E7%9B%AE%E5%BD%95%E9%99%90%E9%A2%9D%E7%9B%B8%E5%85%B3</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/06/04/HDFS%E6%9D%83%E9%99%90%E4%BB%A5%E5%8F%8A%E7%9B%AE%E5%BD%95%E9%99%90%E9%A2%9D%E7%9B%B8%E5%85%B3/">&lt;blockquote&gt;
+©商业转载请联系作者获得授权，非商业转载请注明出处。&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="Algorithm" /><summary type="html">本文主要关于lintcode 中的算法练习,以后有时间无聊了就来记录一道算法题目，以后随着更新吧，更新时间不定哦～ 2018-06-06-1-A+B问题 题目 给出两个整数a和b, 求他们的和, 但不能使用+等数学运算符。 说明 a和b都是32位整数么？-是 我可以使用位运算符么？-当然可以 样例 如果a=1并且b=2，返回3。 解答 所用知识点-java位运算 java里int型是4个字节，即32位，用二进制表示java里的1即000……0001，且都是有符号的数，最高位代表符号位，即32位能表示的最大整数是2的32次方-1。 &amp;amp; 与运算符 ：按位与，当且仅当两个对应的位置都是1，结果才是1，否则结果为0。(有0则0) | 或运算符 ：按位或，当且仅当两个对应的位置都是0，结果才是0，否则结果是1。(有1则1) ~ 非运算符 ：按位取反。 ^异或运算符 ：当运算符两边不同的时候结果为1，两边相同的时候结果为0。 位移运算符（同理）：位移运算符可以简单的理解为乘除法，像左移是除法，向右移是乘法。左移：在低位补0；右移：正数右移高位补0，负数右移高位补1。num1,相当于num乘以2;num1,相当于num除以2。82不要理解为8/2，位移两位就是除以2的2次方也就是8/4；注意91的结果是4，即最低位的1会移没了。 无符号右移 ：忽略符号位，空位都以0补齐。使用了“零扩展”：无论正负，都在高位插入0。valuenum–num 指定要移位值value 移动的位数。无符号右移运算符只是对32位和64位的值有意义。 位运算加法分析 本题目下述分析均参考或学习文章位运算-加法运算、交换两个数值。 思路分析 参考上述文章，是从最熟悉的十进制分析。 思路1:十进制加法计算过程从末尾到高位进行计算，基本上是同位数字相加，有进位的情况再加上进位，即每次计算的时候是某一位的2个数字相加，最多3个数字即再多加一个进位。如15+9，个位5+9=14，结果末尾数为4，进位1；十位即1+0+1（进位）=2，因此结果为24。 思路2:加法过程分为对应位数字相加结果和进位数字相加结果，再求2个结果的和，直到没有进位即为最终结果。再如15+9，5+9=4（个位），进位为1；1+0=1（十位），进位为0；即本位结果位14，进位为10；因此15+9即可转化为，14+10，即个位4+0=4，进位为0；十位1+1=2，进位为0；所以结果为24，进位结果是0，所以不用再计算，即可得出最终结果24。总结上诉，即将加法分为了对应位相加（不进位）和进位值2部分，再求2个结果和，并且之后重复计算，直到进位值为0。因此，可以发现停止计算的条件可以设置为进位值为0。 位运算分析 下面在二进制位运算层面实现。 二进制和十进制差别：逢十进一和逢二进一。 对应位相加，不进位-sum 在二进制中，则1位数相加，思考结果为： 0 + 0 = 0 0 + 1 = 1 1 + 0 = 1 1 + 1 = 0（不进位） 可以发现相同为0，不同为1，则当二进制的不进位加法，可以用异或^来表示。 0 ^ 0 = 0 0 ^ 1 = 1 1 ^ 0 = 1 1 ^ 1 = 0 因此，在二进制中，对应位置相加（本位操作）可以使用异或^符号来实现，即a^b。 进位-carry 如果进行情况下，如果获取进位，只得到进位值，进位值的结果，思考如下： 注意这里是只得到进位值 0 + 0 = 0 0 + 1 = 0 1 + 0 = 0 1 + 1 = 1 由此可看出，有0就为0，因此可以用位运算&amp;amp;来代替。 0 &amp;amp; 0 = 0 0 &amp;amp; 1 = 0 1 &amp;amp; 0 = 0 1 &amp;amp; 1 = 1 但是进位应该是进到高位，因此可以使用左移操作符将进位的1左进一位。 在位运算中，我们用“«”表示向左移动一位，也就是“进位”。 0«1 = 0，值还是0，1«1 = 10，值为2。 因此，进位可以如下表示： (x&amp;amp;y)&amp;lt;&amp;lt;1 tips：左移一位在二进制的意义可以理解为x2，对应于十进制即为x10，也就实现了进位。 小总结 因此总结一下： 到这里，我们基本上拥有了这样两个表达式： x^y //执行加法 (x&amp;amp;y)&amp;lt;&amp;lt;1 //进位操作 因此，应我们上面的思路2，可以得到加法表达公式抽象为：a+b = a^b + (a&amp;amp;b)«1，之后迭代或循环实现重复性操作即可。当进位为0的时候，+操作的某一个值就会是0，也就不用再重复计算了，算法停止。 因此可以通过进位是0来判断结束。 下面测试一下： 计算11+01=100，用推算的表达式：a^b=11^01=10，a&amp;amp;b=11&amp;amp;01=01，(a&amp;amp;b)&amp;lt;&amp;lt;1=01&amp;lt;&amp;lt;1=10，所以下述需要做的是10+10，但是我们不用普通的加法，即可以再执行一下**a+b = a^b + (a&amp;amp;b)&amp;lt;&amp;lt;1**，即a^b=10^10=00,a&amp;amp;b=10&amp;amp;10=10,(a&amp;amp;b)&amp;lt;&amp;lt;1=10&amp;lt;&amp;lt;1=100,加法操作的某一个值已经是0了，但是进位值为100，可以看看一会继续计算，进位会不会变成0，00+100，即00^100=100,000&amp;amp;100=000,000&amp;lt;&amp;lt;1=000,因此现在进位为0了，因此不用再计算了，即结果为100。 代码 递归 public class Solution { /** * @param a: An integer * @param b: An integer * @return: The sum of a and b */ public int aplusb(int a, int b) { // write your code here if(0==b){a //没有进位的时候完成运算 return a; } //加法、进位左移，传入参数完成递归 return aplusb(a^b,(a&amp;amp;b)&amp;lt;&amp;lt;1); } } 一行递归: public class Solution { /** * @param a: An integer * @param b: An integer * @return: The sum of a and b */ public int aplusb(int a, int b) { return b==0?a:aplusb(a^b,(a&amp;amp;b)&amp;lt;&amp;lt;1); } } while public class Solution { /** * @param a: An integer * @param b: An integer * @return: The sum of a and b */ public int aplusb(int a, int b) { // write your code here int sum=a^b; int carry=(a&amp;amp;b)&amp;lt;&amp;lt;1; while(carry!=0){ a=sum; b=carry; sum=a^b; carry=(a&amp;amp;b)&amp;lt;&amp;lt;1; } return sum; } } \\错误答案(四不像，不要while加递归，死循环了)： \\public class Solution { \\ public int aplusb(int a, int b) { \\ // write your code here \\ int sum=a^b; \\ int carry=(a&amp;amp;b)&amp;lt;&amp;lt;1; \\ while(0!=carry){ \\ aplusb(sum,carry); \\ } \\ return sum; \\ } \\} do-while public class Solution { /** * @param a: An integer * @param b: An integer * @return: The sum of a and b */ public int aplusb(int a, int b) { // write your code here int sum=0; int carry=0; do { sum=a^b; carry=(a&amp;amp;b)&amp;lt;&amp;lt;1; a=sum; b=carry; } while (carry!=0); return sum; } } 拓展-交换2个数的值 public class Test{ public static void main(String args[]){ int a=10;int b=20; a=a^b; b=b^a; a=a^b; System.out.println(a+&quot;\t&quot;+b); } } 2018-06-11-169-汉诺塔问题 题目 题目：汉诺塔问题（又称为河内塔问题），是一个大家熟知的问题。在A，B，C三根柱子上，有n个不同大小的圆盘（假设半径分别为1-n吧），一开始他们都叠在A上，你的目标是在最少的合法移动步数内将所有盘子从A塔移动到C塔。 游戏中的每一步规则如下： 每一步只允许移动一个盘子（从一根柱子最上方到另一个柱子的最上方） 移动的过程中，你必须保证大的盘子不能在小的盘子上方（小的可以放在大的上面，最大盘子下面不能有任何其他大小的盘子) 解答 递归实现: 三个位置，其中有一个时缓冲期，在这个题目里，从A移动到C，B是缓冲区。 当n=0时不用做任何动作； 当n&amp;gt;0时， 首先，将n-1个圆盘从A经C移动到B（移动到缓冲区）； 然后，即那个1个圆盘从A移动到C（起点到终点）； 最后，将n-1个圆盘从B经A移动到C（缓冲区到终点）。 public class Solution { List &amp;lt;String&amp;gt; hanoi=new ArrayList(); /** * @param n: the number of disks * @return: the order of moves */ public List&amp;lt;String&amp;gt; towerOfHanoi(int n) { // write your code here move(n,&quot;A&quot;,&quot;B&quot;,&quot;C&quot;); return hanoi; } public void move(int n,String start, String tmp,String to){ if (n==0){ }else{ move(n-1,start,to,tmp); String moving=&quot;from &quot;+start+&quot; to &quot;+to; hanoi.add(moving); move(n-1,tmp,start,to); } } } 至此，本篇内容暂时完成，以后随着更新。 如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～ ©商业转载请联系作者获得授权，非商业转载请注明出处。</summary></entry><entry><title type="html">HDFS权限以及目录限额相关</title><link href="http://localhost:4000/bigdata/2018/06/04/HDFS%E6%9D%83%E9%99%90%E4%BB%A5%E5%8F%8A%E7%9B%AE%E5%BD%95%E9%99%90%E9%A2%9D%E7%9B%B8%E5%85%B3/" rel="alternate" type="text/html" title="HDFS权限以及目录限额相关" /><published>2018-06-04T00:00:00+08:00</published><updated>2018-06-04T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/06/04/HDFS%E6%9D%83%E9%99%90%E4%BB%A5%E5%8F%8A%E7%9B%AE%E5%BD%95%E9%99%90%E9%A2%9D%E7%9B%B8%E5%85%B3</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/06/04/HDFS%E6%9D%83%E9%99%90%E4%BB%A5%E5%8F%8A%E7%9B%AE%E5%BD%95%E9%99%90%E9%A2%9D%E7%9B%B8%E5%85%B3/">&lt;blockquote&gt;
   &lt;p&gt;本文主要关于HDFS的用户权限设置以及目录的限额控制的总结。本文主要分3部分进行总结，1为HDFS的用户权限设置，2为目录的限额控制，最后简单说明一下单纯使用HDFS ACL可能造成的安全隐患。&lt;br /&gt;
 &lt;strong&gt;注意: 本文中使用的版本是Hadoop 2.6.0-cdh5.11.0&lt;/strong&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
@@ -2321,6 +2901,7 @@ a和b都是32位整数么？-是&lt;br /&gt;
 
 &lt;p&gt;#&lt;/p&gt;
 
+&lt;hr /&gt;
 &lt;p&gt;至此，本篇内容完成。&lt;br /&gt;
 如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～&lt;br /&gt;
 ©商业转载请联系作者获得授权，非商业转载请注明出处。&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="Hadoop" /><summary type="html">本文主要关于HDFS的用户权限设置以及目录的限额控制的总结。本文主要分3部分进行总结，1为HDFS的用户权限设置，2为目录的限额控制，最后简单说明一下单纯使用HDFS ACL可能造成的安全隐患。 注意: 本文中使用的版本是Hadoop 2.6.0-cdh5.11.0 平台中需要对于使用租户的权限以及所用文件空间进行控制，所以查找了关于HDFS用户权限以及目录限额控制的相关方法和权限控制JAVA API，并且翻阅源码的时候也找到了相关HDFS存储限额控制的JAVA API，过了这么长时间今天终于想起来要总结一下。不过有点需要注明，目前为止单纯的使用HDFS ACL控制权限有用户伪造的隐患，此种隐患会在本文最后进行说明。 # 至此，本篇内容完成。 如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～ ©商业转载请联系作者获得授权，非商业转载请注明出处。</summary></entry><entry><title type="html">spark日志相关内容</title><link href="http://localhost:4000/bigdata/2018/05/21/spark%E6%97%A5%E5%BF%97%E7%9B%B8%E5%85%B3%E5%86%85%E5%AE%B9/" rel="alternate" type="text/html" title="spark日志相关内容" /><published>2018-05-21T00:00:00+08:00</published><updated>2018-05-21T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/05/21/spark%E6%97%A5%E5%BF%97%E7%9B%B8%E5%85%B3%E5%86%85%E5%AE%B9</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/05/21/spark%E6%97%A5%E5%BF%97%E7%9B%B8%E5%85%B3%E5%86%85%E5%AE%B9/">&lt;blockquote&gt;
@@ -2502,6 +3083,7 @@ log4j.logger.org.apache.hadoop.hive.ql.exec.FunctionRegistry=ERROR
   &lt;li&gt;&lt;a href=&quot;http://spark.apache.org/docs/2.2.1/running-on-yarn.html&quot;&gt;spark2.2-yarn&lt;/a&gt;,&lt;a href=&quot;http://spark.apache.org/docs/2.2.1/spark-standalone.html&quot;&gt;spark2.2-standalone&lt;/a&gt;,&lt;a href=&quot;http://spark.apache.org/docs/2.2.1/running-on-mesos.html&quot;&gt;spark2.2-mesos&lt;/a&gt;&lt;/li&gt;
 &lt;/ol&gt;
 
+&lt;hr /&gt;
 &lt;p&gt;至此，本篇内容完成。&lt;br /&gt;
 如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～&lt;br /&gt;
 ©商业转载请联系作者获得授权，非商业转载请注明出处。&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="Spark" /><summary type="html">本文主要关于spark日志相关的部分内容，包括spark日志位置以及其中一种&amp;gt;日志配置方法，后续可再对本文进行其他配置方法的补充。 注意: 本文中使用的版本是spark2.2.1 最近平台中某租户使用的容器化集群spark集群，提交的spark streaming任务的日志没有进行级别控制，疯狂的刷日志，导致会占满宿主机的存储空间，并且集群均使用的是standalone模式，没有配置删除日志，所以日志太多会影响同一个宿主机下其他租户spark的使用。因此，在今天进行了一下集群的全局配置，直接将日志级别进行了更改，并且也趁这个时间，总结下对于spark日志相关的部分内容，后续有时间再进行其他补充。 Spark应用程序运行日志的存放 在很多情况下，我们需要查看driver和executor在运行spark程序时候产生的日志，以便于我们调试和查找问题。 Driver端日志 Spark Driver端的日志在默认情况下是直接输出在控制台的，driver本身没有stderr和stdout文件，所以只能在控制台输出。不过可以通过配置，将日志打印到文件中，具体配置方式后续再进行说明。 Executor端日志 Spark Executor日志的存放位置，是与Spark的部署模式相关的；Spark目前3种部署方式：Spark Standalone、Mesos、YARN。 Spark Standalone模式：在spark standalone的部署模式下，可以直接在Master UI界面查看到相应的应用程序的日志，如下图。其中可以看到是有stderr和stdout两种日志，区别就是如果你在程序中使用了println(….)输出语句，并且位置是在executor端执行的，这些信息会在stdout文件里面显示，而在driver端执行的会直接在控制台输出；其余的Spark运行日志会在stderr文件里面显示。 通常，每个job的详细日志输出是在每个worker（slave）节点的work目录下，这个目录可以通过spark-env.sh下配置SPARK_WORKER_DIR参数（Directory to run applications in, which will include both logs and scratch space，默认情况下是SPARK_HOME/work）设置。 此部分，可以进行worker配置使日志自动删除，详情见后续“配置日志”部分。 Mesos模式：在Mesos模式下，也可以通过Mesos的Master UI界面上看到相关的应用程序日志，这些日志是存储在Mesos Slave的work目录下的，通常情况下通过修改mesos-slave-env.sh或mesos-master-env.sh文件下的MESOS_log_dir参数和MESOS_work_dir参数可以设置slave或master的日志目录和工作目录，默认情况下是master和slave的logs都在/var/log/mesos下。 YARN模式：在yarn模式下，executor和application master都运行在“containers”内。 YARN在一个application结束后，有2种处理容器内日志的方式。 其中在yarn模式下，最简单的收集日志的方式是使用Yarn的日志收集工具(yarn logs -applicationId )，这个工具可以收集应用程序的相关日志，但是要求:a.开启了日志聚合功能（yarn.log-aggregation-enable，默认情况下这参数是false）；b.application必须运行完，因为yarn必须先聚合这些日志。这种情况下，容器日志将被复制到HDFS，并删除本地日志，从而腾出更多空间。这样的话，这些日志可以在集群任何节点上用yarn logs命令查看：yarn logs -applicationId ，用这个命令会打印出指定应用的所有日志文件的内容，或者也可以直接在HDFS上查看这些日志（HDFS shell或者HDFS API）。这个目录的配置可以在YARN配置中指定（yarn.nodemanager.remote-app-log-dir和yarn.nodemanager.remote-app-log-dir-suffix）。这些日志同样还可以在Spark Web UI上Executors页查看，但是也有前提，需要启动Spark history server和MapReduce history server，再在yarn-site.xml中配置好yarn.log.server.url。Spark history server UI将把你重定向到MapReduce history server以查看这些聚合日志。 如果日志聚合没有开启，那么日志文件将在每台机器上的YARN_APP_LOGS_DIR目录保留，通常这个目录指向NodeManager节点(ResourceManager节点下没输出)的/tmp/logs或者$HADOOP_HOME/log/userlogs（这取决于Hadoop版本和安全方式）。查看日志的话，需要到每台机器上查看这些目录。子目录是按application ID和container ID来组织的。这些日志同样可以在 Spark Web UI上Executors页查看，而且这时你不需要运行MapReduce history server。这里还有一个需要注意的地方，在没有开启日志聚合的时候，有一个参数yarn.nodemanager.log.retain-seconds，这个参数指应用程序输入出日志的保存时间，默认是10800，单位s，也就是3个小时，所以有可能超过时间再去查看日志的时候，原来的运行日志就自动删除了。 额外补充：在yarn模式下，kill掉某个job（直接在UI界面或者是终端kill掉任务都是不对的，该任务可能还会继续执行下去，所以要用如下命令才算完全停止该job的执行），yarn application -kill 。 配置日志 Standalone日志自动删除配置 目前，在使用中，平台中的容器化的spark集群因为资源已经由docker+mesos+marathon控制了，一个集群只有一个租户使用，因此均是standalone模式部署的，不过在使用过程中，应用程序日志不会自动删除会占很大空间，因此进行了worker配置，使日志自动删除。 其中，更改了conf/spark-env.sh，设置SPARK_WORKER_OPTS，即在文件内增加： export SPARK_WORKER_OPTS=&quot;-Dspark.worker.cleanup.enabled=true -Dspark.worker.cleanup.interval=3600 -Dspark.worker.cleanup.appDataTtl=604800 -Dspark.worker.ui.compressedLogFileLengthCacheSize=100&quot; 参数解释： (1)spark.worker.cleanup.enabled（默认false）：仅在standalone模式下生效，开启后定期清理worker节点的worker目录下的应用程序日志，并且仅会清理已经停止的application日志。Enable periodic cleanup of worker / application directories. Note that this only affects standalone mode, as YARN works differently. Only the directories of stopped applications are cleaned up. (2)spark.worker.cleanup.interval（默认1800）：清理频率。Controls the interval, in seconds, at which the worker cleans up old application work dirs on the local machine. (3)spark.worker.cleanup.appDataTtl（604800(7days,7243600)）：The number of seconds to retain application work directories on each worker. This is a Time To Live and should depend on the amount of available disk space you have. Application logs and jars are downloaded to each application work dir. Over time, the work dirs can quickly fill up disk space, especially if you run jobs very frequently. (4)spark.worker.ui.compressedLogFileLengthCacheSize（默认100）：For compressed log files, the uncompressed file can only be computed by uncompressing the files. Spark caches the uncompressed file size of compressed log files. This property controls the cache size.</summary></entry><entry><title type="html">机器学习入门自学-描述统计学入门2</title><link href="http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/16/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A82/" rel="alternate" type="text/html" title="机器学习入门自学-描述统计学入门2" /><published>2018-05-16T00:00:00+08:00</published><updated>2018-05-16T00:00:00+08:00</updated><id>http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/16/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A82</id><content type="html" xml:base="http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/16/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A82/">&lt;blockquote&gt;
@@ -2878,9 +3460,10 @@ AMale  BFemale  C1000  D7000&lt;br /&gt;
 平均值50000&lt;br /&gt;
 中间数也差不多在中间&lt;/p&gt;
 
+&lt;hr /&gt;
 &lt;p&gt;如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～&lt;br /&gt;
 ©商业转载请联系作者获得授权，非商业转载请注明出处。&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="机器学习" /><category term="描述统计学" /><summary type="html">本文关于自学udacity机器学习课程的自学笔记，为第一部分，描述统计学入门(1)。 2018-05-08-研究方法入门 基本概念 抽象概念（constructs） 操作性定义：一种将构造（constructs）转变为我们可衡量的变量的方式；一种用我们衡量它的方式描述变量的方式。 总体参数μ：描述整个总体的平均值 样本统计量：样本的平均值 样本大小n 抽样误差μ-：样本平均值和总体平均值之间的差异。在使用一个样本对一个总体进行推理时，样本的平均值可能不会完全等于总体的平均值。 用来估计μ，估计值是对μ的最佳猜测。 好样本：大、随机无偏差 随机样本：每个对象被选中的概率都是一样的。 可视化关系-eg 散点图 散点图： 1.x轴上变量：自变量（independent variable）或预测变量（predictor variable） 2.y轴上变量：因变量（dependent variable）即结果（outcome）</summary></entry><entry><title type="html">Kerberos具体实践1-Kerberos环境准备及安装</title><link href="http://localhost:4000/bigdata/2018/05/05/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B51-Kerberos%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%E5%8F%8A%E5%AE%89%E8%A3%85/" rel="alternate" type="text/html" title="Kerberos具体实践1-Kerberos环境准备及安装" /><published>2018-05-05T00:00:00+08:00</published><updated>2018-05-05T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/05/05/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B51-Kerberos%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%E5%8F%8A%E5%AE%89%E8%A3%85</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/05/05/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B51-Kerberos%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%E5%8F%8A%E5%AE%89%E8%A3%85/">&lt;blockquote&gt;
-  &lt;p&gt;本文属于Kerberos具体实践整理的第一部分，主要涉及到Kerberos集群的安装以及基本命令的使用。&lt;/p&gt;
+  &lt;p&gt;本文主要关于Kerberos的简单应用。因为工作测试需要，自己装了一套集群进行了Kerberos的部署，并且与HDFS、ZK进行整合，然后将操作过程进行了整理，以便后续再查看。本文主要涉及到Kerberos集群的&amp;gt;安装以及基本命令的使用，后续会继续说明其与HDFS、ZK的整合操作。&lt;/p&gt;
 &lt;/blockquote&gt;
 
 &lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
@@ -3294,425 +3877,7 @@ $ klist -k /etc/krb5.keytab
    -----------------
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
-
+&lt;hr /&gt;
 &lt;p&gt;至此，本篇内容完成。以上为Kerberos单KDC版搭建过程，下篇文章进行HDFS和Kerberos整合操作的整理。&lt;br /&gt;
 如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～&lt;br /&gt;
-©商业转载请联系作者获得授权，非商业转载请注明出处。&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="Kerberos" /><summary type="html">本文属于Kerberos具体实践整理的第一部分，主要涉及到Kerberos集群的安装以及基本命令的使用。</summary></entry><entry><title type="html">SparkStreaming程序中checkpoint与广播变量兼容处理</title><link href="http://localhost:4000/bigdata/2018/04/04/SparkStreaming%E7%A8%8B%E5%BA%8F%E4%B8%ADcheckpoint%E4%B8%8E%E5%B9%BF%E6%92%AD%E5%8F%98%E9%87%8F%E5%85%BC%E5%AE%B9%E5%A4%84%E7%90%86/" rel="alternate" type="text/html" title="SparkStreaming程序中checkpoint与广播变量兼容处理" /><published>2018-04-04T00:00:00+08:00</published><updated>2018-04-04T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/04/04/SparkStreaming%E7%A8%8B%E5%BA%8F%E4%B8%ADcheckpoint%E4%B8%8E%E5%B9%BF%E6%92%AD%E5%8F%98%E9%87%8F%E5%85%BC%E5%AE%B9%E5%A4%84%E7%90%86</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/04/04/SparkStreaming%E7%A8%8B%E5%BA%8F%E4%B8%ADcheckpoint%E4%B8%8E%E5%B9%BF%E6%92%AD%E5%8F%98%E9%87%8F%E5%85%BC%E5%AE%B9%E5%A4%84%E7%90%86/">&lt;blockquote&gt;
-  &lt;p&gt;上文中说明了如何使用kafka连接池来优化程序，但是在上文中预留了一个问题，就是当使用上文的方式下发KafkaPool广播变量时，如果Spark Streaming程序中也使用了checkpoint，则如果程序中断而重启程序，广播变量无法从checkpoint中恢复，会出现“java.lang.ClassCastException:B cannot be cast to KafkaPool”问题，所以在此篇文章中，对此问题进行解决。&lt;br /&gt;
-&lt;strong&gt;注意: 本文中使用的版本是spark2.2.1和kafka0.10.1.1&lt;/strong&gt;&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h1 id=&quot;背景&quot;&gt;背景&lt;/h1&gt;
-&lt;p&gt;在spark信令处理程序中使用checkpoint主要是因为从源头读取kafka数据的时候记录offset，防止数据丢失；并且目前是做的是容器化的集群，如果集群down了，会自动重启容器并且也能把程序恢复。&lt;br /&gt;
-不过对于Spark Streaming中防止数据丢失可以有两种方式:&lt;/p&gt;
-&lt;ol&gt;
-  &lt;li&gt;使用Spark Streaming的checkpoint机制&lt;/li&gt;
-  &lt;li&gt;自己维护kafka offset&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;但是，有人说checkpoint有弊端，并且我也遇到了序列化的这个问题。在查资料的过程中，看到有评论说checkpoint与广播变量就是不能同时使用（这是不对的），所以也思考过要不要改成自己手动维护offset，而且发现有好多人也这么做了。不过我们代码更新迭代并不频繁，不会被checkpoint影响太大，所以还是决定再试试使用checkpoint，终于好不容易也让我找到了解决方法，真是巨开心,下面就说下怎么解决的。&lt;/p&gt;
-
-&lt;h1 id=&quot;解决-示例说明&quot;&gt;解决-示例说明&lt;/h1&gt;
-&lt;h2 id=&quot;参考例子&quot;&gt;参考例子&lt;/h2&gt;
-&lt;p&gt;在Spark Streaming中，目前为止累加器和广播变量确实是无法从checkpoint恢复的。但是如果在程序中既使用到checkpoint又使用了累加器和广播变量的话，最好对累加器和广播变量做懒实例化操作，这样可以使累加器和广播变量在driver失败重启时能够重新实例化。&lt;br /&gt;
-解决方法其实就在spark官方的项目的examples中，访问请戳: &lt;a href=&quot;https://github.com/apache/spark/blob/master/examples/src/main/scala/org/apache/spark/examples/streaming/RecoverableNetworkWordCount.scala&quot;&gt;RecoverableNetworkWordCount&lt;/a&gt; ，它是广播变量和累加器与checkpoint兼容的一个例子。下面我就把代码摘出来记录一下。&lt;/p&gt;
-&lt;h3 id=&quot;第一步用单例模式来获取或生成广播变量和累加器&quot;&gt;第一步：用单例模式来获取或生成广播变量和累加器&lt;/h3&gt;
-&lt;div class=&quot;language-scala highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;cm&quot;&gt;/**
- * Use this singleton to get or register a Broadcast variable.
- * 单例模式获取广播变量wordBlacklist
- */&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;object&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;WordBlacklist&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;nd&quot;&gt;@volatile&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;instance&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Broadcast&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Seq&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;getInstance&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sc&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;SparkContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Broadcast&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Seq&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;instance&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;synchronized&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;instance&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-          &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;wordBlacklist&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Seq&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;a&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;b&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;c&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-          &lt;span class=&quot;n&quot;&gt;instance&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;broadcast&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;wordBlacklist&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;instance&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;cm&quot;&gt;/**
- * Use this singleton to get or register an Accumulator.
- * 累加器
- */&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;object&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DroppedWordsCounter&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;nd&quot;&gt;@volatile&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;instance&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;LongAccumulator&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;getInstance&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sc&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;SparkContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;LongAccumulator&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;instance&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;synchronized&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;instance&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-          &lt;span class=&quot;n&quot;&gt;instance&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;longAccumulator&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;WordsInBlacklistCounter&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;instance&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;h3 id=&quot;第二步在spark主程序中使用&quot;&gt;第二步：在Spark主程序中使用&lt;/h3&gt;
-&lt;p&gt;在主程序的driver端位置使用，懒实例化操作，这样可以使累加器和广播变量在driver失败重启时能够重新实例化。&lt;/p&gt;
-&lt;div class=&quot;language-scala highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;object&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;RecoverableNetworkWordCount&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;c1&quot;&gt;// 这个是用来生成StreamingContext对象的用户自定义的方法
-&lt;/span&gt;  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ip&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;port&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;outputPath&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;checkpointDirectory&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;StreamingContext&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;// If you do not see this printed, that means the StreamingContext has been loaded from the new checkpoint
-&lt;/span&gt;    &lt;span class=&quot;c1&quot;&gt;// 如果没有打印出这句话，说明是使用检查点元数据恢复一个StreamingContext
-&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Creating new context&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;outputFile&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;File&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;outputPath&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;outputFile&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;exists&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;outputFile&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;delete&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sparkConf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;SparkConf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setAppName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;RecoverableNetworkWordCount&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;// 创建sparkContext，1秒一个批次
-&lt;/span&gt;    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ssc&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;StreamingContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sparkConf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Seconds&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;// 设置checkpoint
-&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;ssc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;checkpoint&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;checkpointDirectory&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;// Create a socket stream on target ip:port and count the words in input stream of \n delimited text (eg. generated by 'nc')
-&lt;/span&gt;    &lt;span class=&quot;c1&quot;&gt;// 这里是测试的socket stream
-&lt;/span&gt;    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lines&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ssc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;socketTextStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ip&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;port&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;words&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lines&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;flatMap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot; &quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;wordCounts&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;words&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;reduceByKey&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;wordCounts&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;foreachRDD&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;RDD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt;
-      &lt;span class=&quot;c1&quot;&gt;// Get or register the blacklist Broadcast 广播变量
-&lt;/span&gt;      &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;blacklist&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;WordBlacklist&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getInstance&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sparkContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;c1&quot;&gt;// Get or register the droppedWordsCounter Accumulator 累加器
-&lt;/span&gt;      &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;droppedWordsCounter&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DroppedWordsCounter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getInstance&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sparkContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;c1&quot;&gt;// Use blacklist to drop words and use droppedWordsCounter to count them 使用广播变量和累加器
-&lt;/span&gt;      &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;counts&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;filter&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;word&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;blacklist&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;contains&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;word&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-          &lt;span class=&quot;n&quot;&gt;droppedWordsCounter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-          &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;
-        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-          &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;
-        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;}.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;collect&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mkString&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;[&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;, &quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;]&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;output&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Counts at time $time $counts&quot;&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;output&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Dropped ${droppedWordsCounter.value} word(s) totally&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Appending to ${outputFile.getAbsolutePath}&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;nc&quot;&gt;Files&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;output&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;\n&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;outputFile&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Charset&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;defaultCharset&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;ssc&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Array&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;])&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;nc&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Your arguments were ${args.mkString(&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;&quot;&lt;/span&gt;, &lt;span class=&quot;err&quot;&gt;&quot;&lt;/span&gt;, &lt;span class=&quot;err&quot;&gt;&quot;&lt;/span&gt;, &lt;span class=&quot;err&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;)}&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;nc&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
-        &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;
-          |Usage: RecoverableNetworkWordCount &amp;lt;hostname&amp;gt; &amp;lt;port&amp;gt; &amp;lt;checkpoint-directory&amp;gt;
-          |     &amp;lt;output-file&amp;gt;. &amp;lt;hostname&amp;gt; and &amp;lt;port&amp;gt; describe the TCP server that Spark
-          |     Streaming would connect to receive data. &amp;lt;checkpoint-directory&amp;gt; directory to
-          |     HDFS-compatible file system which checkpoint data &amp;lt;output-file&amp;gt; file to which the
-          |     word counts will be appended
-          |In local mode, &amp;lt;master&amp;gt; should be 'local[n]' with n &amp;gt; 1
-          |Both &amp;lt;checkpoint-directory&amp;gt; and &amp;lt;output-file&amp;gt; must be absolute paths
-        &quot;&quot;&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;stripMargin&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;nc&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;exit&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Array&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ip&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;IntParam&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;port&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;checkpointDirectory&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;outputPath&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;// 使用StreamingContext.getOrCreate来创建StreamingContext对象，传入的第一个参数是checkpoint的存放目录，第二参数是生成StreamingContext对象的用户自定义方法。
-&lt;/span&gt;    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ssc&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;StreamingContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getOrCreate&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;checkpointDirectory&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ip&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;port&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;outputPath&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;checkpointDirectory&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;ssc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;ssc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;awaitTermination&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;h1 id=&quot;解决-sparkstreamingkafkapool程序修改兼容checkpoint和广播变量kafkapool&quot;&gt;解决-SparkStreaming+kafkaPool程序修改(兼容checkpoint和广播变量kafkaPool)&lt;/h1&gt;
-&lt;p&gt;上述内容即如何将checkpoint与广播变量或累加器兼容的例子，下面则结合上述例子，对上文(&lt;a href=&quot;https://leafming.github.io/bigdata/2018/04/02/SparkStreaming写数据到Kafka-Kafka连接池的使用/&quot;&gt;SparkStreaming写数据到Kafka&lt;/a&gt;)的程序做修改来解决“java.lang.ClassCastException:B cannot be cast to KafkaPool”的问题。&lt;/p&gt;
-&lt;h2 id=&quot;第一步包装kafkaproducer-创建kafka连接池不变&quot;&gt;第一步：包装KafkaProducer-创建Kafka连接池（不变）&lt;/h2&gt;
-&lt;p&gt;对于上文(&lt;a href=&quot;https://leafming.github.io/bigdata/2018/04/02/SparkStreaming写数据到Kafka-Kafka连接池的使用/&quot;&gt;SparkStreaming写数据到Kafka&lt;/a&gt;)中的程序，第一步保持不变，创建class KafkaPool 以及object KafkaPool，将KafkaProducer以lazy val的方式进行包装。&lt;/p&gt;
-&lt;div class=&quot;language-scala highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;java.util.concurrent.Future&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.apache.kafka.clients.producer.&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;KafkaProducer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ProducerRecord&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;RecordMetadata&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;//scala中，类名之后的括号中是构造函数的参数列表，() =&amp;gt;是传值传参，KafkaProducer
-&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;KafkaPool&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;K&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;V&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;](&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createProducer&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;KafkaProducer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;K&lt;/span&gt;,&lt;span class=&quot;kt&quot;&gt;V&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;])&lt;/span&gt;  &lt;span class=&quot;k&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Serializable&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;c1&quot;&gt;//使用lazy关键字修饰变量后，只有在使用该变量时，才会调用其实例化方法
-&lt;/span&gt;  &lt;span class=&quot;c1&quot;&gt;//后续在spark主程序中使用时，将kafkapool广播出去到每个executor里面了，然后到每个executor中，当用到的时候，会实例化一个producer，这样就不会有NotSerializableExceptions的问题了。
-&lt;/span&gt;  &lt;span class=&quot;k&quot;&gt;lazy&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;producer&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createProducer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;topic&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;key&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;K&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;V&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Future&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;RecordMetadata&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;producer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ProducerRecord&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;K&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;V&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;](&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;topic&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;key&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;topic&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;V&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Future&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;RecordMetadata&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;producer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ProducerRecord&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;K&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;V&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;](&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;topic&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;object&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;KafkaPool&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;scala.collection.JavaConversions._&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;apply&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;K&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;V&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;](&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;Object&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;])&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;KafkaPool&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;K&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;V&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createProducerFunc&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;nc&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setProperty&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;java.security.auth.login.config&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;kafka_client_jaas.conf&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;producer&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;KafkaProducer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;K&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;V&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;](&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;sys&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;addShutdownHook&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-          &lt;span class=&quot;c1&quot;&gt;//当发送ececutor中的jvm shutdown时，kafka能够将缓冲区的消息发送出去。
-&lt;/span&gt;          &lt;span class=&quot;n&quot;&gt;producer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;close&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;producer&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;KafkaPool&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;createProducerFunc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;apply&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;K&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;V&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;](&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;java.util.Properties&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;KafkaPool&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;K&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;V&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;apply&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toMap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;h2 id=&quot;第二步对广播变量懒实例化操作使用单例模式来获取广播变量kafkapool&quot;&gt;第二步：对广播变量懒实例化操作，使用单例模式来获取广播变量KafkaPool&lt;/h2&gt;
-&lt;p&gt;这里较上文(&lt;a href=&quot;https://leafming.github.io/bigdata/2018/04/02/SparkStreaming写数据到Kafka-Kafka连接池的使用/&quot;&gt;SparkStreaming写数据到Kafka&lt;/a&gt;)第一种方式中的直接下发广播变量有所区别，而是创建来一个GetKafkaPoolBroadcast的getKafkaPool方法，用于在主程序中driver端调用此方法时再获取或生成广播变量。&lt;/p&gt;
-&lt;div class=&quot;language-scala highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;java.util.Properties&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.apache.spark.SparkContext&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.apache.spark.internal.Logging&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.apache.spark.broadcast.Broadcast&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;object&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;GetKafkaPoolBroadcast&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Logging&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;nd&quot;&gt;@volatile&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kafkapool&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Broadcast&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;KafkaPool&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt;  &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;getKafkaPool&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sc&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;SparkContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;proKafkaBrokerAddr&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Broadcast&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;KafkaPool&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kafkapool&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;synchronized&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kafkapool&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-          &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kafkaProducerConfig&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-            &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;props&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Properties&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;props&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;put&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;metadata.broker.list&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;proKafkaBrokerAddr&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;props&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;put&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;security.protocol&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;SASL_PLAINTEXT&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;props&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;put&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;sasl.mechanism&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;PLAIN&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;props&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;put&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;key.serializer&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;org.apache.kafka.common.serialization.StringSerializer&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;props&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;put&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;value.serializer&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;org.apache.kafka.common.serialization.StringSerializer&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;props&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;put&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;bootstrap.servers&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;proKafkaBrokerAddr&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;props&lt;/span&gt;
-          &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-          &lt;span class=&quot;n&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;warn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;kafka producer init done!&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-          &lt;span class=&quot;n&quot;&gt;kafkapool&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;broadcast&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;KafkaPool&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;](&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kafkaProducerConfig&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;kafkapool&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;h2 id=&quot;第三步在主程序中使用getkafkapoolbroadcast的getkafkapool获取或生成广播变量&quot;&gt;第三步：在主程序中使用GetKafkaPoolBroadcast的getKafkaPool获取或生成广播变量&lt;/h2&gt;
-&lt;p&gt;在主程序中，driver端的位置调用此方法，这样可以使广播变量在driver失败重启时能够重新示例化。&lt;/p&gt;
-&lt;div class=&quot;language-scala highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;    &lt;span class=&quot;c1&quot;&gt;//保存处理后的数据到kafka
-&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;writeDStrem&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;foreachRDD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;c1&quot;&gt;// driver端运行，涉及操作：广播变量的初始化和更新
-&lt;/span&gt;      &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;isEmpty&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;logInfo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot; No Data in this batchInterval --------&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;start_time&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;currentTimeMillis&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-        &lt;span class=&quot;c1&quot;&gt;// Get or register the kafkaPool Broadcast 获取或生成广播变量kafkaPool
-&lt;/span&gt;        &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kafkaProducer&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Broadcast&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;KafkaPool&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;GetKafkaPoolBroadcast&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getKafkaPool&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sparkContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;proKafkaBrokerAddr&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;foreach&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;record&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&amp;gt;{&lt;/span&gt;
-          &lt;span class=&quot;n&quot;&gt;kafkaProducer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;proKafkaTopicName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;record&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;o&quot;&gt;})&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;competeTime&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;start_time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;Processed data write to KAFKA&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;})&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;这样，就不会再尝试从checkpoint中恢复广播变量，而可以避免“java.lang.ClassCastException:B cannot be cast to KafkaPool”这个问题啦。&lt;br /&gt;
-至此，本篇内容完成。&lt;br /&gt;
-如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～&lt;br /&gt;
-©商业转载请联系作者获得授权，非商业转载请注明出处。&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="Spark" /><category term="Kafka" /><summary type="html">上文中说明了如何使用kafka连接池来优化程序，但是在上文中预留了一个问题，就是当使用上文的方式下发KafkaPool广播变量时，如果Spark Streaming程序中也使用了checkpoint，则如果程序中断而重启程序，广播变量无法从checkpoint中恢复，会出现“java.lang.ClassCastException:B cannot be cast to KafkaPool”问题，所以在此篇文章中，对此问题进行解决。 注意: 本文中使用的版本是spark2.2.1和kafka0.10.1.1 背景 在spark信令处理程序中使用checkpoint主要是因为从源头读取kafka数据的时候记录offset，防止数据丢失；并且目前是做的是容器化的集群，如果集群down了，会自动重启容器并且也能把程序恢复。 不过对于Spark Streaming中防止数据丢失可以有两种方式: 使用Spark Streaming的checkpoint机制 自己维护kafka offset 但是，有人说checkpoint有弊端，并且我也遇到了序列化的这个问题。在查资料的过程中，看到有评论说checkpoint与广播变量就是不能同时使用（这是不对的），所以也思考过要不要改成自己手动维护offset，而且发现有好多人也这么做了。不过我们代码更新迭代并不频繁，不会被checkpoint影响太大，所以还是决定再试试使用checkpoint，终于好不容易也让我找到了解决方法，真是巨开心,下面就说下怎么解决的。 解决-示例说明 参考例子 在Spark Streaming中，目前为止累加器和广播变量确实是无法从checkpoint恢复的。但是如果在程序中既使用到checkpoint又使用了累加器和广播变量的话，最好对累加器和广播变量做懒实例化操作，这样可以使累加器和广播变量在driver失败重启时能够重新实例化。 解决方法其实就在spark官方的项目的examples中，访问请戳: RecoverableNetworkWordCount ，它是广播变量和累加器与checkpoint兼容的一个例子。下面我就把代码摘出来记录一下。 第一步：用单例模式来获取或生成广播变量和累加器 /** * Use this singleton to get or register a Broadcast variable. * 单例模式获取广播变量wordBlacklist */ object WordBlacklist { @volatile private var instance: Broadcast[Seq[String]] = null def getInstance(sc: SparkContext): Broadcast[Seq[String]] = { if (instance == null) { synchronized { if (instance == null) { val wordBlacklist = Seq(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;) instance = sc.broadcast(wordBlacklist) } } } instance } } /** * Use this singleton to get or register an Accumulator. * 累加器 */ object DroppedWordsCounter { @volatile private var instance: LongAccumulator = null def getInstance(sc: SparkContext): LongAccumulator = { if (instance == null) { synchronized { if (instance == null) { instance = sc.longAccumulator(&quot;WordsInBlacklistCounter&quot;) } } } instance } } 第二步：在Spark主程序中使用 在主程序的driver端位置使用，懒实例化操作，这样可以使累加器和广播变量在driver失败重启时能够重新实例化。 object RecoverableNetworkWordCount { // 这个是用来生成StreamingContext对象的用户自定义的方法 def createContext(ip: String, port: Int, outputPath: String, checkpointDirectory: String) : StreamingContext = { // If you do not see this printed, that means the StreamingContext has been loaded from the new checkpoint // 如果没有打印出这句话，说明是使用检查点元数据恢复一个StreamingContext println(&quot;Creating new context&quot;) val outputFile = new File(outputPath) if (outputFile.exists()) outputFile.delete() val sparkConf = new SparkConf().setAppName(&quot;RecoverableNetworkWordCount&quot;) // 创建sparkContext，1秒一个批次 val ssc = new StreamingContext(sparkConf, Seconds(1)) // 设置checkpoint ssc.checkpoint(checkpointDirectory) // Create a socket stream on target ip:port and count the words in input stream of \n delimited text (eg. generated by 'nc') // 这里是测试的socket stream val lines = ssc.socketTextStream(ip, port) val words = lines.flatMap(_.split(&quot; &quot;)) val wordCounts = words.map((_, 1)).reduceByKey(_ + _) wordCounts.foreachRDD { (rdd: RDD[(String, Int)], time: Time) =&amp;gt; // Get or register the blacklist Broadcast 广播变量 val blacklist = WordBlacklist.getInstance(rdd.sparkContext) // Get or register the droppedWordsCounter Accumulator 累加器 val droppedWordsCounter = DroppedWordsCounter.getInstance(rdd.sparkContext) // Use blacklist to drop words and use droppedWordsCounter to count them 使用广播变量和累加器 val counts = rdd.filter { case (word, count) =&amp;gt; if (blacklist.value.contains(word)) { droppedWordsCounter.add(count) false } else { true } }.collect().mkString(&quot;[&quot;, &quot;, &quot;, &quot;]&quot;) val output = s&quot;Counts at time $time $counts&quot; println(output) println(s&quot;Dropped ${droppedWordsCounter.value} word(s) totally&quot;) println(s&quot;Appending to ${outputFile.getAbsolutePath}&quot;) Files.append(output + &quot;\n&quot;, outputFile, Charset.defaultCharset()) } ssc } def main(args: Array[String]) { if (args.length != 4) { System.err.println(s&quot;Your arguments were ${args.mkString(&quot;[&quot;, &quot;, &quot;, &quot;]&quot;)}&quot;) System.err.println( &quot;&quot;&quot; |Usage: RecoverableNetworkWordCount &amp;lt;hostname&amp;gt; &amp;lt;port&amp;gt; &amp;lt;checkpoint-directory&amp;gt; | &amp;lt;output-file&amp;gt;. &amp;lt;hostname&amp;gt; and &amp;lt;port&amp;gt; describe the TCP server that Spark | Streaming would connect to receive data. &amp;lt;checkpoint-directory&amp;gt; directory to | HDFS-compatible file system which checkpoint data &amp;lt;output-file&amp;gt; file to which the | word counts will be appended |In local mode, &amp;lt;master&amp;gt; should be 'local[n]' with n &amp;gt; 1 |Both &amp;lt;checkpoint-directory&amp;gt; and &amp;lt;output-file&amp;gt; must be absolute paths &quot;&quot;&quot;.stripMargin ) System.exit(1) } val Array(ip, IntParam(port), checkpointDirectory, outputPath) = args // 使用StreamingContext.getOrCreate来创建StreamingContext对象，传入的第一个参数是checkpoint的存放目录，第二参数是生成StreamingContext对象的用户自定义方法。 val ssc = StreamingContext.getOrCreate(checkpointDirectory, () =&amp;gt; createContext(ip, port, outputPath, checkpointDirectory)) ssc.start() ssc.awaitTermination() } } 解决-SparkStreaming+kafkaPool程序修改(兼容checkpoint和广播变量kafkaPool) 上述内容即如何将checkpoint与广播变量或累加器兼容的例子，下面则结合上述例子，对上文(SparkStreaming写数据到Kafka)的程序做修改来解决“java.lang.ClassCastException:B cannot be cast to KafkaPool”的问题。 第一步：包装KafkaProducer-创建Kafka连接池（不变） 对于上文(SparkStreaming写数据到Kafka)中的程序，第一步保持不变，创建class KafkaPool 以及object KafkaPool，将KafkaProducer以lazy val的方式进行包装。 import java.util.concurrent.Future import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord, RecordMetadata} //scala中，类名之后的括号中是构造函数的参数列表，() =&amp;gt;是传值传参，KafkaProducer class KafkaPool[K, V]( createProducer: () =&amp;gt; KafkaProducer[K,V]) extends Serializable{ //使用lazy关键字修饰变量后，只有在使用该变量时，才会调用其实例化方法 //后续在spark主程序中使用时，将kafkapool广播出去到每个executor里面了，然后到每个executor中，当用到的时候，会实例化一个producer，这样就不会有NotSerializableExceptions的问题了。 lazy val producer = createProducer() def send(topic: String, key: K, value: V): Future[RecordMetadata] = producer.send(new ProducerRecord[K, V](topic, key, value)) def send(topic: String, value: V): Future[RecordMetadata] = producer.send(new ProducerRecord[K, V](topic, value)) } object KafkaPool{ import scala.collection.JavaConversions._ def apply[K, V](config: Map[String, Object]): KafkaPool[K, V] = { val createProducerFunc = () =&amp;gt; { System.setProperty(&quot;java.security.auth.login.config&quot;,&quot;kafka_client_jaas.conf&quot;) val producer = new KafkaProducer[K, V](config) sys.addShutdownHook { //当发送ececutor中的jvm shutdown时，kafka能够将缓冲区的消息发送出去。 producer.close() } producer } new KafkaPool(createProducerFunc) } def apply[K, V](config: java.util.Properties): KafkaPool[K, V] = apply(config.toMap) } 第二步：对广播变量懒实例化操作，使用单例模式来获取广播变量KafkaPool 这里较上文(SparkStreaming写数据到Kafka)第一种方式中的直接下发广播变量有所区别，而是创建来一个GetKafkaPoolBroadcast的getKafkaPool方法，用于在主程序中driver端调用此方法时再获取或生成广播变量。 ```scala import java.util.Properties import org.apache.spark.SparkContext import org.apache.spark.internal.Logging import org.apache.spark.broadcast.Broadcast</summary></entry><entry><title type="html">SparkStreaming输出数据到Kafka–Kafka连接池的使用</title><link href="http://localhost:4000/bigdata/2018/04/02/SparkStreaming%E5%86%99%E6%95%B0%E6%8D%AE%E5%88%B0Kafka-Kafka%E8%BF%9E%E6%8E%A5%E6%B1%A0%E7%9A%84%E4%BD%BF%E7%94%A8/" rel="alternate" type="text/html" title="SparkStreaming输出数据到Kafka--Kafka连接池的使用" /><published>2018-04-02T00:00:00+08:00</published><updated>2018-04-02T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/04/02/SparkStreaming%E5%86%99%E6%95%B0%E6%8D%AE%E5%88%B0Kafka-Kafka%E8%BF%9E%E6%8E%A5%E6%B1%A0%E7%9A%84%E4%BD%BF%E7%94%A8</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/04/02/SparkStreaming%E5%86%99%E6%95%B0%E6%8D%AE%E5%88%B0Kafka-Kafka%E8%BF%9E%E6%8E%A5%E6%B1%A0%E7%9A%84%E4%BD%BF%E7%94%A8/">&lt;blockquote&gt;
-  &lt;p&gt;最近把spark实时流处理的信令处理程序，由原来的向kafka0.8.2.1中写入数据，改成了向带ACL权限认证的kafka0.10.1.1中写入数据，因此在之前的基础上创建连接前会多一个认证过程，因此导致写入效率有些低下，所以使用Kafka连接池来优化之前程序。&lt;br /&gt;
-&lt;strong&gt;注意: 本文中使用的版本是spark2.2.1和kafka0.10.1.1&lt;/strong&gt;&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h1 id=&quot;原写入方式描述&quot;&gt;原写入方式描述&lt;/h1&gt;
-&lt;p&gt;使用Spark Streaming从Kafka中接收数据时，可以使用Spark提供的统一的接口来接收数据，但是写入数据的时候，并没有spark官方提供的写入接口，需要自己写使用底层的kafka方法，使用producer写入。&lt;br /&gt;
-下面是原写入方式的程序示例:&lt;/p&gt;
-&lt;h2 id=&quot;第一部分spark-streaming主程序部分&quot;&gt;第一部分：Spark Streaming主程序部分&lt;/h2&gt;
-&lt;div class=&quot;language-scala highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;    &lt;span class=&quot;n&quot;&gt;writeDStrem&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;foreachRDD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;isEmpty&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;logInfo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot; No Data in this batchInterval --------&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;start_time&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;currentTimeMillis&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-        &lt;span class=&quot;c1&quot;&gt;// 不能在这里创建KafkaProducer
-&lt;/span&gt;	&lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;foreachPartition&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;iter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&amp;gt;{&lt;/span&gt;
-          &lt;span class=&quot;n&quot;&gt;process&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;writeAsPartitionToKafka&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;proKafkaTopicName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;iter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cacheNum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;props&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;o&quot;&gt;})&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;competeTime&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;start_time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;Processed data write to KAFKA&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;})&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;在每个partation中调用ProcessData类中的writeAsPartitionToKafka方法来向kafka写入数据。&lt;/p&gt;
-&lt;blockquote&gt;
-  &lt;p&gt;特别说明：这里是通过调用ProcessData类中的方法，在ProcessData类中的方法中创建KafkaProducer来向kafka里写入的，如果直接写创建KafkaProducer，不能把将KafkaProducer的创建放在foreachPartition外边，因为KafkaProducer是不可序列化的（not serializable）。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h2 id=&quot;第二部分主程序在rddforeachpartition中调用以下类中的方法把数据写入kafka中&quot;&gt;第二部分：主程序在rdd.foreachPartition中调用以下类中的方法把数据写入kafka中&lt;/h2&gt;
-&lt;div class=&quot;language-scala highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;    &lt;span class=&quot;k&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ProcessData&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Logging&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;cm&quot;&gt;/**
-        * 数据发送
-        * @param topic
-        * @param messages
-        * @param props
-        */&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sendMessages&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;topic&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;messages&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;props&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Properties&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;nc&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setProperty&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;java.security.auth.login.config&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;kafka_client_jaas.conf&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;producer&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Producer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;KafkaProducer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;](&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;props&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;try&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-          &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;ProducerRecord&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ProducerRecord&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;,&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;](&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;topic&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;messages&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-          &lt;span class=&quot;n&quot;&gt;producer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;catch&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-          &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;e&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;IOException&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;logError&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;partition write data to  kafka exception : &quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;e&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getMessage&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;\n&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;finally&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-          &lt;span class=&quot;n&quot;&gt;producer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;close&lt;/span&gt;
-        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-      &lt;span class=&quot;cm&quot;&gt;/**
-        * 处理数据，按N条写入一次
-        * @param topicName
-        * @param iter
-        * @param cache 缓存数
-        * @param props
-        * @return
-        */&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;writeAsPartitionToKafka&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;topicName&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;iter&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Iterator&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cache&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;props&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Properties&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Try&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Try&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;record_sum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&quot;&lt;/span&gt;   &lt;span class=&quot;c1&quot;&gt;//初始化空串
-&lt;/span&gt;        &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count_sum&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;     &lt;span class=&quot;c1&quot;&gt;//计数器
-&lt;/span&gt;        &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;record&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&quot;&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;iter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hasNext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-          &lt;span class=&quot;n&quot;&gt;record&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;iter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;next&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-          &lt;span class=&quot;n&quot;&gt;record_sum&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;record&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;\n&quot;&lt;/span&gt;
-          &lt;span class=&quot;n&quot;&gt;count_sum&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count_sum&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
-          &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count_sum&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cache&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;sendMessages&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;topicName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;record_sum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;props&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;record_sum&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;&quot;&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;count_sum&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;
-          &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;record_sum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;isEmpty&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-          &lt;span class=&quot;n&quot;&gt;sendMessages&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;topicName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;record_sum&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;props&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;此类中主要2个方法，writeAsPartitionToKafka是用于处理数据，sendMessages用来创建KafkaProducer来向kafka生产消息。&lt;br /&gt;
-writeAsPartitionToKafka方法为了“提高”写入效率，设置了一个cacheNum值，这个方法会将每个patation中的数据以cacheNum条和并成一条数据来向Kafka中写入，因此是cacheNum条数据以“\n”来分割合并成一条在Kafka里的消息，所以对下游数据处理也造成了麻烦。&lt;br /&gt;
-并且使用此方式，相当于对于每个partation的每cacheNum条记录（即每次调用sendMessages方法，发送1条kafka消息）都需要创建KafkaProducer，然后再利用producer进行输出操作
-。还是需要较频繁的建立连接，因此使用kafka连接池来更改程序。&lt;/p&gt;
-
-&lt;h1 id=&quot;新写入方式描述使用kafka连接池更改程序&quot;&gt;新写入方式描述:使用Kafka连接池更改程序&lt;/h1&gt;
-&lt;h2 id=&quot;第一步包装kafkaproducer-创建kafka连接池&quot;&gt;第一步：包装KafkaProducer-创建Kafka连接池&lt;/h2&gt;
-&lt;p&gt;创建class KafkaPool 以及object KafkaPool，将KafkaProducer以lazy val的方式进行包装。&lt;/p&gt;
-&lt;div class=&quot;language-scala highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;    &lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;java.util.concurrent.Future&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.apache.kafka.clients.producer.&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;KafkaProducer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ProducerRecord&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;RecordMetadata&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;//scala中，类名之后的括号中是构造函数的参数列表，() =&amp;gt;是传值传参，KafkaProducer
-&lt;/span&gt;    &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;KafkaPool&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;K&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;V&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;](&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createProducer&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;KafkaProducer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;K&lt;/span&gt;,&lt;span class=&quot;kt&quot;&gt;V&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;])&lt;/span&gt;  &lt;span class=&quot;k&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Serializable&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;c1&quot;&gt;//使用lazy关键字修饰变量后，只有在使用该变量时，才会调用其实例化方法
-&lt;/span&gt;      &lt;span class=&quot;c1&quot;&gt;//后续在spark主程序中使用时，将kafkapool广播出去到每个executor里面了，然后到每个executor中，当用到的时候，会实例化一个producer，这样就不会有NotSerializableExceptions的问题了。
-&lt;/span&gt;      &lt;span class=&quot;k&quot;&gt;lazy&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;producer&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createProducer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;topic&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;key&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;K&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;V&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Future&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;RecordMetadata&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; 
-        &lt;span class=&quot;n&quot;&gt;producer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ProducerRecord&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;K&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;V&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;](&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;topic&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;key&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;topic&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;V&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Future&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;RecordMetadata&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; 
-        &lt;span class=&quot;n&quot;&gt;producer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ProducerRecord&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;K&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;V&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;](&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;topic&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;object&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;KafkaPool&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;scala.collection.JavaConversions._&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;apply&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;K&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;V&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;](&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;Object&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;])&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;KafkaPool&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;K&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;V&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-          &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;createProducerFunc&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-            &lt;span class=&quot;c1&quot;&gt;//kafka权限认证
-&lt;/span&gt;            &lt;span class=&quot;nc&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setProperty&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;java.security.auth.login.config&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;kafka_client_jaas.conf&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-            &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;producer&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;KafkaProducer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;K&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;V&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;](&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;sys&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;addShutdownHook&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-	      &lt;span class=&quot;c1&quot;&gt;//当发送ececutor中的jvm shutdown时，kafka能够将缓冲区的消息发送出去。
-&lt;/span&gt;              &lt;span class=&quot;n&quot;&gt;producer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;close&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-            &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;producer&lt;/span&gt;
-          &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-          &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;KafkaPool&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;createProducerFunc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;apply&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;K&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;V&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;](&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;java.util.Properties&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;KafkaPool&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;K&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;V&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;apply&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toMap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;blockquote&gt;
-  &lt;p&gt;补充说明：&lt;br /&gt;
-传值传参和传名的区别（()=&amp;gt;和:=&amp;gt;的区别）&lt;/p&gt;
-  &lt;ul&gt;
-    &lt;li&gt;传值
-      &lt;div class=&quot;language-scala highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;test1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;code&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;()=&amp;gt;&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;){&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;start&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;code&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;//要想调用传入的代码块，必须写成code()，否则不会调用。  
-&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;end&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;test1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;c1&quot;&gt;//此代码块，传入后立即执行。  
-&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;when evaluated&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;//传入就打印
-&lt;/span&gt;    &lt;span class=&quot;o&quot;&gt;()=&amp;gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;bb&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)}&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// 执行code()才打印
-&lt;/span&gt;  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-      &lt;/div&gt;
-      &lt;p&gt;结果: &lt;br /&gt;
-when evaluated &lt;br /&gt;
-start&lt;br /&gt;
-bb&lt;br /&gt;
-end&lt;/p&gt;
-    &lt;/li&gt;
-    &lt;li&gt;传名
-      &lt;div class=&quot;language-scala highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;test2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;code&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;){&lt;/span&gt;  
-    &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;start&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;  
-    &lt;span class=&quot;n&quot;&gt;code&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// 这行才会调用传入的代码块，写成code()亦可  
-&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;end&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;  
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;  
-  &lt;span class=&quot;n&quot;&gt;test2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;c1&quot;&gt;// 此处的代码块不会马上被调用  
-&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;when evaluated&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;  &lt;span class=&quot;c1&quot;&gt;//执行code的时候才调用
-&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;bb&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;//执行code的时候才调用  
-&lt;/span&gt;  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-      &lt;/div&gt;
-      &lt;p&gt;结果:&lt;br /&gt;
-start&lt;br /&gt;
-when evaluated&lt;br /&gt;
-bb&lt;br /&gt;
-end&lt;/p&gt;
-    &lt;/li&gt;
-  &lt;/ul&gt;
-&lt;/blockquote&gt;
-
-&lt;h2 id=&quot;第二步利用广播变量下发kafkaproducer&quot;&gt;第二步：利用广播变量下发KafkaProducer&lt;/h2&gt;
-&lt;p&gt;利用广播变量，给每一个executor自己的KafkaProducer，将KafkaProducer广播到每一个executor中。  &lt;br /&gt;
-&lt;strong&gt;注意：这里暂留一个问题，此种方式只可以Spark Streaming程序不用checkpoint的时候使用，否则，如果程序中断而重启程序，广播变量无法从checkpoint中恢复，会出现 &lt;code class=&quot;highlighter-rouge&quot;&gt;“java.lang.ClassCastException:B cannot be cast to KafkaPool”&lt;/code&gt; 的问题，具体解决方式见下篇文章(&lt;a href=&quot;https://leafming.github.io/bigdata/2018/04/04/SparkStreaming程序中checkpoint与广播变量兼容处理/&quot;&gt;SparkStreaming程序中checkpoint与广播变量兼容处理&lt;/a&gt;)。现在先说明这种不用checkpoint的方式。&lt;/strong&gt;&lt;br /&gt;
-在spark主程序中加入如下代码：&lt;/p&gt;
-&lt;div class=&quot;language-scala highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;    &lt;span class=&quot;c1&quot;&gt;//利用广播变量的形式，将后端写入KafkaProducer广播到每一个executor 注意：这里写广播变量的话，与checkpoint一起用会有问题
-&lt;/span&gt;    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kafkaProducer&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Broadcast&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;KafkaPool&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kafkaProducerConfig&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;props&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Properties&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;props&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;put&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;metadata.broker.list&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;proKafkaBrokerAddr&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;props&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;put&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;security.protocol&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;SASL_PLAINTEXT&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;props&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;put&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;sasl.mechanism&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;PLAIN&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;props&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;put&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;key.serializer&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;org.apache.kafka.common.serialization.StringSerializer&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;props&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;put&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;value.serializer&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;org.apache.kafka.common.serialization.StringSerializer&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;props&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;put&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;bootstrap.servers&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;proKafkaBrokerAddr&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;props&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;warn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;kafka producer init done!&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;ssc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sparkContext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;broadcast&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;KafkaPool&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;, &lt;span class=&quot;kt&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;](&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kafkaProducerConfig&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;h2 id=&quot;第三步使用广播变量&quot;&gt;第三步：使用广播变量&lt;/h2&gt;
-&lt;p&gt;spark 主程序中，在每个executor中使用广播变量。&lt;/p&gt;
-&lt;div class=&quot;language-scala highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;    &lt;span class=&quot;n&quot;&gt;writeDStrem&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;foreachRDD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;isEmpty&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;logInfo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot; No Data in this batchInterval --------&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;start_time&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;currentTimeMillis&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;rdd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;foreach&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;record&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&amp;gt;{&lt;/span&gt;
-           &lt;span class=&quot;n&quot;&gt;kafkaProducer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;proKafkaTopicName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;record&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;o&quot;&gt;})&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;competeTime&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;start_time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;Processed data write to KAFKA&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;})&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;至此，更改完毕。&lt;/p&gt;
-&lt;h1 id=&quot;结果对比&quot;&gt;结果对比&lt;/h1&gt;
-&lt;p&gt;使用Kafka连接池更改程序之前以及之后的处理速度对比如下图所示，写入90W条数据由原来的17953ms变为了1966ms，效率大大提高。&lt;br /&gt;
-&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/spark/2018-04-02SparkStreamingKafka.png?raw=true&quot; alt=&quot;compare&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;内容即以上，会在下篇文章(&lt;a href=&quot;https://leafming.github.io/bigdata/2018/04/04/SparkStreaming程序中checkpoint与广播变量兼容处理/&quot;&gt;SparkStreaming程序中checkpoint与广播变量兼容处理&lt;/a&gt;)解决spark streaming中checkpoint和广播变量使用冲突的问题，敬请期待。&lt;br /&gt;
-如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～&lt;br /&gt;
-©商业转载请联系作者获得授权，非商业转载请注明出处。&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="Spark" /><category term="Kafka" /><summary type="html">最近把spark实时流处理的信令处理程序，由原来的向kafka0.8.2.1中写入数据，改成了向带ACL权限认证的kafka0.10.1.1中写入数据，因此在之前的基础上创建连接前会多一个认证过程，因此导致写入效率有些低下，所以使用Kafka连接池来优化之前程序。 注意: 本文中使用的版本是spark2.2.1和kafka0.10.1.1</summary></entry></feed>
+©商业转载请联系作者获得授权，非商业转载请注明出处。&lt;/p&gt;</content><author><name>Liv Yeh</name></author><category term="Kerberos" /><summary type="html">本文主要关于Kerberos的简单应用。因为工作测试需要，自己装了一套集群进行了Kerberos的部署，并且与HDFS、ZK进行整合，然后将操作过程进行了整理，以便后续再查看。本文主要涉及到Kerberos集群的&amp;gt;安装以及基本命令的使用，后续会继续说明其与HDFS、ZK的整合操作。 概述 为什么要将HDFS和Kerberos整合 HDFS权限控制过于简单，直接使用hadoop的acl进行权限控制，可能会出现在程序中使用System.setProperty(“HADOOP_USER_NAME”,”root”);直接更改用户，伪装成任意用户使用。因此，需要加强HDFS权限控制，则采用进行kerberos认证的方式。 hadoop的用户鉴权是基于JAAS的，其中hadoop.security.authentication属性有simple 和kerberos 等方式。如果hadoop.security.authentication等于”kerberos”,那么是“hadoop-user-kerberos”或者“hadoop-keytab-kerberos”，否则是“hadoop-simple”。在使用了kerberos的情况下，从javax.security.auth.kerberos.KerberosPrincipal的实例获取username。在没有使用kerberos时，首先读取hadoop的系统环境变量，如果没有的话，对于windows 从com.sun.security.auth.NTUserPrincipal获取用户名，对于类unix 从com.sun.security.auth.UnixPrincipal中获得用户名，然后再看该用户属于哪个group，从而完成登陆认证。 Kerberos原理 术语说明</summary></entry></feed>
