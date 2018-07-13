@@ -499,8 +499,8 @@ rating:
 # You can visit https://leancloud.cn get AppID and AppKey.
 leancloud_visitors:
   enable: true
-  app_id: w1o8wzeiHWtdbOb8p2oEt8Rm-MdYXbMMI
-  app_key: BmWV1stC9v1X1SIMQME4VGof
+  app_id: c82MFNFEU6p4iaz5Ik4L07e5-gzGzoHsz
+  app_key: CSzcJkq7WGpn5bNMendMuKYf
 
 # Show PV/UV of the website/page with busuanzi.
 # Get more information on http://ibruce.info/2015/04/04/busuanzi/
@@ -516,7 +516,7 @@ busuanzi_count:
   site_pv_header: <i class="fa fa-eye"></i>
   site_pv_footer:
   # custom pv span for one page only
-  page_pv: true
+  page_pv: false
   page_pv_header: <i class="fa fa-file-o"></i>
   page_pv_footer:
 
