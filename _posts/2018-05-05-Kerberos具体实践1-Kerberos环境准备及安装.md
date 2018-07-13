@@ -2,6 +2,7 @@
 layout: post
 title: "Kerberos具体实践1-Kerberos环境准备及安装"
 date: 2018-05-05
+updated: 2018-05-05
 description: 本文属于Kerberos具体实践整理的第一部分，主要涉及到Kerberos集群的安装以及基本命令的使用。
 categories:
 - BigData

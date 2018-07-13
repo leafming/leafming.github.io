@@ -2,6 +2,7 @@
 layout: post
 title: "Docker+Mesos+Marathon监控方法使用总结"
 date: 2018-06-15
+updated: 2018-06-15
 description: 本文主要关于Docker、Mesos、Marathon的监控方法的总结，主要使用java方法和相关restful方式获取监控数据。
 categories:
 - Cloud

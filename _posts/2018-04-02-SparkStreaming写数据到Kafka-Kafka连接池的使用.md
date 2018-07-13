@@ -2,6 +2,7 @@
 layout: post
 title: "SparkStreaming输出数据到Kafka--Kafka连接池的使用"
 date: 2018-04-02
+updated: 2018-04-02
 description: 本文关于在使用Spark Streaming输出数据到Kafka的过程中，使用Kafka连接池来提高输出效率。
 categories: 
 - BigData

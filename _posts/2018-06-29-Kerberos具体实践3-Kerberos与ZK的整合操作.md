@@ -2,6 +2,7 @@
 layout: post
 title: "Kerberos具体实践3-Kerberos与ZK的整合操作"
 date: 2018-06-29
+updated: 2018-06-29
 description: 本文属于Kerberos具体实践整理的第三部分，主要涉及kerberos与ZK的整合操作。
 categories:
 - BigData

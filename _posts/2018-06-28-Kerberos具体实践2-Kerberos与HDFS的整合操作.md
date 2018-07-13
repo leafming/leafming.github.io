@@ -2,6 +2,7 @@
 layout: post
 title: "Kerberos具体实践2-Kerberos与HDFS的整合操作"
 date: 2018-06-28
+updated: 2018-06-28
 description: 本文属于Kerberos具体实践整理的第二部分，主要涉及kerberos与HDFS的整合操作。
 categories:
 - BigData

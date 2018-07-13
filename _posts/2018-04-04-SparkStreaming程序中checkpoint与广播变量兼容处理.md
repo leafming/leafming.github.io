@@ -2,6 +2,7 @@
 layout: post
 title: "SparkStreaming程序中checkpoint与广播变量兼容处理"
 date: 2018-04-04
+updated: 2018-04-04
 description: 本文主要关于Spark Streaming程序中同时使用checkpoint与广播变量的方法，此文中代码在上文“SparkStreaming输出数据到Kafka--Kafka连接池的使用”的基础上进行优化，使其能够同时使用checkpoint记录读取上游kafka的offset以及kafkaPool广播变量。
 categories:
 - BigData

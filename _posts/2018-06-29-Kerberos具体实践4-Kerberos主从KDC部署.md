@@ -2,6 +2,7 @@
 layout: post
 title: "Kerberos具体实践4-Kerberos主从KDC部署"
 date: 2018-06-29
+updated: 2018-06-29
 description: 本文属于Kerberos具体实践整理的第四部分，主要涉及kerberos主从KDC部署。
 categories:
 - BigData
