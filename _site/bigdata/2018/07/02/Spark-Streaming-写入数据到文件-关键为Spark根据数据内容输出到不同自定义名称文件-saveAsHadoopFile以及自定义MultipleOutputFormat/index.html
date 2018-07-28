@@ -1,0 +1,2077 @@
+
+<!doctype html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/assets/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/assets/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/assets/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Spark,HDFS," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="iLeaf" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/assets/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="本文关于在使用Spark或Spark Streaming输出数据到文件的几种方式。关键的内容是Spark Streaming中实现实时根据数据内容，将数据写入不同的文件存储，支持自定义输出的文件名称，主要使用saveAsHadoopFile以及自定义MultipleOutputFormat实现。本文的场景是数据写入hdfs。">
+<meta name="keywords" content="Spark, HDFS">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spark(Streaming)写入数据到文件-关键为根据数据内容输出到不同自定义名称文件(saveAsHadoopFile以及自定义MultipleOutputFormat)">
+<meta property="og:url" content="http://localhost:4000/bigdata/2018/07/02/Spark-Streaming-%E5%86%99%E5%85%A5%E6%95%B0%E6%8D%AE%E5%88%B0%E6%96%87%E4%BB%B6-%E5%85%B3%E9%94%AE%E4%B8%BASpark%E6%A0%B9%E6%8D%AE%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E8%BE%93%E5%87%BA%E5%88%B0%E4%B8%8D%E5%90%8C%E8%87%AA%E5%AE%9A%E4%B9%89%E5%90%8D%E7%A7%B0%E6%96%87%E4%BB%B6-saveAsHadoopFile%E4%BB%A5%E5%8F%8A%E8%87%AA%E5%AE%9A%E4%B9%89MultipleOutputFormat/">
+<meta property="og:site_name" content="iLeaf">
+<meta property="og:description" content="本文关于在使用Spark或Spark Streaming输出数据到文件的几种方式。关键的内容是Spark Streaming中实现实时根据数据内容，将数据写入不同的文件存储，支持自定义输出的文件名称，主要使用saveAsHadoopFile以及自定义MultipleOutputFormat实现。本文的场景是数据写入hdfs。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/spark/2018-07-26-SparkStreaming写入数据到HDFS-Outputformat方法说明.png?raw=true">
+<meta property="og:updated_time" content="2018-07-28T00:00:00+08:00">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Spark(Streaming)写入数据到文件-关键为根据数据内容输出到不同自定义名称文件(saveAsHadoopFile以及自定义MultipleOutputFormat)">
+<meta name="twitter:description" content="本文关于在使用Spark或Spark Streaming输出数据到文件的几种方式。关键的内容是Spark Streaming中实现实时根据数据内容，将数据写入不同的文件存储，支持自定义输出的文件名称，主要使用saveAsHadoopFile以及自定义MultipleOutputFormat实现。本文的场景是数据写入hdfs。">
+<meta name="twitter:image" content="https://github.com/leafming/bak/blob/master/images/spark/2018-07-26-SparkStreaming写入数据到HDFS-Outputformat方法说明.png?raw=true">
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":true},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://localhost:4000/"/>
+
+
+
+
+
+  <title>Spark(Streaming)写入数据到文件-关键为根据数据内容输出到不同自定义名称文件(saveAsHadoopFile以及自定义MultipleOutputFormat) | iLeaf</title>
+  
+
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?d509d2d894059ebd8e784708e52dcdc7";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"> <div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">iLeaf</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Leaf's Blog</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+<div id="posts" class="posts-expand">
+  
+  
+
+  
+
+  
+  
+  
+
+  <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/bigdata/2018/07/02/Spark-Streaming-%E5%86%99%E5%85%A5%E6%95%B0%E6%8D%AE%E5%88%B0%E6%96%87%E4%BB%B6-%E5%85%B3%E9%94%AE%E4%B8%BASpark%E6%A0%B9%E6%8D%AE%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E8%BE%93%E5%87%BA%E5%88%B0%E4%B8%8D%E5%90%8C%E8%87%AA%E5%AE%9A%E4%B9%89%E5%90%8D%E7%A7%B0%E6%96%87%E4%BB%B6-saveAsHadoopFile%E4%BB%A5%E5%8F%8A%E8%87%AA%E5%AE%9A%E4%B9%89MultipleOutputFormat/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="叶子  ( ˘ ³˘)♥">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/assets/images/IMG_8739.GIF">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="iLeaf">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+          
+          
+            Spark(Streaming)写入数据到文件-关键为根据数据内容输出到不同自定义名称文件(saveAsHadoopFile以及自定义MultipleOutputFormat)
+          
+        </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-02T00:00:00+08:00">
+                2018-07-02
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">更新于</span>
+              
+              <time title="更新于" itemprop="dateModified" datetime="2018-07-28">
+                2018-07-28
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/BigData" itemprop="url" rel="index">
+                    <span itemprop="name">BigData</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/bigdata/2018/07/02/Spark-Streaming-%E5%86%99%E5%85%A5%E6%95%B0%E6%8D%AE%E5%88%B0%E6%96%87%E4%BB%B6-%E5%85%B3%E9%94%AE%E4%B8%BASpark%E6%A0%B9%E6%8D%AE%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E8%BE%93%E5%87%BA%E5%88%B0%E4%B8%8D%E5%90%8C%E8%87%AA%E5%AE%9A%E4%B9%89%E5%90%8D%E7%A7%B0%E6%96%87%E4%BB%B6-saveAsHadoopFile%E4%BB%A5%E5%8F%8A%E8%87%AA%E5%AE%9A%E4%B9%89MultipleOutputFormat/" class="leancloud_visitors" data-flag-title="Spark(Streaming)写入数据到文件-关键为根据数据内容输出到不同自定义名称文件(saveAsHadoopFile以及自定义MultipleOutputFormat)">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+            
+                <div class="post-description">
+                    本文关于在使用Spark或Spark Streaming输出数据到文件的几种方式。关键的内容是Spark Streaming中实现实时根据数据内容，将数据写入不同的文件存储，支持自定义输出的文件名称，主要使用saveAsHadoopFile以及自定义MultipleOutputFormat实现。本文的场景是数据写入hdfs。
+                </div>
+            
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+  <p>之前的Spark实时流处理的数据处理程序，要求把数据从kafka接收之后，分2路分别写入kafka和hdfs，写入kafka的部分之前已经有过总结，现在回过头来把之前的写入HDFS的地方重新总结一下，整个过程从头到尾有一个写入方式的优化，不过时间有点长啦，尽量描述完整( ˘ ³˘)♥。<br />
+<strong>注意: 本文中使用的版本是spark2.2.1和2.6.0-cdh5.11.0</strong></p>
+</blockquote>
+
+<h1 id="背景">背景</h1>
+<p>在工作中，需要将从kafka收到的数据做一些处理，然后分2路存储到kafka和HDFS中，再供下游进行使用。<br />
+所以，在通过Spark Streaming写入HDFS的时候根据业务需要，最后变革了好多次，才形成了最后的版本。</p>
+
+<h1 id="最基础直接方式-直接使用saveastextfile">最基础直接方式-直接使用saveAsTextFile</h1>
+<p>对于将数据直接存入HDFS或本地文件等，spark提供了现成的算子：<strong>saveAsTextFile</strong>。</p>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="n">saveAsTextFile</span><span class="o">(</span><span class="n">path</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span>
+<span class="k">def</span> <span class="n">saveAsTextFile</span><span class="o">(</span><span class="n">path</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">codec</span><span class="k">:</span> <span class="kt">Class</span><span class="o">[</span><span class="k">_</span> <span class="k">&lt;:</span> <span class="kt">CompressionCodec</span><span class="o">])</span><span class="k">:</span> <span class="kt">Unit</span>
+<span class="n">saveAsTextFile用于将RDD以文本文件的格式存储到文件系统中</span><span class="err">。</span>
+</code></pre>
+</div>
+<p>不过，直接使用saveAsTextFile有很多需要注意的问题。首先，<strong>saveAsTextFile要求保存的目录之前是没有的，否则会报错。</strong>所以，最好程序中保存前先判断一下目录是否存在。<strong>下面的代码的例子先没有判断目录是否存在，需要自己调整</strong>。<br />
+下面我们说一下直接使用saveAsTextFile可能遇到的问题：</p>
+<ol>
+  <li>文件内容会被覆盖掉<br />
+对于初学spark的时候，第一次使用saveAsTextFile，可能会遇到文件内容会被覆盖掉的问题。<br />
+在第一次使用的时候，可能会想要这么写的：
+    <div class="language-scala highlighter-rouge"><pre class="highlight"><code>     <span class="n">saveDstream</span><span class="o">.</span><span class="n">foreachRDD</span><span class="o">(</span><span class="n">rdd</span> <span class="k">=&gt;</span> <span class="o">{</span>
+       <span class="c1">//EmptyRDD是没有分区的，所以调用partitions.isEmpty是true，所以这样可以避免写空文件
+</span>       <span class="k">if</span> <span class="o">(</span><span class="n">rdd</span><span class="o">.</span><span class="n">partitions</span><span class="o">.</span><span class="n">isEmpty</span><span class="o">)</span> <span class="o">{</span>
+         <span class="n">logInfo</span><span class="o">(</span><span class="s">" No Data in this batchInterval --------"</span><span class="o">)</span>
+       <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+         <span class="k">val</span> <span class="n">start_time</span> <span class="k">=</span> <span class="nc">System</span><span class="o">.</span><span class="n">currentTimeMillis</span><span class="o">()</span>
+         <span class="n">rdd</span><span class="o">.</span><span class="n">saveAsTextFile</span><span class="o">(</span><span class="s">"hdfs://cdh5hdfs/savepath"</span><span class="o">)</span>
+         <span class="n">competeTime</span><span class="o">(</span><span class="n">start_time</span><span class="o">,</span> <span class="s">"Processed data write to hdfs"</span><span class="o">)</span>
+       <span class="o">}</span>
+     <span class="o">})</span>
+</code></pre>
+    </div>
+    <p>而一旦实际测试之后，你会发现savepath目录里的文件每次都会被覆盖掉，只保存着最后一次saveAsTextFIle的内容。<br />
+这是因为foreachRDD中使用saveAsTextFile默认保存的文件名就是part-0000_ … part-0000n，每一个rdd都是这样，所以在Spark Streaming程序中，后面的批次数据过来在同一路径下后面的文件可能会覆盖前面的，因此会出现文件内容会被覆盖掉。所以来说，为了避免这个问题，可以在保存的时候在文件夹后面加上时间戳来解决。</p>
+    <div class="language-scala highlighter-rouge"><pre class="highlight"><code>     <span class="n">saveDstream</span><span class="o">.</span><span class="n">foreachRDD</span><span class="o">(</span><span class="n">rdd</span> <span class="k">=&gt;</span> <span class="o">{</span>
+       <span class="c1">//EmptyRDD是没有分区的，所以调用partitions.isEmpty是true，所以这样可以避免写空文件
+</span>       <span class="k">if</span> <span class="o">(</span><span class="n">rdd</span><span class="o">.</span><span class="n">partitions</span><span class="o">.</span><span class="n">isEmpty</span><span class="o">)</span> <span class="o">{</span>
+         <span class="n">logInfo</span><span class="o">(</span><span class="s">" No Data in this batchInterval --------"</span><span class="o">)</span>
+       <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+         <span class="k">val</span> <span class="n">start_time</span> <span class="k">=</span> <span class="nc">System</span><span class="o">.</span><span class="n">currentTimeMillis</span><span class="o">()</span>
+         <span class="k">val</span> <span class="n">curDay</span><span class="k">=new</span> <span class="nc">Date</span><span class="o">(</span><span class="n">start_time</span><span class="o">)</span>
+         <span class="k">val</span> <span class="n">date</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span><span class="n">dateFormat</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="n">curDay</span><span class="o">)</span>
+         <span class="n">rdd</span><span class="o">.</span><span class="n">saveAsTextFile</span><span class="o">(</span><span class="s">"hdfs://cdh5hdfs/savepath/"</span><span class="o">+</span><span class="n">date</span><span class="o">+</span><span class="s">"/"</span><span class="o">+</span><span class="n">start_time</span><span class="o">)</span>
+         <span class="n">competeTime</span><span class="o">(</span><span class="n">start_time</span><span class="o">,</span> <span class="s">"Processed data write to hdfs"</span><span class="o">)</span>
+       <span class="o">}</span>
+     <span class="o">})</span>
+</code></pre>
+    </div>
+    <p>即：rdd.saveAsTextFile(“hdfs://cdh5hdfs/savepath/”+date+”/”+start_time)，这样写之后，保存的路径会根据当前时间来生成，假设运行到此段程序的时间是“2018-06-30 18:30:20”，那么文件存储的目录就会是“hdfs://cdh5hdfs/savepath/2018-06-30/1530354620”，如下显示：</p>
+    <div class="highlighter-rouge"><pre class="highlight"><code>dcos@d8pccdsj3[~]$hadoop fs -ls /savepath/2018-06-30/1530354620
+Found 8 items
+-rw-r--r--   3 test cgroup          0 2018-06-30 18:30 /savepath/2018-06-30/1530354620/_SUCCESS
+-rw-r--r--   3 test cgroup 2201736217 2018-06-30 18:30 /savepath/2018-06-30/1530354620/part-00000
+-rw-r--r--   3 test cgroup 2201037065 2018-06-30 18:30 /savepath/2018-06-30/1530354620/part-00001
+-rw-r--r--   3 test cgroup 2202157942 2018-06-30 18:30 /savepath/2018-06-30/1530354620/part-00002
+-rw-r--r--   3 test cgroup 2202523100 2018-06-30 18:30 /savepath/2018-06-30/1530354620/part-00003
+-rw-r--r--   3 test cgroup 2202310836 2018-06-30 18:30 /savepath/2018-06-30/1530354620/part-00004
+-rw-r--r--   3 test cgroup 2202639458 2018-06-30 18:30 /savepath/2018-06-30/1530354620/part-00005
+-rw-r--r--   3 test cgroup 2201906597 2018-06-30 18:30 /savepath/2018-06-30/1530354620/part-00006
+</code></pre>
+    </div>
+    <p>这样暂且解决了文件内容会被覆盖掉的问题。不过，这种情况下，我们会发现以日期命名的文件夹2018-06-30下，会根据每个批次生成一个时间戳命名的目录，并且目录下文件名称名称为part-0000n，所以说只是解决了这个还不够，此种方式还有其他需要注意的问题。</p>
+  </li>
+  <li>保存文件过多<br />
+使用saveAsTextFile经过以上操作之后，不会再出现文件覆盖的问题。但是，当实际运行后会发现，在sparkStreming程序中使用这种方式，会根据每个批次生成一个时间戳命名的目录，目录太多；并且在目录下会有很多很多文件，名称为part-00000 … part-0000n,这样如果文件太小并且过多，就会浪费hdfs的block空间，需要尽可能把文件大小调整到和block大小差不多为好。<br />
+之所以产生了这么多文件，这是因为在spark运行的时候，spark一般会按照执行task的多少生成多少个文件，spark把数据分成了很多个partation，每个partation对应一个task，一个partation的数据由task来执行保存动作，这样的话，在调用saveAsTextFile的时候，会把每个partation的数据保存为一个part-0000n文件。<br />
+所以，为了把文件保存为一个或较少文件，可以使用coalesce或repartition算子。如果生成一个文件，可以在RDD上调用coalesce(1,true).saveAsTextFile()，意味着做完计算之后将数据汇集到一个分区，然后再执行保存的动作，显然，一个分区，Spark自然只起一个task来执行保存的动作，也就只有一个文件产生了。又或者，可以调用repartition(1)，它其实是coalesce的一个包装，默认第二个参数为true。即：
+    <div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="n">rdd</span><span class="o">.</span><span class="n">coalesce</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span><span class="kc">true</span><span class="o">).</span><span class="n">saveAsTextFile</span><span class="o">(</span><span class="s">"hdfs://cdh5hdfs/savepath/"</span><span class="o">+</span><span class="n">date</span><span class="o">+</span><span class="s">"/"</span><span class="o">+</span><span class="n">start_time</span><span class="o">)</span>
+<span class="c1">//或
+//rdd.repartition(1).saveAsTextFile("hdfs://cdh5hdfs/savepath/"+date+"/"+start_time)
+</span></code></pre>
+    </div>
+    <p>不过这样写，在数据过多的时候有很大的隐患：一般情况下，Spark面对的是大量的数据，并且是并行执行的，在数据过多的时候，如果强行要求最后只有一个分区，必然导致大量的磁盘IO和网络IO产生，并且最终操作的节点的内存也会承受很大考验，可能会出现单节点内存不足的问题或者效率及其低下。因此，有人提出，可以采用HDFS磁盘合并操作，即HDFS的getmerge操作。</p>
+    <div class="highlighter-rouge"><pre class="highlight"><code>//hadoop fs -getmerge 源路径 目的路径 
+hadoop fs -getmerge /hdfs/output   /hdfs2/output.txt
+//或者cat &gt;操作
+</code></pre>
+    </div>
+  </li>
+  <li>不能自定义名称，目录层级太多<br />
+经过以上操作之后，就能把数据写到hdfs中，并且文件数量不会过多了。但是经过以上测试，我们会发现有个问题，为了防止文件内容被覆盖我们使用了时间戳，这样的话相当于生成的是一个不同的目录，在sparkStreming程序中使用这种方式，会根据每个批次生成一个时间戳命名的目录，目录太多；并且在那个目录里面，仍然是part-0000n命名的文件，不能自定义名称。因此，我们就思考能不能从文件名称入手，自定义文件名称而不是目录名称呢？</li>
+</ol>
+
+<h1 id="直接使用hdfs-api-append方法测试非生产">直接使用HDFS API-append方法（测试，非生产）</h1>
+<p>为了实现自定义文件名称、减少目录层级、追加写文件的需要，有文章提示说可以直接调用HDFS的api-append。但是实际上，有资料表明，hadoop的版本1.0.4以后，API中已经有了追加写入的功能，但不建议在生产环境中使用，不过我们也可以测试下。<br />
+如果需要使用此方法，需要修改配置文件，开启此功能，把dfs.support.appen的参数设置为true，不然客户端写入的时候会报错：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>Exception in thread "main" org.apache.hadoop.ipc.RemoteException: java.io.IOException: Append to hdfs not supported. Please refer to dfs.support.append configuration parameter.
+</code></pre>
+</div>
+<p>修改namenode节点上的hdfs-site.xml：</p>
+<div class="language-xml highlighter-rouge"><pre class="highlight"><code>  <span class="nt">&lt;property&gt;</span>  
+       <span class="nt">&lt;name&gt;</span>dfs.support.append<span class="nt">&lt;/name&gt;</span>  
+       <span class="nt">&lt;value&gt;</span>true<span class="nt">&lt;/value&gt;</span>  
+  <span class="nt">&lt;/property&gt;</span>
+</code></pre>
+</div>
+<p>或者，可以直接在程序里面代码设置：</p>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">private</span> <span class="k">val</span> <span class="n">conf</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Configuration</span><span class="o">()</span>
+<span class="n">conf</span><span class="o">.</span><span class="n">setBoolean</span><span class="o">(</span><span class="s">"dfs.support.append"</span><span class="o">,</span> <span class="kc">true</span><span class="o">)</span>
+<span class="c1">//后续直接使用其创建fs如：
+//var fs=FileSystem.get(uri, conf)
+</span></code></pre>
+</div>
+<p>并且需要注意的是，如果使用append追加写入文件，如果文件不存在，需求先创建。那么如果出现了这样的问题，你可能会直接像如下代码那么写（注意是错误的）：</p>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code>    <span class="k">val</span> <span class="n">path</span><span class="k">=new</span> <span class="nc">Path</span><span class="o">(</span><span class="n">strpath</span><span class="o">)</span>
+    <span class="k">val</span> <span class="n">uri</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">URI</span><span class="o">(</span><span class="n">strpath</span><span class="o">)</span>
+    <span class="k">var</span> <span class="n">fs</span><span class="k">=</span><span class="nc">FileSystem</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="n">uri</span><span class="o">,</span> <span class="n">conf</span><span class="o">)</span>
+    <span class="k">if</span> <span class="o">(!</span><span class="n">fs</span><span class="o">.</span><span class="n">exists</span><span class="o">(</span><span class="n">path</span><span class="o">))</span> <span class="o">{</span>
+      <span class="n">fs</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="n">path</span><span class="o">)</span>
+    <span class="o">}</span>
+    <span class="k">val</span> <span class="n">out</span> <span class="k">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">append</span><span class="o">(</span><span class="n">path</span><span class="o">)</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="o">(</span><span class="n">record_sum1</span><span class="o">.</span><span class="n">getBytes</span><span class="o">())</span>
+</code></pre>
+</div>
+<p>这样的话，会报如下错误：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>Exception in thread "main" org.apache.hadoop.ipc.RemoteException: org.apache.hadoop.hdfs.protocol.AlreadyBeingCreatedException: failed to create file /hdfs/testfile/file for DFSClient_-14565853217 on client 132.90.130.101 because current leaseholder is trying to recreate file.
+</code></pre>
+</div>
+<p>通过搜索发现可能和fs句柄有关，因此解决的时候，可以创建完文件之后，关闭流fs，再次获得一次新的fs：</p>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code>    <span class="k">val</span> <span class="n">path</span><span class="k">=new</span> <span class="nc">Path</span><span class="o">(</span><span class="n">strpath</span><span class="o">)</span>
+    <span class="k">val</span> <span class="n">uri</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">URI</span><span class="o">(</span><span class="n">strpath</span><span class="o">)</span>
+    <span class="k">var</span> <span class="n">fs</span><span class="k">=</span><span class="nc">FileSystem</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="n">uri</span><span class="o">,</span> <span class="n">conf</span><span class="o">)</span>
+    <span class="k">if</span> <span class="o">(!</span><span class="n">fs</span><span class="o">.</span><span class="n">exists</span><span class="o">(</span><span class="n">path</span><span class="o">))</span> <span class="o">{</span>
+      <span class="n">fs</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="n">path</span><span class="o">)</span>
+      <span class="n">fs</span><span class="o">.</span><span class="n">close</span><span class="o">()</span>
+      <span class="n">fs</span><span class="k">=</span><span class="nc">FileSystem</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="n">uri</span><span class="o">,</span> <span class="n">conf</span><span class="o">)</span>
+    <span class="o">}</span>
+    <span class="k">val</span> <span class="n">out</span> <span class="k">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">append</span><span class="o">(</span><span class="n">path</span><span class="o">)</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="o">(</span><span class="n">record_sum1</span><span class="o">.</span><span class="n">getBytes</span><span class="o">())</span>
+</code></pre>
+</div>
+<blockquote>
+  <p>参考<a href="https://www.cnblogs.com/byrhuangqiang/p/3926663.html">Hadoop HDFS文件常用操作及注意事项（更新）遇到的问题2</a>，<a href="https://blog.csdn.net/liu0bing/article/details/78951415">HDFS写入异常:追加文件第
+一次抛异常</a>。</p>
+</blockquote>
+
+<p>因此整体的写入HDFS的方法，我们这么写（假设这里测试数据的Iterator[(String,String)]元组，需要写入第二个字段），在spark调用的时候，每cache条写入一次：</p>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code>  <span class="k">def</span> <span class="n">writeToHDFS</span><span class="o">(</span><span class="n">strpath</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span><span class="n">iter</span><span class="k">:</span> <span class="kt">Iterator</span><span class="o">[(</span><span class="kt">String</span>,<span class="kt">String</span><span class="o">)],</span> <span class="n">cache</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span><span class="k">:</span> <span class="kt">Try</span><span class="o">[</span><span class="kt">Unit</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Try</span> <span class="o">{</span>
+    <span class="k">var</span> <span class="n">record_sum1</span><span class="o">=</span><span class="s">""</span>   <span class="c1">//初始化空串
+</span>    <span class="k">var</span> <span class="n">count_sum1</span><span class="k">=</span><span class="mi">0</span>     <span class="c1">//计数器
+</span>    <span class="k">var</span> <span class="n">record</span><span class="o">=</span><span class="s">""</span>
+    <span class="k">val</span> <span class="n">path</span><span class="k">=new</span> <span class="nc">Path</span><span class="o">(</span><span class="n">strpath</span><span class="o">)</span>
+    <span class="k">val</span> <span class="n">uri</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">URI</span><span class="o">(</span><span class="n">strpath</span><span class="o">)</span>
+    <span class="k">var</span> <span class="n">fs</span><span class="k">=</span><span class="nc">FileSystem</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="n">uri</span><span class="o">,</span> <span class="n">conf</span><span class="o">)</span>
+    <span class="k">if</span> <span class="o">(!</span><span class="n">fs</span><span class="o">.</span><span class="n">exists</span><span class="o">(</span><span class="n">path</span><span class="o">))</span> <span class="o">{</span>
+      <span class="n">fs</span><span class="o">.</span><span class="n">create</span><span class="o">(</span><span class="n">path</span><span class="o">)</span>
+      <span class="n">fs</span><span class="o">.</span><span class="n">close</span><span class="o">()</span>
+      <span class="n">fs</span><span class="k">=</span><span class="nc">FileSystem</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="n">uri</span><span class="o">,</span> <span class="n">conf</span><span class="o">)</span>
+    <span class="o">}</span>
+    <span class="k">val</span> <span class="n">out</span> <span class="k">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">append</span><span class="o">(</span><span class="n">path</span><span class="o">)</span>
+    <span class="k">while</span> <span class="o">(</span><span class="n">iter</span><span class="o">.</span><span class="n">hasNext</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">record</span><span class="k">=</span><span class="n">iter</span><span class="o">.</span><span class="n">next</span><span class="o">().</span><span class="n">_2</span>
+      <span class="n">record_sum1</span> <span class="o">+=</span> <span class="n">record</span><span class="o">+</span><span class="s">"\n"</span>
+      <span class="n">count_sum1</span> <span class="k">=</span> <span class="n">count_sum1</span> <span class="o">+</span> <span class="mi">1</span>
+      <span class="k">if</span> <span class="o">(</span><span class="n">count_sum1</span> <span class="o">==</span> <span class="n">cache</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="o">(</span><span class="n">record_sum1</span><span class="o">.</span><span class="n">getBytes</span><span class="o">())</span>
+        <span class="n">record_sum1</span> <span class="k">=</span> <span class="s">""</span>
+        <span class="n">count_sum1</span> <span class="k">=</span> <span class="mi">0</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+    <span class="k">if</span> <span class="o">(!</span><span class="n">record_sum1</span><span class="o">.</span><span class="n">isEmpty</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="o">(</span><span class="n">record_sum1</span><span class="o">.</span><span class="n">getBytes</span><span class="o">())</span>
+    <span class="o">}</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">flush</span><span class="o">()</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">close</span><span class="o">()</span>
+    <span class="n">fs</span><span class="o">.</span><span class="n">close</span><span class="o">()</span>
+  <span class="o">}</span>
+</code></pre>
+</div>
+<p>在spark程序里面可以直接rdd处这样使用：</p>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code>      <span class="k">if</span> <span class="o">(!</span><span class="n">rdd</span><span class="o">.</span><span class="n">isEmpty</span><span class="o">()){</span>
+      <span class="c1">//注意这里， 因为不需要返回值，所以用foreachPartition直接落地存储了最好。foreachPartition是collect算子，mapPartitions是transofmation。
+</span>        <span class="k">val</span> <span class="n">start_time</span> <span class="k">=</span> <span class="nc">System</span><span class="o">.</span><span class="n">currentTimeMillis</span><span class="o">()</span>
+        <span class="k">val</span> <span class="n">curDay</span><span class="k">=new</span> <span class="nc">Date</span><span class="o">(</span><span class="n">start_time</span><span class="o">)</span>
+        <span class="k">val</span> <span class="n">date</span><span class="k">:</span> <span class="kt">String</span> <span class="o">=</span><span class="n">dateFormat</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="n">curDay</span><span class="o">)</span>
+        <span class="n">rdd</span><span class="o">.</span><span class="n">foreachPartition</span><span class="o">(</span><span class="n">iter</span><span class="o">=&gt;{</span>
+           <span class="k">val</span> <span class="n">strpath</span><span class="o">=</span><span class="s">"hdfs://cdh5hdfs/savepath/"</span><span class="o">+</span><span class="n">date</span><span class="o">+</span><span class="s">"/"</span><span class="o">+</span><span class="n">start_time</span>
+           <span class="n">writeToHDFS</span><span class="o">(</span><span class="n">strpath</span><span class="o">,</span><span class="n">iter</span><span class="o">,</span><span class="mi">300</span><span class="o">)</span>          
+       <span class="o">})</span>       
+       <span class="c1">//rdd.repartition(1).mapPartitions(iter=&gt;{
+</span>       <span class="c1">//   val str=List[String]()
+</span>       <span class="c1">//   val strpath="hdfs://cdh5hdfs/savepath/"+date+"/"+start_time
+</span>       <span class="c1">//   writeToHDFS(strpath,iter,300)
+</span>       <span class="c1">//   str.iterator
+</span>       <span class="c1">// }).collect()
+</span>      <span class="o">}</span>
+</code></pre>
+</div>
+<p>这样的话，目录层次就变成了“hdfs://cdh5hdfs/savepath/当前日期/时间戳文件”内容即直接追加写入了以时间戳命名的文件中，减少了目录层级，并且能够自定义文件名称了。
+但是使用此种方法，相当于一个partation建立一次HDFS连接，执行起来会特别慢，是否可以考虑向Kafka似的弄个连接池的方式提高效率，但是我没有这样实验，毕竟append被说是测试版本，不建议用于生产。</p>
+<h1 id="需求更改">需求更改</h1>
+<p>上面的操作均是是对数据没有任何区分，直接将数据写入文件中。但是，后来我们的需要因为业务需要而有所更改。<br />
+我们处理的数据也是从上游接收过来的，每条数据中都有记录此条数据生成的时间，但是我们实际收到的时间可能较生成有所延迟，所以不仅仅要求需要自定义存储的文件名，而且要根据数据内容（数据内容的生成时间字段），来决定将数据写入到哪个文件夹的哪个文件内。<br />
+比如如数据格式如下所示：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>0|18610000000|460010000000000|2018|07|28|16-21-35|41003|22002|35004007800300|0000|||||0|||2018-07-28 16:21:35
+</code></pre>
+</div>
+<p>因此，我们根据需求，生成的目录格式需要是：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>dcos@d8pccdsj3[~]$hadoop fs -ls /savepath/2018-07-28
+Found 11 items
+drwxr-xr-x   - user1 cgroup          0 2018-07-28 10:42 /savepath/2018-07-28/00
+drwxr-xr-x   - user1 cgroup          0 2018-07-28 09:48 /savepath/2018-07-28/01
+drwxr-xr-x   - user1 cgroup          0 2018-07-28 09:40 /savepath/2018-07-28/02
+drwxr-xr-x   - user1 cgroup          0 2018-07-28 08:54 /savepath/2018-07-28/03
+drwxr-xr-x   - user1 cgroup          0 2018-07-28 10:26 /savepath/2018-07-28/04
+drwxr-xr-x   - user1 cgroup          0 2018-07-28 10:30 /savepath/2018-07-28/05
+drwxr-xr-x   - user1 cgroup          0 2018-07-28 10:38 /savepath/2018-07-28/06
+drwxr-xr-x   - user1 cgroup          0 2018-07-28 10:26 /savepath/2018-07-28/07
+drwxr-xr-x   - user1 cgroup          0 2018-07-28 10:42 /savepath/2018-07-28/08
+drwxr-xr-x   - user1 cgroup          0 2018-07-28 10:42 /savepath/2018-07-28/09
+drwxr-xr-x   - user1 cgroup          0 2018-07-28 11:42 /savepath/2018-07-28/10
+...
+drwxr-xr-x   - user1 cgroup          0 2018-07-28 16:40 /savepath/2018-07-28/16
+...
+drwxr-xr-x   - user1 cgroup          0 2018-07-29 00:30 /savepath/2018-07-28/23
+</code></pre>
+</div>
+<p>即目录要求为/savepath/日期/小时/文件名，文件名需要辨识当前此文件的写入时间（即系统时间），而目录名称的日期和小时需要根据数据里面的业务时间决定，即上述示例数据的第18个字段，那么上面那条数据就需要放在/savepath/2018-07-28/16目录下的某个文件内（如16-16-06-00）。<br />
+所以来说，根据这个需求，我们是不能直接使用saveAsTextFile的，因为文件名称需要自定义；而也尝试直接用append的时候有很大的麻烦，需要根据每条数据内容来决定放入某个目录和文件，并且数据可能延迟比如说现在10点，能零零散散收到几条3点的数据，所以来说在使用append的时候把每条数据的提取日期等信息处理成了三元组的形式来在writeToHDFS方法里面提取时间决定目录和文件名称，但是使用起来还是很复杂并且处理和写入时间太长，影响实时性，并且append还是测试方法不适合投入生产。因此，最终再寻找了下面的最终方法。</p>
+<h1 id="最终方法-saveashadoopfile自定义的rddmultipletextoutputformat">最终方法-saveAsHadoopFile+自定义的RDDMultipleTextOutputFormat</h1>
+<h2 id="分析">分析</h2>
+<p>为了解决上述需求，我需要另寻找解决办法。我们还是从spark本身的算子入手，可以先看一下saveAsTextFile的源码：</p>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="cm">/**
+   * Save this RDD as a text file, using string representations of elements.
+   */</span>
+  <span class="k">def</span> <span class="n">saveAsTextFile</span><span class="o">(</span><span class="n">path</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="n">withScope</span> <span class="o">{</span>
+    <span class="c1">// https://issues.apache.org/jira/browse/SPARK-2075
+</span>    <span class="c1">// NullWritable is a `Comparable` in Hadoop 1.+, so the compiler cannot find an implicit Ordering for it and will use the default `null`. However, it's a `Comparable[NullWritable]`in Hadoop 2.+, so the compiler will call the implicit `Ordering.ordered` method to create an Ordering for `NullWritable`. That's why the compiler will generate different anonymous classes for `saveAsTextFile` in Hadoop 1.+ and Hadoop 2.+.Therefore, here we provide an explicit Ordering `null` to make sure the compiler generate same bytecodes for `saveAsTextFile`.
+</span>    <span class="k">val</span> <span class="n">nullWritableClassTag</span> <span class="k">=</span> <span class="n">implicitly</span><span class="o">[</span><span class="kt">ClassTag</span><span class="o">[</span><span class="kt">NullWritable</span><span class="o">]]</span>
+    <span class="k">val</span> <span class="n">textClassTag</span> <span class="k">=</span> <span class="n">implicitly</span><span class="o">[</span><span class="kt">ClassTag</span><span class="o">[</span><span class="kt">Text</span><span class="o">]]</span>
+    <span class="k">val</span> <span class="n">r</span> <span class="k">=</span> <span class="k">this</span><span class="o">.</span><span class="n">mapPartitions</span> <span class="o">{</span> <span class="n">iter</span> <span class="k">=&gt;</span>
+      <span class="k">val</span> <span class="n">text</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Text</span><span class="o">()</span>
+      <span class="n">iter</span><span class="o">.</span><span class="n">map</span> <span class="o">{</span> <span class="n">x</span> <span class="k">=&gt;</span>
+        <span class="n">text</span><span class="o">.</span><span class="n">set</span><span class="o">(</span><span class="n">x</span><span class="o">.</span><span class="n">toString</span><span class="o">)</span>
+        <span class="o">(</span><span class="nc">NullWritable</span><span class="o">.</span><span class="n">get</span><span class="o">(),</span> <span class="n">text</span><span class="o">)</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+    <span class="nc">RDD</span><span class="o">.</span><span class="n">rddToPairRDDFunctions</span><span class="o">(</span><span class="n">r</span><span class="o">)(</span><span class="n">nullWritableClassTag</span><span class="o">,</span> <span class="n">textClassTag</span><span class="o">,</span> <span class="kc">null</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">saveAsHadoopFile</span><span class="o">[</span><span class="kt">TextOutputFormat</span><span class="o">[</span><span class="kt">NullWritable</span>, <span class="kt">Text</span><span class="o">]](</span><span class="n">path</span><span class="o">)</span>
+  <span class="o">}</span>
+  <span class="cm">/**
+   * Save this RDD as a compressed text file, using string representations of elements.
+   */</span>
+  <span class="k">def</span> <span class="n">saveAsTextFile</span><span class="o">(</span><span class="n">path</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">codec</span><span class="k">:</span> <span class="kt">Class</span><span class="o">[</span><span class="k">_</span> <span class="k">&lt;:</span> <span class="kt">CompressionCodec</span><span class="o">])</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="n">withScope</span> <span class="o">{</span>
+    <span class="c1">// https://issues.apache.org/jira/browse/SPARK-2075
+</span>    <span class="k">val</span> <span class="n">nullWritableClassTag</span> <span class="k">=</span> <span class="n">implicitly</span><span class="o">[</span><span class="kt">ClassTag</span><span class="o">[</span><span class="kt">NullWritable</span><span class="o">]]</span>
+    <span class="k">val</span> <span class="n">textClassTag</span> <span class="k">=</span> <span class="n">implicitly</span><span class="o">[</span><span class="kt">ClassTag</span><span class="o">[</span><span class="kt">Text</span><span class="o">]]</span>
+    <span class="k">val</span> <span class="n">r</span> <span class="k">=</span> <span class="k">this</span><span class="o">.</span><span class="n">mapPartitions</span> <span class="o">{</span> <span class="n">iter</span> <span class="k">=&gt;</span>
+      <span class="k">val</span> <span class="n">text</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Text</span><span class="o">()</span>
+      <span class="n">iter</span><span class="o">.</span><span class="n">map</span> <span class="o">{</span> <span class="n">x</span> <span class="k">=&gt;</span>
+        <span class="n">text</span><span class="o">.</span><span class="n">set</span><span class="o">(</span><span class="n">x</span><span class="o">.</span><span class="n">toString</span><span class="o">)</span>
+        <span class="o">(</span><span class="nc">NullWritable</span><span class="o">.</span><span class="n">get</span><span class="o">(),</span> <span class="n">text</span><span class="o">)</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+    <span class="nc">RDD</span><span class="o">.</span><span class="n">rddToPairRDDFunctions</span><span class="o">(</span><span class="n">r</span><span class="o">)(</span><span class="n">nullWritableClassTag</span><span class="o">,</span> <span class="n">textClassTag</span><span class="o">,</span> <span class="kc">null</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">saveAsHadoopFile</span><span class="o">[</span><span class="kt">TextOutputFormat</span><span class="o">[</span><span class="kt">NullWritable</span>, <span class="kt">Text</span><span class="o">]](</span><span class="n">path</span><span class="o">,</span> <span class="n">codec</span><span class="o">)</span>
+  <span class="o">}</span>
+</code></pre>
+</div>
+<p>可以发现，saveAsTextFile函数是依赖于saveAsHadoopFile函数，由于saveAsHadoopFile函数接受PairRDD，所以在saveAsTextFile函数中利用rddToPairRDDFunctions函数转化为(NullWritable,Text)类型的RDD，然后通过saveAsHadoopFile函数实现相应的写操作。</p>
+<blockquote>
+  <p>参考：<a href="https://www.jianshu.com/p/4d4a7fdaca5c">【SparkJavaAPI】Action(6)—saveAsTextFile、saveAsObjectFile</a>。</p>
+</blockquote>
+
+<p>并且我们通过saveAsTextFile的源码看到，可以看出Spark内部写文件方式其实调用的都是Hadoop那一套东西，当saveAsTextFile调用saveAsHadoopFile方法时候，默认OutputFormat使用的是TextOutputFormat[NullWritable, Text]。<br />
+而对于TextOutputFormat，在Hadoop的MapReduce中多文件输出默认就是TextOutputFormat，因此默认输出为part-r-00000和part-r-00001依次递增的文件名，所有Mapreduce作业都输出一组文件，并没有和我们的需求一样，根据文件内容输出多组文件或者把一个数据集分为多个数据集（比如说将一个log里面属于不同业务线的日志分开来输出，并交给相关的业务线，或者像我们这种根据数据时间分文件存储）。而在Hadoop中，Hadoop的多文件输出根据Key或者Value的不同将属于不同的类型记录写到不同的文件中的需求，可以使用MultipleOutputFormat或者MultipleOutputs替换TextOutputFormat来解决。</p>
+<blockquote>
+  <p>具体可以参考以下文章，虽然文章时间较长了，但是都写的非常好，可以参考学习：<a href="https://www.iteblog.com/archives/842.html">“Hadoop多文件输出：MultipleOutputFormat和MultipleOutputs深究(一)”</a>、<a href="https://www.iteblog.com/archives/848.html">“Hadoop多文件输出：MultipleOutputFormat和MultipleOutputs深究(二)”</a>、<a href="https://blog.csdn.net/dajuezhao/article/details/5799388">“Hadoop的MultipleOutputFormat使用”</a>。</p>
+</blockquote>
+
+<p>因此，既然Spark内部写文件方式其实调用的都是Hadoop那一套东西，所以，我们就可以使用saveAsHadoopFile，自定义一个MultipleOutputFormat的OutputFormat类就可以了。</p>
+<blockquote>
+  <p>题外话：到这里，就可以继续我们下面的工作直接解决问题了，不过看到这里我就有了个疑问，既然saveAsTextFile默认使用TextOutputFormat向hdfs输出文件，但是默认的文件输出文件名称为part-00000和part-00001依次递增的文件名，而hadoop默认输出的是part-r-00000，想知道文件名称是什么时候变化的呢，因此就追踪了一下spark源码学习学习，关于这个问题的源码分析，后续有时间再写文章说明。</p>
+</blockquote>
+
+<h2 id="代码编写">代码编写</h2>
+<p>下面我们开始正式的如何使用spark实现多文件输出，根据文件内容划分文件存储并且自定义文件名称。</p>
+<blockquote>
+  <p>参考：<a href="https://blog.csdn.net/qq_19917081/article/details/56841299">“spark streaming实现根据文件内容自定义文件名并实现文件内容追加”</a>、<a href="https://www.iteblog.com/archives/1281.html">“Spark多文件输出(MultipleOutputFormat)”</a>。</p>
+</blockquote>
+
+<h3 id="saveashadoopfile算子">saveAsHadoopFile算子</h3>
+<p>首先看看一下<strong>saveAsHadoopFile</strong>算子的官方说明：</p>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code> <span class="cm">/**
+   * Output the RDD to any Hadoop-supported file system, using a Hadoop `OutputFormat` class supporting the key and value types K and V in this RDD.
+   */</span>
+<span class="k">def</span> <span class="n">saveAsHadoopFile</span><span class="o">[</span><span class="kt">F</span> <span class="k">&lt;:</span> <span class="kt">OutputFormat</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">V</span><span class="o">]](</span><span class="n">path</span><span class="k">:</span> <span class="kt">String</span><span class="o">)(</span><span class="k">implicit</span> <span class="n">fm</span><span class="k">:</span> <span class="kt">ClassTag</span><span class="o">[</span><span class="kt">F</span><span class="o">])</span><span class="k">:</span> <span class="kt">Unit</span> 
+ <span class="cm">/**
+   * Output the RDD to any Hadoop-supported file system, using a Hadoop `OutputFormat` class supporting the key and value types K and V in this RDD. Compress the result with the supplied codec.
+   */</span>
+ <span class="k">def</span> <span class="n">saveAsHadoopFile</span><span class="o">[</span><span class="kt">F</span> <span class="k">&lt;:</span> <span class="kt">OutputFormat</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">V</span><span class="o">]](</span><span class="n">path</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span><span class="n">codec</span><span class="k">:</span> <span class="kt">Class</span><span class="o">[</span><span class="k">_</span> <span class="k">&lt;:</span> <span class="kt">CompressionCodec</span><span class="o">])(</span><span class="k">implicit</span> <span class="n">fm</span><span class="k">:</span> <span class="kt">ClassTag</span><span class="o">[</span><span class="kt">F</span><span class="o">])</span><span class="k">:</span> <span class="kt">Unit</span> 
+<span class="cm">/**
+   * Output the RDD to any Hadoop-supported file system, using a Hadoop `OutputFormat` class supporting the key and value types K and V in this RDD. Compress with the supplied codec.
+   */</span>
+  <span class="k">def</span> <span class="n">saveAsHadoopFile</span><span class="o">(</span>
+      <span class="n">path</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span>
+      <span class="n">keyClass</span><span class="k">:</span> <span class="kt">Class</span><span class="o">[</span><span class="k">_</span><span class="o">],</span>
+      <span class="n">valueClass</span><span class="k">:</span> <span class="kt">Class</span><span class="o">[</span><span class="k">_</span><span class="o">],</span>
+      <span class="n">outputFormatClass</span><span class="k">:</span> <span class="kt">Class</span><span class="o">[</span><span class="k">_</span> <span class="k">&lt;:</span> <span class="kt">OutputFormat</span><span class="o">[</span><span class="k">_</span>, <span class="k">_</span><span class="o">]],</span>
+      <span class="n">codec</span><span class="k">:</span> <span class="kt">Class</span><span class="o">[</span><span class="k">_</span> <span class="k">&lt;:</span> <span class="kt">CompressionCodec</span><span class="o">])</span><span class="k">:</span> <span class="kt">Unit</span> 
+ <span class="cm">/**
+   * Output the RDD to any Hadoop-supported file system, using a Hadoop `OutputFormat` class supporting the key and value types K and V in this RDD.
+   * @note We should make sure our tasks are idempotent when speculation is enabled, i.e. do not use output committer that writes data directly.
+   * There is an example in https://issues.apache.org/jira/browse/SPARK-10063 to show the bad result of using direct output committer with speculation enabled.
+   */</span>
+  <span class="k">def</span> <span class="n">saveAsHadoopFile</span><span class="o">(</span>
+      <span class="n">path</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span>
+      <span class="n">keyClass</span><span class="k">:</span> <span class="kt">Class</span><span class="o">[</span><span class="k">_</span><span class="o">],</span>
+      <span class="n">valueClass</span><span class="k">:</span> <span class="kt">Class</span><span class="o">[</span><span class="k">_</span><span class="o">],</span>
+      <span class="n">outputFormatClass</span><span class="k">:</span> <span class="kt">Class</span><span class="o">[</span><span class="k">_</span> <span class="k">&lt;:</span> <span class="kt">OutputFormat</span><span class="o">[</span><span class="k">_</span>, <span class="k">_</span><span class="o">]],</span>
+      <span class="n">conf</span><span class="k">:</span> <span class="kt">JobConf</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">JobConf</span><span class="o">(</span><span class="n">self</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">hadoopConfiguration</span><span class="o">),</span>
+      <span class="n">codec</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">Class</span><span class="o">[</span><span class="k">_</span> <span class="k">&lt;:</span> <span class="kt">CompressionCodec</span><span class="o">]]</span> <span class="k">=</span> <span class="nc">None</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span>
+</code></pre>
+</div>
+<p>这里我们要使用的算子是:<br />
+<strong>def saveAsHadoopFile(path: String,keyClass: Class[<em>],valueClass: Class[</em>],outputFormatClass: Class[_ &lt;: OutputFormat[<em>, _]],conf: JobConf = new JobConf(self.context.hadoopConfiguration),codec: Option[Class[</em> &lt;: CompressionCodec]] = None): Unit</strong><br />
+这个算子里需要传入的参数依次是：文件路径、key类型、value类型、outputFormat方式。<br />
+之前用的saveAsTextFile，在<strong>org.apache.spark.rdd.RDD</strong>类中，而saveAsHadoopFile算子属于<strong>org.apache.spark.rdd.PairRDDFunctions</strong>类，需要接收的参数是PairRDD，所以我们在使用前需要将原来的rdd做一下map操作，变成(key, value) 形式，这里先不详细说，在最后贴出来的代码之后再说一次。因此，我们暂且定（K，V）类型为classOf[String]、classOf[String]，再之后传入hdfs保存目录、类型，剩下的就是关键的需要传入OutputFormat，按照上面的分析，我们要自定义一个MultipleOutputFormat。</p>
+
+<h3 id="multipleoutputformat分析">MultipleOutputFormat分析</h3>
+<p>下面我们先看一下MultipleOutputFormat的源码：</p>
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="cm">/**
+ * This abstract class extends the FileOutputFormat, allowing to write the
+ * output data to different output files. There are three basic use cases for
+ * this class. 
+ * Case one: This class is used for a map reduce job with at least one reducer.
+ * The reducer wants to write data to different files depending on the actual
+ * keys. It is assumed that a key (or value) encodes the actual key (value)
+ * and the desired location for the actual key (value).
+ * Case two: This class is used for a map only job. The job wants to use an
+ * output file name that is either a part of the input file name of the input
+ * data, or some derivation of it.
+ * Case three: This class is used for a map only job. The job wants to use an
+ * output file name that depends on both the keys and the input file name,
+ */</span>
+<span class="nd">@InterfaceAudience</span><span class="o">.</span><span class="na">Public</span>
+<span class="nd">@InterfaceStability</span><span class="o">.</span><span class="na">Stable</span>
+<span class="kd">public</span> <span class="kd">abstract</span> <span class="kd">class</span> <span class="nc">MultipleOutputFormat</span><span class="o">&lt;</span><span class="n">K</span><span class="o">,</span> <span class="n">V</span><span class="o">&gt;</span>
+<span class="kd">extends</span> <span class="n">FileOutputFormat</span><span class="o">&lt;</span><span class="n">K</span><span class="o">,</span> <span class="n">V</span><span class="o">&gt;</span> <span class="o">{</span>
+  <span class="cm">/**
+   * Create a composite record writer that can write key/value data to different
+   * output files
+   * @param fs
+   *          the file system to use
+   * @param job
+   *          the job conf for the job
+   * @param name
+   *          the leaf file name for the output file (such as part-00000")
+   * @param arg3
+   *          a progressable for reporting progress.
+   * @return a composite record writer
+   * @throws IOException
+   */</span>
+  <span class="kd">public</span> <span class="n">RecordWriter</span><span class="o">&lt;</span><span class="n">K</span><span class="o">,</span> <span class="n">V</span><span class="o">&gt;</span> <span class="nf">getRecordWriter</span><span class="o">(</span><span class="n">FileSystem</span> <span class="n">fs</span><span class="o">,</span> <span class="n">JobConf</span> <span class="n">job</span><span class="o">,</span>
+      <span class="n">String</span> <span class="n">name</span><span class="o">,</span> <span class="n">Progressable</span> <span class="n">arg3</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
+
+    <span class="kd">final</span> <span class="n">FileSystem</span> <span class="n">myFS</span> <span class="o">=</span> <span class="n">fs</span><span class="o">;</span>
+    <span class="kd">final</span> <span class="n">String</span> <span class="n">myName</span> <span class="o">=</span> <span class="n">generateLeafFileName</span><span class="o">(</span><span class="n">name</span><span class="o">);</span>
+    <span class="kd">final</span> <span class="n">JobConf</span> <span class="n">myJob</span> <span class="o">=</span> <span class="n">job</span><span class="o">;</span>
+    <span class="kd">final</span> <span class="n">Progressable</span> <span class="n">myProgressable</span> <span class="o">=</span> <span class="n">arg3</span><span class="o">;</span>
+
+    <span class="k">return</span> <span class="k">new</span> <span class="n">RecordWriter</span><span class="o">&lt;</span><span class="n">K</span><span class="o">,</span> <span class="n">V</span><span class="o">&gt;()</span> <span class="o">{</span>
+
+      <span class="c1">// a cache storing the record writers for different output files.</span>
+      <span class="n">TreeMap</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">RecordWriter</span><span class="o">&lt;</span><span class="n">K</span><span class="o">,</span> <span class="n">V</span><span class="o">&gt;&gt;</span> <span class="n">recordWriters</span> <span class="o">=</span> <span class="k">new</span> <span class="n">TreeMap</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">RecordWriter</span><span class="o">&lt;</span><span class="n">K</span><span class="o">,</span> <span class="n">V</span><span class="o">&gt;&gt;();</span>
+
+      <span class="kd">public</span> <span class="kt">void</span> <span class="nf">write</span><span class="o">(</span><span class="n">K</span> <span class="n">key</span><span class="o">,</span> <span class="n">V</span> <span class="n">value</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
+
+        <span class="c1">// get the file name based on the key</span>
+        <span class="n">String</span> <span class="n">keyBasedPath</span> <span class="o">=</span> <span class="n">generateFileNameForKeyValue</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="n">value</span><span class="o">,</span> <span class="n">myName</span><span class="o">);</span>
+
+        <span class="c1">// get the file name based on the input file name</span>
+        <span class="n">String</span> <span class="n">finalPath</span> <span class="o">=</span> <span class="n">getInputFileBasedOutputFileName</span><span class="o">(</span><span class="n">myJob</span><span class="o">,</span> <span class="n">keyBasedPath</span><span class="o">);</span>
+
+        <span class="c1">// get the actual key</span>
+        <span class="n">K</span> <span class="n">actualKey</span> <span class="o">=</span> <span class="n">generateActualKey</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="n">value</span><span class="o">);</span>
+        <span class="n">V</span> <span class="n">actualValue</span> <span class="o">=</span> <span class="n">generateActualValue</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="n">value</span><span class="o">);</span>
+
+        <span class="n">RecordWriter</span><span class="o">&lt;</span><span class="n">K</span><span class="o">,</span> <span class="n">V</span><span class="o">&gt;</span> <span class="n">rw</span> <span class="o">=</span> <span class="k">this</span><span class="o">.</span><span class="na">recordWriters</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">finalPath</span><span class="o">);</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">rw</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+          <span class="c1">// if we don't have the record writer yet for the final path, create</span>
+          <span class="c1">// one</span>
+          <span class="c1">// and add it to the cache</span>
+          <span class="n">rw</span> <span class="o">=</span> <span class="n">getBaseRecordWriter</span><span class="o">(</span><span class="n">myFS</span><span class="o">,</span> <span class="n">myJob</span><span class="o">,</span> <span class="n">finalPath</span><span class="o">,</span> <span class="n">myProgressable</span><span class="o">);</span>
+          <span class="k">this</span><span class="o">.</span><span class="na">recordWriters</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">finalPath</span><span class="o">,</span> <span class="n">rw</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="n">rw</span><span class="o">.</span><span class="na">write</span><span class="o">(</span><span class="n">actualKey</span><span class="o">,</span> <span class="n">actualValue</span><span class="o">);</span>
+      <span class="o">};</span>
+
+      <span class="kd">public</span> <span class="kt">void</span> <span class="nf">close</span><span class="o">(</span><span class="n">Reporter</span> <span class="n">reporter</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
+        <span class="n">Iterator</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">keys</span> <span class="o">=</span> <span class="k">this</span><span class="o">.</span><span class="na">recordWriters</span><span class="o">.</span><span class="na">keySet</span><span class="o">().</span><span class="na">iterator</span><span class="o">();</span>
+        <span class="k">while</span> <span class="o">(</span><span class="n">keys</span><span class="o">.</span><span class="na">hasNext</span><span class="o">())</span> <span class="o">{</span>
+          <span class="n">RecordWriter</span><span class="o">&lt;</span><span class="n">K</span><span class="o">,</span> <span class="n">V</span><span class="o">&gt;</span> <span class="n">rw</span> <span class="o">=</span> <span class="k">this</span><span class="o">.</span><span class="na">recordWriters</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">keys</span><span class="o">.</span><span class="na">next</span><span class="o">());</span>
+          <span class="n">rw</span><span class="o">.</span><span class="na">close</span><span class="o">(</span><span class="n">reporter</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">recordWriters</span><span class="o">.</span><span class="na">clear</span><span class="o">();</span>
+      <span class="o">};</span>
+    <span class="o">};</span>
+  <span class="o">}</span>
+  <span class="cm">/**
+   * Generate the leaf name for the output file name. The default behavior does not change the leaf file name (such as part-00000) 
+   * @param name
+   *          the leaf file name for the output file
+   * @return the given leaf file name
+   */</span>
+  <span class="kd">protected</span> <span class="n">String</span> <span class="nf">generateLeafFileName</span><span class="o">(</span><span class="n">String</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">name</span><span class="o">;</span>
+  <span class="o">}</span>
+  <span class="cm">/**
+   * Generate the file output file name based on the given key and the leaf file
+   * name. The default behavior is that the file name does not depend on the
+   * key. 
+   * @param key
+   *          the key of the output data
+   * @param name
+   *          the leaf file name
+   * @return generated file name
+   */</span>
+  <span class="kd">protected</span> <span class="n">String</span> <span class="nf">generateFileNameForKeyValue</span><span class="o">(</span><span class="n">K</span> <span class="n">key</span><span class="o">,</span> <span class="n">V</span> <span class="n">value</span><span class="o">,</span> <span class="n">String</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">name</span><span class="o">;</span>
+  <span class="o">}</span>
+  <span class="cm">/**
+   * Generate the actual key from the given key/value. The default behavior is that
+   * the actual key is equal to the given key 
+   * @param key
+   *          the key of the output data
+   * @param value
+   *          the value of the output data
+   * @return the actual key derived from the given key/value
+   */</span>
+  <span class="kd">protected</span> <span class="n">K</span> <span class="nf">generateActualKey</span><span class="o">(</span><span class="n">K</span> <span class="n">key</span><span class="o">,</span> <span class="n">V</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">key</span><span class="o">;</span>
+  <span class="o">}</span>
+  <span class="cm">/**
+   * Generate the actual value from the given key and value. The default behavior is that
+   * the actual value is equal to the given value 
+   * @param key
+   *          the key of the output data
+   * @param value
+   *          the value of the output data
+   * @return the actual value derived from the given key/value
+   */</span>
+  <span class="kd">protected</span> <span class="n">V</span> <span class="nf">generateActualValue</span><span class="o">(</span><span class="n">K</span> <span class="n">key</span><span class="o">,</span> <span class="n">V</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">value</span><span class="o">;</span>
+  <span class="o">}</span>
+  <span class="cm">/**
+   * Generate the outfile name based on a given anme and the input file name. If
+   * the {@link JobContext#MAP_INPUT_FILE} does not exists (i.e. this is not for a map only job),
+   * the given name is returned unchanged. If the config value for
+   * "num.of.trailing.legs.to.use" is not set, or set 0 or negative, the given
+   * name is returned unchanged. Otherwise, return a file name consisting of the
+   * N trailing legs of the input file name where N is the config value for
+   * "num.of.trailing.legs.to.use". 
+   * @param job
+   *          the job config
+   * @param name
+   *          the output file name
+   * @return the outfile name based on a given anme and the input file name.
+   */</span>
+  <span class="kd">protected</span> <span class="n">String</span> <span class="nf">getInputFileBasedOutputFileName</span><span class="o">(</span><span class="n">JobConf</span> <span class="n">job</span><span class="o">,</span> <span class="n">String</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">String</span> <span class="n">infilepath</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">MRJobConfig</span><span class="o">.</span><span class="na">MAP_INPUT_FILE</span><span class="o">);</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">infilepath</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+      <span class="c1">// if the {@link JobContext#MAP_INPUT_FILE} does not exists,</span>
+      <span class="c1">// then return the given name</span>
+      <span class="k">return</span> <span class="n">name</span><span class="o">;</span>
+    <span class="o">}</span>
+    <span class="kt">int</span> <span class="n">numOfTrailingLegsToUse</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="na">getInt</span><span class="o">(</span><span class="s">"mapred.outputformat.numOfTrailingLegs"</span><span class="o">,</span> <span class="mi">0</span><span class="o">);</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">numOfTrailingLegsToUse</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="n">name</span><span class="o">;</span>
+    <span class="o">}</span>
+    <span class="n">Path</span> <span class="n">infile</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Path</span><span class="o">(</span><span class="n">infilepath</span><span class="o">);</span>
+    <span class="n">Path</span> <span class="n">parent</span> <span class="o">=</span> <span class="n">infile</span><span class="o">.</span><span class="na">getParent</span><span class="o">();</span>
+    <span class="n">String</span> <span class="n">midName</span> <span class="o">=</span> <span class="n">infile</span><span class="o">.</span><span class="na">getName</span><span class="o">();</span>
+    <span class="n">Path</span> <span class="n">outPath</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Path</span><span class="o">(</span><span class="n">midName</span><span class="o">);</span>
+    <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">numOfTrailingLegsToUse</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+      <span class="k">if</span> <span class="o">(</span><span class="n">parent</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="k">break</span><span class="o">;</span>
+      <span class="n">midName</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="na">getName</span><span class="o">();</span>
+      <span class="k">if</span> <span class="o">(</span><span class="n">midName</span><span class="o">.</span><span class="na">length</span><span class="o">()</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="k">break</span><span class="o">;</span>
+      <span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="na">getParent</span><span class="o">();</span>
+      <span class="n">outPath</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Path</span><span class="o">(</span><span class="n">midName</span><span class="o">,</span> <span class="n">outPath</span><span class="o">);</span>
+    <span class="o">}</span>
+    <span class="k">return</span> <span class="n">outPath</span><span class="o">.</span><span class="na">toString</span><span class="o">();</span>
+  <span class="o">}</span>
+  <span class="cm">/**
+   * @param fs
+   *          the file system to use
+   * @param job
+   *          a job conf object
+   * @param name
+   *          the name of the file over which a record writer object will be
+   *          constructed
+   * @param arg3
+   *          a progressable object
+   * @return A RecordWriter object over the given file
+   * @throws IOException
+   */</span>
+  <span class="kd">abstract</span> <span class="kd">protected</span> <span class="n">RecordWriter</span><span class="o">&lt;</span><span class="n">K</span><span class="o">,</span> <span class="n">V</span><span class="o">&gt;</span> <span class="nf">getBaseRecordWriter</span><span class="o">(</span><span class="n">FileSystem</span> <span class="n">fs</span><span class="o">,</span>
+      <span class="n">JobConf</span> <span class="n">job</span><span class="o">,</span> <span class="n">String</span> <span class="n">name</span><span class="o">,</span> <span class="n">Progressable</span> <span class="n">arg3</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">IOException</span><span class="o">;</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+<p>在源码的最开始，我们看到对于MultipleOutputFormat&lt;K, V&gt;的描述，它可以将相似的记录输出到相同的数据集。我们可以看出，在写每条记录之前，MultipleOutputFormat将调用generateFileNameForKeyValue方法来确定需要写入的文件名。<br />
+通过下图源码我们可以看出，在getRecordWriter中，对于文件名称的生成会先调用generateLeafFileName方法，而其只是传入了“name”来生成文件的leaf名称（图中标号1的myName），而此部分传入的name即默认的每个part生成的文件名称（如part-0000，关于这个name的值，也可以继续向父类FileOutputFormat或MultipleOutputs类继续挖掘，找出来为何这个默认值，或者参考后续的关于spark这里的源码说明文档，这里就不说明了）；而之后生成的myName会传入generateFileNameForKeyValue的方法，这个方法接受3个参数，可以根据k、v以及传入的name再次生成一个KeyBasePath即文件名称（图中标号2），之后获取到的KeyBasePath再作为参数传入getInputFileBasedOutputFileName方法生成finalPath。可以看到在默认情况下，我们看到generateLeafFileName方法和generateFileNameForKeyValue的方法均是直接<strong>“return name”</strong>，因此默认情况下得到name==myName==KeyBasePath，文件的名称即为part-0000。<br />
+<img src="https://github.com/leafming/bak/blob/master/images/spark/2018-07-26-SparkStreaming写入数据到HDFS-Outputformat方法说明.png?raw=true" alt="MultipleOutputFormat-文件名称生成" /><br />
+所以，为了根据内容来确定写入的文件名称，generateLeafFileName只与name有关（后续写个示例中测试一下generateLeafFileName），而generateFileNameForKeyValue与内容key、value、name均有关，所以我们就直接在自己的类中重写generateFileNameForKeyValue方法即可。<br />
+不过，我们需要写入的是文本，所以通常情况下，我们可以直接继承MultipleTextOutputFormat类，来完成实现generateFileNameForKeyValue方法以返回每个输出键/值对的文件名。MultipleTextOutputFormat也是继承的MultipleOutputFormat类，可以在官方文档的说明的<a href="http://hadoop.apache.org/docs/current/api/org/apache/hadoop/mapred/lib/MultipleTextOutputFormat.html">MultipleTextOutputFormat</a>也可以看到类的继承关系。<br />
+MultipleTextOutputFormat的官方描述如下：</p>
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="cm">/**
+ * This class extends the MultipleOutputFormat, allowing to write the output
+ * data to different output files in Text output format.
+ */</span>
+<span class="nd">@InterfaceAudience</span><span class="o">.</span><span class="na">Public</span>
+<span class="nd">@InterfaceStability</span><span class="o">.</span><span class="na">Stable</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">MultipleTextOutputFormat</span><span class="o">&lt;</span><span class="n">K</span><span class="o">,</span> <span class="n">V</span><span class="o">&gt;</span> <span class="kd">extends</span> <span class="n">MultipleOutputFormat</span><span class="o">&lt;</span><span class="n">K</span><span class="o">,</span> <span class="n">V</span><span class="o">&gt;</span> <span class="o">{</span>
+  <span class="kd">private</span> <span class="n">TextOutputFormat</span><span class="o">&lt;</span><span class="n">K</span><span class="o">,</span> <span class="n">V</span><span class="o">&gt;</span> <span class="n">theTextOutputFormat</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+
+  <span class="nd">@Override</span>
+  <span class="kd">protected</span> <span class="n">RecordWriter</span><span class="o">&lt;</span><span class="n">K</span><span class="o">,</span> <span class="n">V</span><span class="o">&gt;</span> <span class="nf">getBaseRecordWriter</span><span class="o">(</span><span class="n">FileSystem</span> <span class="n">fs</span><span class="o">,</span> <span class="n">JobConf</span> <span class="n">job</span><span class="o">,</span>
+      <span class="n">String</span> <span class="n">name</span><span class="o">,</span> <span class="n">Progressable</span> <span class="n">arg3</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">theTextOutputFormat</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">theTextOutputFormat</span> <span class="o">=</span> <span class="k">new</span> <span class="n">TextOutputFormat</span><span class="o">&lt;</span><span class="n">K</span><span class="o">,</span> <span class="n">V</span><span class="o">&gt;();</span>
+    <span class="o">}</span>
+    <span class="k">return</span> <span class="n">theTextOutputFormat</span><span class="o">.</span><span class="na">getRecordWriter</span><span class="o">(</span><span class="n">fs</span><span class="o">,</span> <span class="n">job</span><span class="o">,</span> <span class="n">name</span><span class="o">,</span> <span class="n">arg3</span><span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>  
+</code></pre>
+</div>
+<p>它默认能够将以text的格式将数据输出到不同的目录中，我们需要输出的也是文本，只不过是写入目录需要自定义一下，所以我们只需要继承MultipleTextOutputFormat来自定义一个类即可。</p>
+<h3 id="测试generateleaffilename补充可略过">测试generateLeafFileName（补充，可略过）</h3>
+<p>上面我们说了MultipleOutputFormat中有两个决定文件名称的方法，generateLeafFileName和generateFileNameForKeyValue，我们在正式代码前，先直接写入文件系统测试下generateLeafFileName，可略过。</p>
+<ol>
+  <li>自定义一个OutputFormat名称为TestMultipleTextOutputFormat。
+    <div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">package</span> <span class="nn">com.ileaf.test</span>
+<span class="k">import</span> <span class="nn">java.text.SimpleDateFormat</span>
+<span class="k">import</span> <span class="nn">java.util.Date</span>
+<span class="k">import</span> <span class="nn">org.apache.hadoop.mapred.lib.MultipleTextOutputFormat</span>
+<span class="k">class</span> <span class="nc">TestMultipleTextOutputFormat</span>  <span class="k">extends</span> <span class="nc">MultipleTextOutputFormat</span><span class="o">[</span><span class="kt">Any</span>, <span class="kt">Any</span><span class="o">]{</span>
+  <span class="k">private</span> <span class="k">val</span> <span class="nc">HOURFORMAT</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SimpleDateFormat</span><span class="o">(</span><span class="s">"HH-mm-ss"</span><span class="o">)</span>
+  <span class="k">private</span> <span class="k">val</span> <span class="nc">YMDFORMAT</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SimpleDateFormat</span><span class="o">(</span><span class="s">"yyyy-mm-dd"</span><span class="o">)</span>
+  <span class="k">private</span> <span class="k">val</span> <span class="n">start_time</span> <span class="k">=</span> <span class="nc">System</span><span class="o">.</span><span class="n">currentTimeMillis</span><span class="o">()</span>
+  <span class="k">private</span> <span class="k">val</span> <span class="n">curDay</span><span class="k">=new</span> <span class="nc">Date</span><span class="o">(</span><span class="n">start_time</span><span class="o">)</span>
+  <span class="k">private</span> <span class="k">val</span> <span class="n">fileName</span><span class="k">=</span><span class="nc">HOURFORMAT</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="n">curDay</span><span class="o">)</span>
+  <span class="k">private</span> <span class="k">val</span> <span class="n">dirName</span><span class="k">=</span><span class="nc">YMDFORMAT</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="n">curDay</span><span class="o">)</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="n">generateLeafFileName</span><span class="o">(</span><span class="n">name</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span><span class="kt">String</span><span class="o">={</span>
+ <span class="k">val</span> <span class="n">filename</span><span class="k">=</span><span class="n">dirName</span><span class="o">+</span><span class="s">"/"</span><span class="o">+</span><span class="n">fileName</span><span class="o">+</span><span class="s">"_"</span><span class="o">+</span><span class="n">name</span>
+ <span class="n">filename</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre>
+    </div>
+  </li>
+  <li>spark程序中测试使用
+    <div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">org.apache.spark.</span><span class="o">{</span><span class="nc">SparkConf</span><span class="o">,</span> <span class="nc">SparkContext</span><span class="o">}</span>
+<span class="k">import</span> <span class="nn">org.apache.spark.rdd.RDD</span>
+<span class="k">object</span> <span class="nc">TestSparkSave</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">main</span><span class="o">(</span><span class="n">args</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">String</span><span class="o">])</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
+ <span class="k">val</span> <span class="n">sparkConf</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SparkConf</span><span class="o">().</span><span class="n">setMaster</span><span class="o">(</span><span class="s">"local"</span><span class="o">).</span><span class="n">setAppName</span><span class="o">(</span><span class="s">"flatMap Demo"</span><span class="o">)</span>
+ <span class="k">val</span> <span class="n">sc</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SparkContext</span><span class="o">(</span><span class="n">sparkConf</span><span class="o">)</span>
+ <span class="k">val</span> <span class="n">rdd</span> <span class="k">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">parallelize</span><span class="o">(</span><span class="nc">List</span><span class="o">(</span><span class="s">"0|18610000000|460010000000000|2018|07|21|16-21-35|41003|22002|35004007800300|0000|||||0|||2018-07-21 16:21:35"</span><span class="o">,</span>
+   <span class="s">"0|18610000001|460010000000001|2018|07|21|15-21-35|41000|22000|35004007800301|0000|||||0|||2018-07-21 15:21:35"</span><span class="o">,</span>
+   <span class="s">"0|18610000002|460010000000002|2018|07|21|15-20-35|41000|22001|35004007800302|0000|||||0|||2018-07-21 15:20:35"</span><span class="o">,</span>
+   <span class="s">"0|18610000003|460010000000003|2018|07|21|17-21-35|41001|22002|35004007800303|0000|||||0|||2018-07-21 17:21:35"</span><span class="o">))</span>
+ <span class="k">val</span> <span class="n">rdd1</span><span class="k">:</span> <span class="kt">RDD</span><span class="o">[(</span><span class="kt">String</span>, <span class="kt">String</span><span class="o">)]</span> <span class="k">=</span><span class="n">rdd</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">x</span><span class="o">=&gt;(</span><span class="n">x</span><span class="o">,</span><span class="s">""</span><span class="o">))</span>
+ <span class="n">rdd1</span><span class="o">.</span><span class="n">rapartation</span><span class="o">(</span><span class="mi">2</span><span class="o">).</span><span class="n">saveAsHadoopFile</span><span class="o">(</span><span class="s">"/Users/yeziming/test/saveDir"</span><span class="o">,</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">String</span><span class="o">],</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">String</span><span class="o">],</span><span class="n">classOf</span><span class="o">[</span><span class="kt">RDDMultipleTextOutputFormat</span><span class="o">])</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre>
+    </div>
+  </li>
+</ol>
+
+<p>然后我们运行一下程序，可以看到生成的文件(日期有点问题。。不管了)：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>yezm:saveDir yeziming$ ls
+2018-24-28    _SUCCESS
+yezm:saveDir yeziming$ cd 2018-24-28/
+yezm:2018-24-28 yeziming$ ls -l
+total 16
+-rw-r--r--  1 yeziming  staff  222  7 28 11:24 11-24-44_part-00000
+-rw-r--r--  1 yeziming  staff  222  7 28 11:24 11-24-44_part-00001
+yezm:2018-24-28 yeziming$ cat 11-24-44_part-00000
+0|18610000000|460010000000000|2018|07|21|16-21-35|41003|22002|35004007800300|0000|||||0|||2018-07-21 16:21:35
+0|18610000002|460010000000002|2018|07|21|15-20-35|41000|22001|35004007800302|0000|||||0|||2018-07-21 15:20:35
+yezm:2018-24-28 yeziming$ cat 11-24-44_part-00001
+0|18610000001|460010000000001|2018|07|21|15-21-35|41000|22000|35004007800301|0000|||||0|||2018-07-21 15:21:35
+0|18610000003|460010000000003|2018|07|21|17-21-35|41001|22002|35004007800303|0000|||||0|||2018-07-21 17:21:35
+</code></pre>
+</div>
+<p>可以看到，我们文件名称的拼接使用的是“val filename=dirName+”/”+fileName+”_“+name”，因此是时间+name的方式传入的，所以可以看出，name的值果然是part-0000n，后面的数字为partation的标号，所以我们在使用的过程中，也可以留下来默认的name的值的标号来区分不同的partation。</p>
+<h3 id="正式代码编写">正式代码编写</h3>
+<p>下面，我们开始根据业务的正式的代码编写，经过了以上分析，写起来也很简单。(业务需求见上述4需求更改部分)</p>
+<ol>
+  <li>SparkStreaming程序中使用saveAsHadoopFile<br />
+我们在SparkStreaming程序中，使用saveAsHadoopFile算子。由于之前的数据是rdd，而saveAsHadoopFile需要的是pairRDD，因此，我们使用map将数据转换一下，数据内容作为key，空串“”作为value，这里需要与后续我们自定义的RDDMultipleTextOutputFormat生成文件名称的时候相对应。<br />
+后续我们自定义的RDDMultipleTextOutputFormat，与文件基础路径、key格式、value格式一同传入saveAsHadoopFile算子中。
+    <div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="c1">//...部分内容
+</span> <span class="k">val</span> <span class="n">saveDstream</span><span class="k">:</span> <span class="kt">DStream</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span><span class="n">writeDStrem</span><span class="o">.</span><span class="n">repartition</span><span class="o">(</span><span class="n">numHdfsFile_Repartition</span><span class="o">)</span>
+ <span class="c1">//保存处理后的数据到hdfs
+</span> <span class="n">saveDstream</span><span class="o">.</span><span class="n">foreachRDD</span><span class="o">(</span><span class="n">rdd</span> <span class="k">=&gt;</span> <span class="o">{</span>
+   <span class="c1">// driver端运行，涉及操作：广播变量的初始化和更新
+</span>   <span class="c1">// 这里的数据就是一个批次生成一次，然后下发到不同的patition的时候数据是一样的
+</span>   <span class="k">val</span> <span class="n">start_time</span> <span class="k">=</span> <span class="nc">System</span><span class="o">.</span><span class="n">currentTimeMillis</span><span class="o">()</span>
+   <span class="k">if</span> <span class="o">(</span><span class="n">rdd</span><span class="o">.</span><span class="n">isEmpty</span><span class="o">)</span> <span class="o">{</span>
+     <span class="n">logInfo</span><span class="o">(</span><span class="s">" No Data in this batchInterval --------"</span><span class="o">)</span>
+   <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+     <span class="c1">//这里，因为saveAsHadoopFile需要接受pairRDD，所以用map转换一下
+</span>     <span class="k">val</span> <span class="n">a</span><span class="k">:</span> <span class="kt">RDD</span><span class="o">[(</span><span class="kt">String</span>, <span class="kt">String</span><span class="o">)]</span> <span class="k">=</span><span class="n">rdd</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">x</span><span class="o">=&gt;(</span><span class="n">x</span><span class="o">,</span><span class="s">""</span><span class="o">))</span>
+     <span class="n">a</span><span class="o">.</span><span class="n">saveAsHadoopFile</span><span class="o">(</span><span class="n">hdfsPath</span><span class="o">+</span><span class="s">"/"</span><span class="o">,</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">String</span><span class="o">],</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">String</span><span class="o">],</span><span class="n">classOf</span><span class="o">[</span><span class="kt">RDDMultipleTextOutputFormat</span><span class="o">])</span>
+     <span class="n">competeTime</span><span class="o">(</span><span class="n">start_time</span><span class="o">,</span> <span class="s">"Processed data write to hdfs"</span><span class="o">)</span>
+   <span class="o">}</span>
+ <span class="o">})</span><span class="c1">//foreachRDD
+//...
+</span></code></pre>
+    </div>
+  </li>
+  <li>自定义RDDMultipleTextOutputFormat继承MultipleTextOutputFormat[Any, Any]<br />
+因为我们这里继承的是MultipleTextOutputFormat，已经帮我把getRecordWriter重写好了，所以我们就很方便简单的重写一个generateFileNameForKeyValue，来根据数据内容划分文件目录就好了。
+    <div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">java.text.SimpleDateFormat</span>
+<span class="k">import</span> <span class="nn">java.util.Date</span>
+<span class="k">import</span> <span class="nn">org.apache.hadoop.mapred.lib.MultipleTextOutputFormat</span>
+<span class="k">class</span> <span class="nc">RDDMultipleTextOutputFormat</span>  <span class="k">extends</span> <span class="nc">MultipleTextOutputFormat</span><span class="o">[</span><span class="kt">Any</span>, <span class="kt">Any</span><span class="o">]{</span>
+  <span class="k">private</span> <span class="k">val</span> <span class="n">pre_flag</span><span class="o">=</span><span class="s">"\\|"</span>
+  <span class="k">private</span> <span class="k">val</span> <span class="nc">HOURFORMAT</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SimpleDateFormat</span><span class="o">(</span><span class="s">"HH-mm-ss"</span><span class="o">)</span>
+  <span class="k">private</span> <span class="k">val</span> <span class="n">start_time</span> <span class="k">=</span> <span class="nc">System</span><span class="o">.</span><span class="n">currentTimeMillis</span><span class="o">()</span>
+  <span class="k">private</span> <span class="k">val</span> <span class="n">curDay</span><span class="k">=new</span> <span class="nc">Date</span><span class="o">(</span><span class="n">start_time</span><span class="o">)</span>
+  <span class="k">private</span> <span class="k">val</span> <span class="n">fileName</span><span class="k">=</span><span class="nc">HOURFORMAT</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="n">curDay</span><span class="o">)</span>
+  <span class="k">override</span> <span class="k">def</span> <span class="n">generateFileNameForKeyValue</span><span class="o">(</span><span class="n">key</span><span class="k">:</span> <span class="kt">Any</span><span class="o">,</span> <span class="n">value</span><span class="k">:</span> <span class="kt">Any</span><span class="o">,</span> <span class="n">name</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span><span class="kt">String</span> <span class="o">={</span>
+ <span class="c1">//0|18610000000|460010000000000|2018|07|21|16-21-35|41003|22002|35004007800300|0000|||||0|||2018-07-21 16:21:35
+</span> <span class="k">val</span> <span class="n">line</span> <span class="k">=</span> <span class="n">key</span><span class="o">.</span><span class="n">toString</span>
+ <span class="k">val</span> <span class="n">split</span><span class="k">=</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="n">pre_flag</span><span class="o">)</span>
+ <span class="c1">//2018-01-24 12:58:16:@TODO 这里有个问题：如果time是空可能会报错，有时间再处理，目前此字段经过之前处理都非空
+</span> <span class="k">val</span> <span class="n">time</span><span class="k">=</span><span class="n">split</span><span class="o">(</span><span class="mi">18</span><span class="o">)</span>
+ <span class="k">val</span> <span class="n">ymd</span><span class="k">=</span><span class="n">time</span><span class="o">.</span><span class="n">substring</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span><span class="n">time</span><span class="o">.</span><span class="n">indexOf</span><span class="o">(</span><span class="s">" "</span><span class="o">))</span>
+ <span class="k">val</span> <span class="n">hour</span><span class="k">=</span><span class="n">time</span><span class="o">.</span><span class="n">substring</span><span class="o">(</span><span class="n">time</span><span class="o">.</span><span class="n">indexOf</span><span class="o">(</span><span class="s">" "</span><span class="o">)+</span><span class="mi">1</span><span class="o">,</span><span class="n">time</span><span class="o">.</span><span class="n">indexOf</span><span class="o">(</span><span class="s">":"</span><span class="o">))</span>
+ <span class="k">val</span> <span class="n">service_date</span><span class="k">=</span><span class="n">ymd</span><span class="o">+</span><span class="s">"/"</span><span class="o">+</span><span class="n">hour</span><span class="o">+</span><span class="s">"/"</span><span class="o">+</span><span class="n">fileName</span><span class="o">+</span><span class="s">"-"</span><span class="o">+</span><span class="n">name</span><span class="o">.</span><span class="n">substring</span><span class="o">(</span><span class="n">name</span><span class="o">.</span><span class="n">length</span><span class="o">()-</span><span class="mi">2</span><span class="o">)</span><span class="c1">//.split("-")(0)
+</span> <span class="n">service_date</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre>
+    </div>
+    <p>在generateFileNameForKeyValue方法中，我们根据上面用map转换的“rdd.map(x=&gt;(x,””))”，则key为数据内容。所以对key进行切分，取第18个字段的日期来作为目录生成的依据。并且我们截取默认name的后两位，来作为partation编号，所以我们最后生成的文件路径名为“文件基础路径（即上述saveAsHadoopFile中传入的hdfsPath）/业务年月日/业务小时/文件写入时间_part编号”。</p>
+  </li>
+</ol>
+
+<p>所以，最终显示样式可如下：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>//这次就是数据有延迟，12:12才写入12点目录中
+dcos@d8pccdsj3[~]$hadoop fs -ls /encrypt_data/4g_info_c60/2018-07-28/12
+Found 40 items
+-rw-r--r--   3 user1 cgroup    6541003 2018-07-28 12:12 /encrypt_data/4g_info_c60/2018-07-28/12/12-12-05-00
+-rw-r--r--   3 user1 cgroup    6555677 2018-07-28 12:12 /encrypt_data/4g_info_c60/2018-07-28/12/12-12-05-01
+-rw-r--r--   3 user1 cgroup    6538441 2018-07-28 12:12 /encrypt_data/4g_info_c60/2018-07-28/12/12-12-05-02
+-rw-r--r--   3 user1 cgroup    6567709 2018-07-28 12:12 /encrypt_data/4g_info_c60/2018-07-28/12/12-12-05-03
+-rw-r--r--   3 user1 cgroup    6570481 2018-07-28 12:12 /encrypt_data/4g_info_c60/2018-07-28/12/12-12-05-04
+-rw-r--r--   3 user1 cgroup   29486262 2018-07-28 12:12 /encrypt_data/4g_info_c60/2018-07-28/12/12-12-22-00
+-rw-r--r--   3 user1 cgroup   29477123 2018-07-28 12:12 /encrypt_data/4g_info_c60/2018-07-28/12/12-12-22-01
+-rw-r--r--   3 user1 cgroup   29476448 2018-07-28 12:12 /encrypt_data/4g_info_c60/2018-07-28/12/12-12-22-02
+-rw-r--r--   3 user1 cgroup   29425074 2018-07-28 12:12 /encrypt_data/4g_info_c60/2018-07-28/12/12-12-22-03
+-rw-r--r--   3 user1 cgroup   29435407 2018-07-28 12:12 /encrypt_data/4g_info_c60/2018-07-28/12/12-12-22-04
+-rw-r--r--   3 user1 cgroup   66757368 2018-07-28 12:12 /encrypt_data/4g_info_c60/2018-07-28/12/12-12-43-00
+-rw-r--r--   3 user1 cgroup   66862913 2018-07-28 12:12 /encrypt_data/4g_info_c60/2018-07-28/12/12-12-43-01
+-rw-r--r--   3 user1 cgroup   66854597 2018-07-28 12:12 /encrypt_data/4g_info_c60/2018-07-28/12/12-12-43-02
+-rw-r--r--   3 user1 cgroup   66809042 2018-07-28 12:12 /encrypt_data/4g_info_c60/2018-07-28/12/12-12-43-03
+-rw-r--r--   3 user1 cgroup   66777279 2018-07-28 12:12 /encrypt_data/4g_info_c60/2018-07-28/12/12-12-43-04
+-rw-r--r--   3 user1 cgroup   73288280 2018-07-28 12:13 /encrypt_data/4g_info_c60/2018-07-28/12/12-13-03-00
+-rw-r--r--   3 user1 cgroup   73285173 2018-07-28 12:13 /encrypt_data/4g_info_c60/2018-07-28/12/12-13-03-01
+-rw-r--r--   3 user1 cgroup   73355198 2018-07-28 12:13 /encrypt_data/4g_info_c60/2018-07-28/12/12-13-03-02
+-rw-r--r--   3 user1 cgroup   73337561 2018-07-28 12:13 /encrypt_data/4g_info_c60/2018-07-28/12/12-13-03-03
+-rw-r--r--   3 user1 cgroup   73320851 2018-07-28 12:13 /encrypt_data/4g_info_c60/2018-07-28/12/12-13-03-04
+</code></pre>
+</div>
+<p>大功告成！</p>
+
+<hr />
+<p>至此，本篇内容完成。<br />
+本文由2018-07-02开始建立文档，于2018-07-28整理完成，几乎历时一个月，期间断断续续抽时间整理成文，很有收获。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～
+  <ul class="post-copyright">
+    <li class="post-copyright-author">
+      <strong>本文作者：</strong>
+      叶子  ( ˘ ³˘)♥
+    </li>
+    <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="http://localhost:4000/bigdata/2018/07/02/Spark-Streaming-%E5%86%99%E5%85%A5%E6%95%B0%E6%8D%AE%E5%88%B0%E6%96%87%E4%BB%B6-%E5%85%B3%E9%94%AE%E4%B8%BASpark%E6%A0%B9%E6%8D%AE%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E8%BE%93%E5%87%BA%E5%88%B0%E4%B8%8D%E5%90%8C%E8%87%AA%E5%AE%9A%E4%B9%89%E5%90%8D%E7%A7%B0%E6%96%87%E4%BB%B6-saveAsHadoopFile%E4%BB%A5%E5%8F%8A%E8%87%AA%E5%AE%9A%E4%B9%89MultipleOutputFormat/" title="Spark(Streaming)写入数据到文件-关键为根据数据内容输出到不同自定义名称文件(saveAsHadoopFile以及自定义MultipleOutputFormat)">Spark(Streaming)写入数据到文件-关键为根据数据内容输出到不同自定义名称文件(saveAsHadoopFile以及自定义MultipleOutputFormat)</a>
+    </li>
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong>
+      本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/cn/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            
+            <a href="/tag/#/Spark" rel="tag"># Spark</a>
+          
+            
+            <a href="/tag/#/HDFS" rel="tag"># HDFS</a>
+          
+        </div>
+      
+
+      
+      
+      
+      
+      
+
+      
+      
+        <div class="post-nav" id="post-nav-id">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/bigdata/2018/06/29/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B54-Kerberos%E4%B8%BB%E4%BB%8EKDC%E9%83%A8%E7%BD%B2/" rel="prev" title="Kerberos具体实践4-Kerberos主从KDC部署">
+                Kerberos具体实践4-Kerberos主从KDC部署 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+      
+
+      
+    </footer>
+  </article>
+
+  <div class="post-spread">
+    
+  </div>
+</div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="lv-container" data-id="city" data-uid="MTAyMC8zNTIzNi8xMTc3Mg=="></div>
+    
+  </div>
+
+
+        </div>
+        
+          
+
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        
+        
+        
+
+
+
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/assets/images/IMG_8739.GIF"
+               alt="叶子  ( ˘ ³˘)♥" />
+          <p class="site-author-name" itemprop="name">叶子  ( ˘ ³˘)♥</p>
+           
+              <p class="site-description motion-element" itemprop="description">Yesterday you said tomorrow.</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/">
+                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/">
+                <span class="site-state-item-count">11</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+        
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              
+              
+              <span class="links-of-author-item">
+                <a href="mailto:leafming@foxmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                  E-Mail
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+
+
+
+
+            
+              <div class="post-toc-content">
+    <ol class=nav>
+      <li class="nav-item nav-level-1"> <a class="nav-link" href="#背景"> <span class="nav-number">1</span> <span class="nav-text">背景</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#最基础直接方式-直接使用saveastextfile"> <span class="nav-number">2</span> <span class="nav-text">最基础直接方式-直接使用saveAsTextFile</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#直接使用hdfs-api-append方法测试非生产"> <span class="nav-number">3</span> <span class="nav-text">直接使用HDFS API-append方法（测试，非生产）</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#需求更改"> <span class="nav-number">4</span> <span class="nav-text">需求更改</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#最终方法-saveashadoopfile自定义的rddmultipletextoutputformat"> <span class="nav-number">5</span> <span class="nav-text">最终方法-saveAsHadoopFile+自定义的RDDMultipleTextOutputFormat</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#分析"> <span class="nav-number">5.1</span> <span class="nav-text">分析</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#代码编写"> <span class="nav-number">5.2</span> <span class="nav-text">代码编写</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#saveashadoopfile算子"> <span class="nav-number">5.2.1</span> <span class="nav-text">saveAsHadoopFile算子</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#multipleoutputformat分析"> <span class="nav-number">5.2.2</span> <span class="nav-text">MultipleOutputFormat分析</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#测试generateleaffilename补充可略过"> <span class="nav-number">5.2.3</span> <span class="nav-text">测试generateLeafFileName（补充，可略过）</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#正式代码编写"> <span class="nav-number">5.2.4</span> <span class="nav-text">正式代码编写</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child">
+    </ol>
+  </div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">叶子  ( ˘ ³˘)♥</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://jekyllrb.com">Jekyll</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/simpleyyt/jekyll-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+          <span id="scrollpercent"><span>0</span>%</span>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+   
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/assets/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/assets/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/assets/js/src/post-details.js?v=5.1.1"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+    
+      <script type="text/javascript">
+        (function(d, s) {
+          var j, e = d.getElementsByTagName(s)[0];
+          if (typeof LivereTower === 'function') { return; }
+          j = d.createElement(s);
+          j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+          j.async = true;
+          e.parentNode.insertBefore(j, e);
+        })(document, 'script');
+      </script>
+    
+
+  
+
+
+
+
+
+  
+
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("c82MFNFEU6p4iaz5Ik4L07e5-gzGzoHsz", "CSzcJkq7WGpn5bNMendMuKYf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+  
+
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+</body>
+</html>
+

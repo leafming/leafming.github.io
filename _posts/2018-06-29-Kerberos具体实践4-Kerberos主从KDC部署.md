@@ -398,6 +398,4 @@ If incremental propagation is enabled, the principal kiprop/slavehostname@REALM 
 至此，本篇内容完成。  
 以上，此文章以及0505、0628三篇内容基本上是完全关于Kerberos相关知识，HDFS、ZK结合Kerberos的部署等内容，由于时间有限以及测试不够充分，仍存在很多漏洞以及待处理的问题，以后有机会再深入学习一下。  
   
-如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～  
-©商业转载请联系作者获得授权，非商业转载请注明出处。
 

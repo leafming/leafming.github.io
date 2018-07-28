@@ -151,6 +151,4 @@ k: node1:2181(CONNECTED) 0] create /znode1 sasl:zkcli@HADOOP.COM:cdwra
 至此，本篇内容完成。  
 以上，此文章是关于ZK结合Kerberos的部署等内容，下篇将补充说明主从KDC的搭建。  
   
-如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～  
-©商业转载请联系作者获得授权，非商业转载请注明出处。
 

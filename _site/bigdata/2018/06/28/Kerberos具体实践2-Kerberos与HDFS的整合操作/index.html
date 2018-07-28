@@ -130,7 +130,7 @@
   var CONFIG = {
     root: '',
     scheme: 'Muse',
-    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":true},
     fancybox: true,
     motion: true,
     duoshuo: {
@@ -340,7 +340,7 @@
     <link itemprop="mainEntityOfPage" href="http://localhost:4000/bigdata/2018/06/28/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B52-Kerberos%E4%B8%8EHDFS%E7%9A%84%E6%95%B4%E5%90%88%E6%93%8D%E4%BD%9C/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Liv Yeh">
+      <meta itemprop="name" content="叶子  ( ˘ ³˘)♥">
       <meta itemprop="description" content="">
       <meta itemprop="image" content="/assets/images/IMG_8739.GIF">
     </span>
@@ -1718,9 +1718,6 @@ keytool -keystore truststore -alias CARoot -import -file test_ca_cert
 <hr />
 <p>至此，本篇内容完成。以上内容基本上是完全关于HDFS中的Kerberos部署，HDFS结合Kerberos的整体部署完毕，若配置中使用了HA，则需要进行下文ZK配置之后才能完成完整部署。</p>
 
-<p>如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～<br />
-©商业转载请联系作者获得授权，非商业转载请注明出处。</p>
-
 
       
     </div>
@@ -1742,6 +1739,22 @@ keytool -keystore truststore -alias CARoot -import -file test_ca_cert
     <div>
       
         
+如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～
+  <ul class="post-copyright">
+    <li class="post-copyright-author">
+      <strong>本文作者：</strong>
+      叶子  ( ˘ ³˘)♥
+    </li>
+    <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="http://localhost:4000/bigdata/2018/06/28/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B52-Kerberos%E4%B8%8EHDFS%E7%9A%84%E6%95%B4%E5%90%88%E6%93%8D%E4%BD%9C/" title="Kerberos具体实践2-Kerberos与HDFS的整合操作">Kerberos具体实践2-Kerberos与HDFS的整合操作</a>
+    </li>
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong>
+      本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/cn/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+
 
       
     </div>
@@ -1803,6 +1816,8 @@ keytool -keystore truststore -alias CARoot -import -file test_ca_cert
           
   <div class="comments" id="comments">
     
+      <div id="lv-container" data-id="city" data-uid="MTAyMC8zNTIzNi8xMTc3Mg=="></div>
+    
   </div>
 
 
@@ -1846,8 +1861,8 @@ keytool -keystore truststore -alias CARoot -import -file test_ca_cert
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/assets/images/IMG_8739.GIF"
-               alt="Liv Yeh" />
-          <p class="site-author-name" itemprop="name">Liv Yeh</p>
+               alt="叶子  ( ˘ ³˘)♥" />
+          <p class="site-author-name" itemprop="name">叶子  ( ˘ ³˘)♥</p>
            
               <p class="site-description motion-element" itemprop="description">Yesterday you said tomorrow.</p>
           
@@ -1857,7 +1872,7 @@ keytool -keystore truststore -alias CARoot -import -file test_ca_cert
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-count">13</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -1972,7 +1987,7 @@ keytool -keystore truststore -alias CARoot -import -file test_ca_cert
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">Liv Yeh</span>
+  <span class="author" itemprop="copyrightHolder">叶子  ( ˘ ³˘)♥</span>
 </div>
 
 
@@ -2017,6 +2032,8 @@ keytool -keystore truststore -alias CARoot -import -file test_ca_cert
     
       <div class="back-to-top">
         <i class="fa fa-arrow-up"></i>
+        
+          <span id="scrollpercent"><span>0</span>%</span>
         
       </div>
     
@@ -2152,6 +2169,17 @@ keytool -keystore truststore -alias CARoot -import -file test_ca_cert
 
   
 
+    
+      <script type="text/javascript">
+        (function(d, s) {
+          var j, e = d.getElementsByTagName(s)[0];
+          if (typeof LivereTower === 'function') { return; }
+          j = d.createElement(s);
+          j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+          j.async = true;
+          e.parentNode.insertBefore(j, e);
+        })(document, 'script');
+      </script>
     
 
   

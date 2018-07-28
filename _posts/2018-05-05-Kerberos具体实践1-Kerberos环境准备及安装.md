@@ -360,6 +360,4 @@ $ klist -k /etc/krb5.keytab
 ```
 ---  
 至此，本篇内容完成。以上为Kerberos单KDC版搭建过程，下篇文章进行HDFS和Kerberos整合操作的整理。  
-如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～  
-©商业转载请联系作者获得授权，非商业转载请注明出处。
 

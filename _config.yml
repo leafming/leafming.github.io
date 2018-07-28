@@ -7,7 +7,8 @@
 title: iLeaf
 subtitle: Leaf's Blog
 description: Yesterday you said tomorrow.
-author: Liv Yeh
+author: 叶子  ( ˘ ³˘)♥
+# author: Liv Yeh
 # Support language: de, en, fr-FR, id, ja, ko, pt-BR, pt, ru, zh-Hans, zh-hk, zh-tw
 language: zh-Hans
 date_format: '%Y-%m-%d'
@@ -278,7 +279,7 @@ sidebar:
   b2t: false
 
   # Scroll percent label in b2t button
-  scrollpercent: false
+  scrollpercent: true
 
 
 # Blog rolls
@@ -330,9 +331,10 @@ post_wordcount:
 
 # Declare license on posts
 post_copyright:
-  enable: false
+  enable: true
   license: CC BY-NC-SA 3.0
-  license_url: https://creativecommons.org/licenses/by-nc-sa/3.0/
+  license_url: https://creativecommons.org/licenses/by-nc-sa/3.0/cn/
+  #license_url: https://creativecommons.org/licenses/by-nc-sa/3.0/
 
 
 
@@ -406,7 +408,7 @@ changyan:
 
 # Support for LiveRe comments system.
 # You can get your uid from https://livere.com/insight/myCode (General web site)
-# livere_uid: MTAyMC8zNTIzNi8xMTc3Mg==
+livere_uid: MTAyMC8zNTIzNi8xMTc3Mg==
 
 # Support for gitalk comments system.
 gitalk:

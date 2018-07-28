@@ -1155,6 +1155,4 @@ keytool -keystore truststore -alias CARoot -import -file test_ca_cert
 ---
 至此，本篇内容完成。以上内容基本上是完全关于HDFS中的Kerberos部署，HDFS结合Kerberos的整体部署完毕，若配置中使用了HA，则需要进行下文ZK配置之后才能完成完整部署。  
 
-如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～  
-©商业转载请联系作者获得授权，非商业转载请注明出处。
 

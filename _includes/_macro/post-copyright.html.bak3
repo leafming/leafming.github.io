@@ -1,5 +1,4 @@
 {% if site.post_copyright.enable %}
-{{"如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～"}}
   <ul class="post-copyright">
     <li class="post-copyright-author">
       <strong>{{ __.post.copyright.author | append: __.symbol.colon }}</strong>
@@ -7,7 +6,7 @@
     </li>
     <li class="post-copyright-link">
       <strong>{{ __.post.copyright.link | append: __.symbol.colon }}</strong>
-      <a href="{{ post.url | absolute_url }}" title="{{ post.title }}">{{ post.title }}</a>
+      <a href="{{ post.url | absolute_url }}" title="{{ post.title }}">{{ post.url | absolute_url }}</a>
     </li>
     <li class="post-copyright-license">
       <strong>{{ __.post.copyright.license_title | append: __.symbol.colon }} </strong>

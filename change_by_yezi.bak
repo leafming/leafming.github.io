@@ -1,0 +1,9 @@
+1._includes/_macro/post-copyright.html
+<a href="{{ post.url | absolute_url }}" title="{{ post.title }}">{{ post.url | absolute_url }}</a>
+改为
+<a href="{{ post.url | absolute_url }}" title="{{ post.title }}">{{ post.title }}</a>
+加了
+{{"如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～"}}
+
+#2./_data/languages/zh-Hans.yml
+#更改license_content，更改了版权内容

@@ -204,5 +204,3 @@ spark 主程序中，在每个executor中使用广播变量。
 
 ---  
 内容即以上，会在下篇文章([SparkStreaming程序中checkpoint与广播变量兼容处理](https://leafming.github.io/bigdata/2018/04/04/SparkStreaming程序中checkpoint与广播变量兼容处理/))解决spark streaming中checkpoint和广播变量使用冲突的问题，敬请期待。  
-如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～  
-©商业转载请联系作者获得授权，非商业转载请注明出处。 
