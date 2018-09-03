@@ -677,9 +677,113 @@ Found 40 items
 
 大功告成！
 
+补充-需求2实现-validateOutputSpecs参数-2018-09-03
+需求描述
+数据从很多接口接入，每条数据的第一个字段标明接口来源，需使用spark streaming程序，实时根据将数据根据不同的接口标注，写入到HDFS对应的目录的对应文件之中。
+数据样式：
+60,2018-08-14 10:16:50.062211990,2018-08-14 10:17:28.652398109,0,6......
+61,2018-08-14 10:16:47.095155954,2018-08-14 10:17:21.435997962,0,52......
+62,2018-08-14 10:17:05.457761049,2018-08-14 10:17:28.077723979,0,6......
+...
+
+
+解决
+此需求跟上述问题解决方案一摸一样，也是重写自己的RDDMultipleTextOutputFormat即可。代码示例如下:
+重写的RDDMultipleTextOutputFormat
+import java.text.SimpleDateFormat
+import java.util.Date
+import org.apache.hadoop.mapred.lib.MultipleTextOutputFormat
+
+class RDDMultipleTextOutputFormat  extends MultipleTextOutputFormat[Any, Any]{
+  private final val PREFLAG=&quot;,&quot;
+  private final val YMDFORMAT = new SimpleDateFormat(&quot;yyyyMMdd&quot;)
+  private final val YMDHMFORMAT=new SimpleDateFormat(&quot;yyyyMMddHHmm&quot;)
+  private val cur_time = System.currentTimeMillis()
+  private val curDay=new Date(cur_time)
+  private val dirName=YMDFORMAT.format(curDay)
+  private val fileName=YMDHMFORMAT.format(curDay)
+  private val filePrefix=&quot;xx-xxxxx-events-&quot;
+  private val fileSuffix=&quot;.txt&quot;
+
+  override def generateFileNameForKeyValue(key: Any, value: Any, name: String):String ={
+    val line = key.toString
+    val split=line.split(PREFLAG)
+    val filePath=dirName+&quot;/&quot;+filePrefix+split(0)+&quot;-&quot;+fileName+name.substring(name.length()-2)+fileSuffix
+    filePath
+  }
+}
+
+
+本机测试调用
+import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.rdd.RDD
+/**
+  * Create by Liv on 2018/8/31.
+  */
+object TestXXOriFile {
+  def main(args: Array[String]): Unit = {
+    val sparkConf = new SparkConf().setMaster(&quot;local&quot;).setAppName(&quot;flatMap Demo&quot;)
+    /*
+    不设置此参数，会报错：
+    Exception in thread &quot;main&quot; org.apache.hadoop.mapred.FileAlreadyExistsException: Output directory file:/Users/yeziming/test/xxdata already exists
+    此参数含义：
+    若设置为true，saveAsHadoopFile会验证输出目录是否存在。
+    虽然设为false可以忽略文件存在的异常，但建议使用 Hadoop文件系统的API手动删除输出目录。
+    当通过Spark Streaming的StreamingContext时本参数会被忽略，因为当进行checkpoint恢复时会重写已经存在的文件。
+    */
+    sparkConf.set(&quot;spark.hadoop.validateOutputSpecs&quot;,&quot;false&quot;)
+
+    val sc = new SparkContext(sparkConf)
+    val fileName = &quot;/Users/yeziming/IdeaProjects/SparkAclKafka/resource/table_data.properties&quot;
+    val rdd: RDD[String] =sc.textFile(fileName)
+    val pairRdd: RDD[(String, Null)] = rdd.map(x=&amp;gt;(x,null))
+    pairRdd.repartition(2).saveAsHadoopFile(&quot;/Users/yeziming/test/xxdata&quot;+&quot;/&quot;,classOf[String],classOf[String],classOf[RDDMultipleTextOutputFormat])
+  }
+}
+
+
+为了测试RDDMultipleTextOutputFormat的文件目录格式写的是否正确，所以在本机使用sparkcore写spark程序测试了一下，但是在测试的过程中，在最初的时候，没有设置spark.hadoop.validateOutputSpecs，因此每次执行一次之后，如果不删除原来的目录，则会报错如下：
+Exception in thread &quot;main&quot; org.apache.hadoop.mapred.FileAlreadyExistsException: Output directory file:/Users/yeziming/test/xxdata already exists
+	at org.apache.hadoop.mapred.FileOutputFormat.checkOutputSpecs(FileOutputFormat.java:132)
+
+
+是因为在spark中也是用的hadoop那一套，所以原来mr中保存文件的时候，其中的org.apache.hadoop.mapred.FileOutputFormat.checkOutputSpecs方法会检查输出目录是否合法，如果没有指定，则抛出InvalidJobConfException，文件已经存在则抛出FileAlreadyExistsException。
+因此，因为再次执行，目录是存在的，所以会报出FileAlreadyExistsException的错误。
+可是之前直接通过spark streaming程序的时候，并没有出现这个错误。查询这个错误怎么解决的时候，大部分都说自己删除目录即可。后来通过查询spark的参数设置，发现了“spark.hadoop.validateOutputSpecs”这个参数。其说明如下：
+spark.hadoop.validateOutputSpecs
+默认是true。若设置为true，saveAsHadoopFile会验证输出目录是否存在。虽然设为false可以忽略文件存在的异常，但建议使用 Hadoop文件系统的API手动删除输出目录。当通过Spark Streaming的StreamingContext时本参数会被忽略，因为当进行checkpoint恢复时会重写已经存在的文件。  
+If set to true, validates the output specification (e.g. checking if the output directory already exists) used in saveAsHadoopFile and other variants. This can be disabled to silence exceptions due to pre-existing output directories. We recommend that users do not disable this except if trying to achieve compatibility with previous versions of Spark. Simply use Hadoop's FileSystem API to delete output directories by hand. This setting is ignored for jobs generated through Spark Streaming's StreamingContext, since data may need to be rewritten to pre-existing output directories during checkpoint recovery.
+
+
+所以，我们再用spark streaming程序的时候，不会出现这个问题。
+因此，如果后续使用spark core程序的时候，如果出现了此问题，想要覆盖目录，则可设置此参数。
+注意：文件名称不同，文件是不会覆盖的。
+通过设置了这个参数之后，再次运行我上面写的程序，目录下的文件如下：
+yezm:20180903 yeziming$ ls
+xx-xxxxx-events-60-20180903132300.txt
+xx-xxxxx-events-60-20180903132301.txt
+xx-xxxxx-events-60-20180903132400.txt
+xx-xxxxx-events-60-20180903132401.txt
+xx-xxxxx-events-60-20180903134300.txt
+xx-xxxxx-events-60-20180903134301.txt
+xx-xxxxx-events-61-20180903132300.txt
+xx-xxxxx-events-61-20180903132301.txt
+xx-xxxxx-events-61-20180903132400.txt
+xx-xxxxx-events-61-20180903132401.txt
+xx-xxxxx-events-61-20180903134300.txt
+xx-xxxxx-events-61-20180903134301.txt
+...
+
+
+即，我的输出文件是以分钟命名的，所以在不同的分钟运行多次，会在那个目录里面生成多个文件，并不会将文件覆盖。
+但是，一般情况下，是建议不设置这个参数的，因为需要将hdfs中的旧文件删除的话。
+具体spark中删除HDFS目录，有个文章中写了但是没有测试，可以参考spark删除hdfs文件。
+
+
 
 至此，本篇内容完成。
 本文由2018-07-02开始建立文档，于2018-07-28整理完成，几乎历时一个月，期间断断续续抽时间整理成文，很有收获。
+2018-09-03更新6补充需求2。
 </content>
       <categories>
         

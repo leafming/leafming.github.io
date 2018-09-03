@@ -120,7 +120,7 @@
 <meta property="og:description" content="本文关于在使用Spark或Spark Streaming输出数据到文件的几种方式。关键的内容是Spark Streaming中实现实时根据数据内容，将数据写入不同的文件存储，支持自定义输出的文件名称，主要使用saveAsHadoopFile以及自定义MultipleOutputFormat实现。本文的场景是数据写入hdfs。">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/spark/2018-07-26-SparkStreaming写入数据到HDFS-Outputformat方法说明.png?raw=true">
-<meta property="og:updated_time" content="2018-07-28T00:00:00+08:00">
+<meta property="og:updated_time" content="2018-09-03T00:00:00+08:00">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Spark(Streaming)写入数据到文件-关键为根据数据内容输出到不同自定义名称文件(saveAsHadoopFile以及自定义MultipleOutputFormat)">
 <meta name="twitter:description" content="本文关于在使用Spark或Spark Streaming输出数据到文件的几种方式。关键的内容是Spark Streaming中实现实时根据数据内容，将数据写入不同的文件存储，支持自定义输出的文件名称，主要使用saveAsHadoopFile以及自定义MultipleOutputFormat实现。本文的场景是数据写入hdfs。">
@@ -389,8 +389,8 @@
               
                 <span class="post-meta-item-text">更新于</span>
               
-              <time title="更新于" itemprop="dateModified" datetime="2018-07-28">
-                2018-07-28
+              <time title="更新于" itemprop="dateModified" datetime="2018-09-03">
+                2018-09-03
               </time>
             
           </span>
@@ -1133,9 +1133,113 @@ Found 40 items
 </div>
 <p>大功告成！</p>
 
+<h1 id="补充-需求2实现-validateoutputspecs参数-2018-09-03">补充-需求2实现-validateOutputSpecs参数-2018-09-03</h1>
+<h2 id="需求描述">需求描述</h2>
+<p>数据从很多接口接入，每条数据的第一个字段标明接口来源，需使用spark streaming程序，实时根据将数据根据不同的接口标注，写入到HDFS对应的目录的对应文件之中。<br />
+数据样式：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>60,2018-08-14 10:16:50.062211990,2018-08-14 10:17:28.652398109,0,6......
+61,2018-08-14 10:16:47.095155954,2018-08-14 10:17:21.435997962,0,52......
+62,2018-08-14 10:17:05.457761049,2018-08-14 10:17:28.077723979,0,6......
+...
+</code></pre>
+</div>
+<h2 id="解决">解决</h2>
+<p>此需求跟上述问题解决方案一摸一样，也是重写自己的RDDMultipleTextOutputFormat即可。代码示例如下:</p>
+<h3 id="重写的rddmultipletextoutputformat">重写的RDDMultipleTextOutputFormat</h3>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">java.text.SimpleDateFormat</span>
+<span class="k">import</span> <span class="nn">java.util.Date</span>
+<span class="k">import</span> <span class="nn">org.apache.hadoop.mapred.lib.MultipleTextOutputFormat</span>
+
+<span class="k">class</span> <span class="nc">RDDMultipleTextOutputFormat</span>  <span class="k">extends</span> <span class="nc">MultipleTextOutputFormat</span><span class="o">[</span><span class="kt">Any</span>, <span class="kt">Any</span><span class="o">]{</span>
+  <span class="k">private</span> <span class="k">final</span> <span class="k">val</span> <span class="nc">PREFLAG</span><span class="o">=</span><span class="s">","</span>
+  <span class="k">private</span> <span class="k">final</span> <span class="k">val</span> <span class="nc">YMDFORMAT</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SimpleDateFormat</span><span class="o">(</span><span class="s">"yyyyMMdd"</span><span class="o">)</span>
+  <span class="k">private</span> <span class="k">final</span> <span class="k">val</span> <span class="nc">YMDHMFORMAT</span><span class="k">=new</span> <span class="nc">SimpleDateFormat</span><span class="o">(</span><span class="s">"yyyyMMddHHmm"</span><span class="o">)</span>
+  <span class="k">private</span> <span class="k">val</span> <span class="n">cur_time</span> <span class="k">=</span> <span class="nc">System</span><span class="o">.</span><span class="n">currentTimeMillis</span><span class="o">()</span>
+  <span class="k">private</span> <span class="k">val</span> <span class="n">curDay</span><span class="k">=new</span> <span class="nc">Date</span><span class="o">(</span><span class="n">cur_time</span><span class="o">)</span>
+  <span class="k">private</span> <span class="k">val</span> <span class="n">dirName</span><span class="k">=</span><span class="nc">YMDFORMAT</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="n">curDay</span><span class="o">)</span>
+  <span class="k">private</span> <span class="k">val</span> <span class="n">fileName</span><span class="k">=</span><span class="nc">YMDHMFORMAT</span><span class="o">.</span><span class="n">format</span><span class="o">(</span><span class="n">curDay</span><span class="o">)</span>
+  <span class="k">private</span> <span class="k">val</span> <span class="n">filePrefix</span><span class="o">=</span><span class="s">"xx-xxxxx-events-"</span>
+  <span class="k">private</span> <span class="k">val</span> <span class="n">fileSuffix</span><span class="o">=</span><span class="s">".txt"</span>
+
+  <span class="k">override</span> <span class="k">def</span> <span class="n">generateFileNameForKeyValue</span><span class="o">(</span><span class="n">key</span><span class="k">:</span> <span class="kt">Any</span><span class="o">,</span> <span class="n">value</span><span class="k">:</span> <span class="kt">Any</span><span class="o">,</span> <span class="n">name</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span><span class="kt">String</span> <span class="o">={</span>
+    <span class="k">val</span> <span class="n">line</span> <span class="k">=</span> <span class="n">key</span><span class="o">.</span><span class="n">toString</span>
+    <span class="k">val</span> <span class="n">split</span><span class="k">=</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="o">(</span><span class="nc">PREFLAG</span><span class="o">)</span>
+    <span class="k">val</span> <span class="n">filePath</span><span class="k">=</span><span class="n">dirName</span><span class="o">+</span><span class="s">"/"</span><span class="o">+</span><span class="n">filePrefix</span><span class="o">+</span><span class="n">split</span><span class="o">(</span><span class="mi">0</span><span class="o">)+</span><span class="s">"-"</span><span class="o">+</span><span class="n">fileName</span><span class="o">+</span><span class="n">name</span><span class="o">.</span><span class="n">substring</span><span class="o">(</span><span class="n">name</span><span class="o">.</span><span class="n">length</span><span class="o">()-</span><span class="mi">2</span><span class="o">)+</span><span class="n">fileSuffix</span>
+    <span class="n">filePath</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+<h3 id="本机测试调用">本机测试调用</h3>
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">org.apache.spark.</span><span class="o">{</span><span class="nc">SparkConf</span><span class="o">,</span> <span class="nc">SparkContext</span><span class="o">}</span>
+<span class="k">import</span> <span class="nn">org.apache.spark.rdd.RDD</span>
+<span class="cm">/**
+  * Create by Liv on 2018/8/31.
+  */</span>
+<span class="k">object</span> <span class="nc">TestXXOriFile</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">main</span><span class="o">(</span><span class="n">args</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">String</span><span class="o">])</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="k">val</span> <span class="n">sparkConf</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SparkConf</span><span class="o">().</span><span class="n">setMaster</span><span class="o">(</span><span class="s">"local"</span><span class="o">).</span><span class="n">setAppName</span><span class="o">(</span><span class="s">"flatMap Demo"</span><span class="o">)</span>
+    <span class="cm">/*
+    不设置此参数，会报错：
+    Exception in thread "main" org.apache.hadoop.mapred.FileAlreadyExistsException: Output directory file:/Users/yeziming/test/xxdata already exists
+    此参数含义：
+    若设置为true，saveAsHadoopFile会验证输出目录是否存在。
+    虽然设为false可以忽略文件存在的异常，但建议使用 Hadoop文件系统的API手动删除输出目录。
+    当通过Spark Streaming的StreamingContext时本参数会被忽略，因为当进行checkpoint恢复时会重写已经存在的文件。
+    */</span>
+    <span class="n">sparkConf</span><span class="o">.</span><span class="n">set</span><span class="o">(</span><span class="s">"spark.hadoop.validateOutputSpecs"</span><span class="o">,</span><span class="s">"false"</span><span class="o">)</span>
+
+    <span class="k">val</span> <span class="n">sc</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">SparkContext</span><span class="o">(</span><span class="n">sparkConf</span><span class="o">)</span>
+    <span class="k">val</span> <span class="n">fileName</span> <span class="k">=</span> <span class="s">"/Users/yeziming/IdeaProjects/SparkAclKafka/resource/table_data.properties"</span>
+    <span class="k">val</span> <span class="n">rdd</span><span class="k">:</span> <span class="kt">RDD</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span><span class="n">sc</span><span class="o">.</span><span class="n">textFile</span><span class="o">(</span><span class="n">fileName</span><span class="o">)</span>
+    <span class="k">val</span> <span class="n">pairRdd</span><span class="k">:</span> <span class="kt">RDD</span><span class="o">[(</span><span class="kt">String</span>, <span class="kt">Null</span><span class="o">)]</span> <span class="k">=</span> <span class="n">rdd</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="n">x</span><span class="o">=&gt;(</span><span class="n">x</span><span class="o">,</span><span class="kc">null</span><span class="o">))</span>
+    <span class="n">pairRdd</span><span class="o">.</span><span class="n">repartition</span><span class="o">(</span><span class="mi">2</span><span class="o">).</span><span class="n">saveAsHadoopFile</span><span class="o">(</span><span class="s">"/Users/yeziming/test/xxdata"</span><span class="o">+</span><span class="s">"/"</span><span class="o">,</span><span class="n">classOf</span><span class="o">[</span><span class="kt">String</span><span class="o">],</span><span class="n">classOf</span><span class="o">[</span><span class="kt">String</span><span class="o">],</span><span class="n">classOf</span><span class="o">[</span><span class="kt">RDDMultipleTextOutputFormat</span><span class="o">])</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+<p>为了测试RDDMultipleTextOutputFormat的文件目录格式写的是否正确，所以在本机使用sparkcore写spark程序测试了一下，但是在测试的过程中，在最初的时候，没有设置spark.hadoop.validateOutputSpecs，因此每次执行一次之后，如果不删除原来的目录，则会报错如下：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>Exception in thread "main" org.apache.hadoop.mapred.FileAlreadyExistsException: Output directory file:/Users/yeziming/test/xxdata already exists
+	at org.apache.hadoop.mapred.FileOutputFormat.checkOutputSpecs(FileOutputFormat.java:132)
+</code></pre>
+</div>
+<p>是因为在spark中也是用的hadoop那一套，所以原来mr中保存文件的时候，其中的org.apache.hadoop.mapred.FileOutputFormat.checkOutputSpecs方法会检查输出目录是否合法，如果没有指定，则抛出InvalidJobConfException，文件已经存在则抛出FileAlreadyExistsException。<br />
+因此，因为再次执行，目录是存在的，所以会报出FileAlreadyExistsException的错误。<br />
+可是之前直接通过spark streaming程序的时候，并没有出现这个错误。查询这个错误怎么解决的时候，大部分都说自己删除目录即可。后来通过查询spark的参数设置，发现了“spark.hadoop.validateOutputSpecs”这个参数。其说明如下：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>spark.hadoop.validateOutputSpecs
+默认是true。若设置为true，saveAsHadoopFile会验证输出目录是否存在。虽然设为false可以忽略文件存在的异常，但建议使用 Hadoop文件系统的API手动删除输出目录。当通过Spark Streaming的StreamingContext时本参数会被忽略，因为当进行checkpoint恢复时会重写已经存在的文件。  
+If set to true, validates the output specification (e.g. checking if the output directory already exists) used in saveAsHadoopFile and other variants. This can be disabled to silence exceptions due to pre-existing output directories. We recommend that users do not disable this except if trying to achieve compatibility with previous versions of Spark. Simply use Hadoop's FileSystem API to delete output directories by hand. This setting is ignored for jobs generated through Spark Streaming's StreamingContext, since data may need to be rewritten to pre-existing output directories during checkpoint recovery.
+</code></pre>
+</div>
+<p>所以，我们再用spark streaming程序的时候，不会出现这个问题。<br />
+因此，如果后续使用spark core程序的时候，如果出现了此问题，想要覆盖目录，则可设置此参数。<br />
+注意：文件名称不同，文件是不会覆盖的。<br />
+通过设置了这个参数之后，再次运行我上面写的程序，目录下的文件如下：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>yezm:20180903 yeziming$ ls
+xx-xxxxx-events-60-20180903132300.txt
+xx-xxxxx-events-60-20180903132301.txt
+xx-xxxxx-events-60-20180903132400.txt
+xx-xxxxx-events-60-20180903132401.txt
+xx-xxxxx-events-60-20180903134300.txt
+xx-xxxxx-events-60-20180903134301.txt
+xx-xxxxx-events-61-20180903132300.txt
+xx-xxxxx-events-61-20180903132301.txt
+xx-xxxxx-events-61-20180903132400.txt
+xx-xxxxx-events-61-20180903132401.txt
+xx-xxxxx-events-61-20180903134300.txt
+xx-xxxxx-events-61-20180903134301.txt
+...
+</code></pre>
+</div>
+<p>即，我的输出文件是以分钟命名的，所以在不同的分钟运行多次，会在那个目录里面生成多个文件，并不会将文件覆盖。<br />
+但是，一般情况下，是建议不设置这个参数的，因为需要将hdfs中的旧文件删除的话。<br />
+具体spark中删除HDFS目录，有个文章中写了但是没有测试，可以参考<a href="https://blog.csdn.net/zhouyan8603/article/details/51658950">spark删除hdfs文件</a>。</p>
+
 <hr />
+
 <p>至此，本篇内容完成。<br />
-本文由2018-07-02开始建立文档，于2018-07-28整理完成，几乎历时一个月，期间断断续续抽时间整理成文，很有收获。</p>
+本文由2018-07-02开始建立文档，于2018-07-28整理完成，几乎历时一个月，期间断断续续抽时间整理成文，很有收获。<br />
+2018-09-03更新6补充需求2。</p>
 
       
     </div>
@@ -1375,7 +1479,7 @@ Found 40 items
             
               <div class="post-toc-content">
     <ol class=nav>
-      <li class="nav-item nav-level-1"> <a class="nav-link" href="#背景"> <span class="nav-number">1</span> <span class="nav-text">背景</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#最基础直接方式-直接使用saveastextfile"> <span class="nav-number">2</span> <span class="nav-text">最基础直接方式-直接使用saveAsTextFile</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#直接使用hdfs-api-append方法测试非生产"> <span class="nav-number">3</span> <span class="nav-text">直接使用HDFS API-append方法（测试，非生产）</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#需求更改"> <span class="nav-number">4</span> <span class="nav-text">需求更改</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#最终方法-saveashadoopfile自定义的rddmultipletextoutputformat"> <span class="nav-number">5</span> <span class="nav-text">最终方法-saveAsHadoopFile+自定义的RDDMultipleTextOutputFormat</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#分析"> <span class="nav-number">5.1</span> <span class="nav-text">分析</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#代码编写"> <span class="nav-number">5.2</span> <span class="nav-text">代码编写</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#saveashadoopfile算子"> <span class="nav-number">5.2.1</span> <span class="nav-text">saveAsHadoopFile算子</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#multipleoutputformat分析"> <span class="nav-number">5.2.2</span> <span class="nav-text">MultipleOutputFormat分析</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#测试generateleaffilename补充可略过"> <span class="nav-number">5.2.3</span> <span class="nav-text">测试generateLeafFileName（补充，可略过）</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#正式代码编写"> <span class="nav-number">5.2.4</span> <span class="nav-text">正式代码编写</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child">
+      <li class="nav-item nav-level-1"> <a class="nav-link" href="#背景"> <span class="nav-number">1</span> <span class="nav-text">背景</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#最基础直接方式-直接使用saveastextfile"> <span class="nav-number">2</span> <span class="nav-text">最基础直接方式-直接使用saveAsTextFile</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#直接使用hdfs-api-append方法测试非生产"> <span class="nav-number">3</span> <span class="nav-text">直接使用HDFS API-append方法（测试，非生产）</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#需求更改"> <span class="nav-number">4</span> <span class="nav-text">需求更改</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#最终方法-saveashadoopfile自定义的rddmultipletextoutputformat"> <span class="nav-number">5</span> <span class="nav-text">最终方法-saveAsHadoopFile+自定义的RDDMultipleTextOutputFormat</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#分析"> <span class="nav-number">5.1</span> <span class="nav-text">分析</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#代码编写"> <span class="nav-number">5.2</span> <span class="nav-text">代码编写</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#saveashadoopfile算子"> <span class="nav-number">5.2.1</span> <span class="nav-text">saveAsHadoopFile算子</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#multipleoutputformat分析"> <span class="nav-number">5.2.2</span> <span class="nav-text">MultipleOutputFormat分析</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#测试generateleaffilename补充可略过"> <span class="nav-number">5.2.3</span> <span class="nav-text">测试generateLeafFileName（补充，可略过）</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#正式代码编写"> <span class="nav-number">5.2.4</span> <span class="nav-text">正式代码编写</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#补充-需求2实现-validateoutputspecs参数-2018-09-03"> <span class="nav-number">6</span> <span class="nav-text">补充-需求2实现-validateOutputSpecs参数-2018-09-03</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#需求描述"> <span class="nav-number">6.1</span> <span class="nav-text">需求描述</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#解决"> <span class="nav-number">6.2</span> <span class="nav-text">解决</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#重写的rddmultipletextoutputformat"> <span class="nav-number">6.2.1</span> <span class="nav-text">重写的RDDMultipleTextOutputFormat</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#本机测试调用"> <span class="nav-number">6.2.2</span> <span class="nav-text">本机测试调用</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child">
     </ol>
   </div>
             
