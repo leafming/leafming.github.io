@@ -83,7 +83,7 @@
 <link href="/assets/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Kerberos," />
+  <meta name="keywords" content="Flink," />
 
 
 
@@ -111,18 +111,20 @@
 
 
 
-<meta name="description" content="本文属于Kerberos具体实践整理的第一部分，主要涉及到Kerberos集群的安装以及基本命令的使用。">
-<meta name="keywords" content="Kerberos">
+<meta name="description" content="本文关于Flink的一些基础概念。">
+<meta name="keywords" content="Flink">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Kerberos具体实践1-Kerberos环境准备及安装">
-<meta property="og:url" content="http://localhost:4000/bigdata/2018/05/05/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B51-Kerberos%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%E5%8F%8A%E5%AE%89%E8%A3%85/">
+<meta property="og:title" content="Flink基础概念">
+<meta property="og:url" content="http://localhost:4000/bigdata/2018/09/05/Flink%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/">
 <meta property="og:site_name" content="iLeaf">
-<meta property="og:description" content="本文属于Kerberos具体实践整理的第一部分，主要涉及到Kerberos集群的安装以及基本命令的使用。">
+<meta property="og:description" content="本文关于Flink的一些基础概念。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-05-05T00:00:00+08:00">
+<meta property="og:image" content="https://ci.apache.org/projects/flink/flink-docs-release-1.6/fig/parallel_dataflow.svg">
+<meta property="og:updated_time" content="2018-10-08T00:00:00+08:00">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Kerberos具体实践1-Kerberos环境准备及安装">
-<meta name="twitter:description" content="本文属于Kerberos具体实践整理的第一部分，主要涉及到Kerberos集群的安装以及基本命令的使用。">
+<meta name="twitter:title" content="Flink基础概念">
+<meta name="twitter:description" content="本文关于Flink的一些基础概念。">
+<meta name="twitter:image" content="https://ci.apache.org/projects/flink/flink-docs-release-1.6/fig/parallel_dataflow.svg">
 
 
 <script type="text/javascript" id="hexo.configurations">
@@ -155,7 +157,7 @@
 
 
 
-  <title>Kerberos具体实践1-Kerberos环境准备及安装 | iLeaf</title>
+  <title>Flink基础概念 | iLeaf</title>
   
 
 
@@ -337,7 +339,7 @@
   
 
   <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://localhost:4000/bigdata/2018/05/05/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B51-Kerberos%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%E5%8F%8A%E5%AE%89%E8%A3%85/">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/bigdata/2018/09/05/Flink%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="叶子  ( ˘ ³˘)♥">
@@ -357,7 +359,7 @@
           <h1 class="post-title" itemprop="name headline">
           
           
-            Kerberos具体实践1-Kerberos环境准备及安装
+            Flink基础概念
           
         </h1>
         
@@ -371,8 +373,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-05T00:00:00+08:00">
-                2018-05-05
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-05T00:00:00+08:00">
+                2018-09-05
               </time>
             
 
@@ -387,8 +389,8 @@
               
                 <span class="post-meta-item-text">更新于</span>
               
-              <time title="更新于" itemprop="dateModified" datetime="2018-05-05">
-                2018-05-05
+              <time title="更新于" itemprop="dateModified" datetime="2018-10-08">
+                2018-10-08
               </time>
             
           </span>
@@ -424,7 +426,7 @@
 
           
           
-             <span id="/bigdata/2018/05/05/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B51-Kerberos%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%E5%8F%8A%E5%AE%89%E8%A3%85/" class="leancloud_visitors" data-flag-title="Kerberos具体实践1-Kerberos环境准备及安装">
+             <span id="/bigdata/2018/09/05/Flink%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/" class="leancloud_visitors" data-flag-title="Flink基础概念">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -443,7 +445,7 @@
           
             
                 <div class="post-description">
-                    本文属于Kerberos具体实践整理的第一部分，主要涉及到Kerberos集群的安装以及基本命令的使用。
+                    本文关于Flink的一些基础概念。
                 </div>
             
           
@@ -459,423 +461,87 @@
 
       
         <blockquote>
-  <p>本文主要关于Kerberos的简单应用。因为工作测试需要，自己装了一套集群进行了Kerberos的部署，并且与HDFS、ZK进行整合，然后将操作过程进行了整理，以便后续再查看。本文主要涉及到Kerberos集群的&gt;安装以及基本命令的使用，后续会继续说明其与HDFS、ZK的整合操作。</p>
+  <p>项目说要做创新活动，所以需要把原来的流处理从Spark替换成Flink。嗯，学习Flink！本文所用flink版本为1.6。</p>
 </blockquote>
 
-<h1 id="概述">概述</h1>
-<h2 id="为什么要将hdfs和kerberos整合">为什么要将HDFS和Kerberos整合</h2>
-<p>HDFS权限控制过于简单，直接使用hadoop的acl进行权限控制，可能会出现在程序中使用<strong>System.setProperty(“HADOOP_USER_NAME”,”root”);</strong>直接更改用户，伪装成任意用户使用。因此，需要加强HDFS权限控制，则采用进行kerberos认证的方式。<br />
-hadoop的用户鉴权是基于JAAS的，其中hadoop.security.authentication属性有simple 和kerberos 等方式。如果hadoop.security.authentication等于”kerberos”,那么是“hadoop-user-kerberos”或者“hadoop-keytab-kerberos”，否则是“hadoop-simple”。在使用了kerberos的情况下，从javax.security.auth.kerberos.KerberosPrincipal的实例获取username。在没有使用kerberos时，首先读取hadoop的系统环境变量，如果没有的话，对于windows 从com.sun.security.auth.NTUserPrincipal获取用户名，对于类unix 从com.sun.security.auth.UnixPrincipal中获得用户名，然后再看该用户属于哪个group，从而完成登陆认证。</p>
-<h2 id="kerberos原理">Kerberos原理</h2>
-<h3 id="术语说明">术语说明</h3>
+<h1 id="flink基础概念">Flink基础概念</h1>
+<h2 id="程序和数据流-programs-and-dataflows">程序和数据流-Programs and Dataflows</h2>
+<p>官网地址：<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.6/concepts/programming-model.html#programs-and-dataflows">Programs and Dataflows</a>。</p>
 
-<table>
-  <thead>
-    <tr>
-      <th>术语</th>
-      <th>简述</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>KDC</td>
-      <td>在启用Kerberos的环境中，KDC用于验证各个模块</td>
-    </tr>
-    <tr>
-      <td>Kerberos KDC Server</td>
-      <td>KDC所在的机器</td>
-    </tr>
-    <tr>
-      <td>Kerberos Client</td>
-      <td>任何一个需要通过KDC认证的机器（或模块）</td>
-    </tr>
-    <tr>
-      <td>Principal</td>
-      <td>用于验证一个用户或者一个Service的唯一的标识，相当于一个账号，需要为其设置密码（这个密码也被称之为Key）</td>
-    </tr>
-    <tr>
-      <td>Keytab</td>
-      <td>包含有一个或多个Principal以及其密码的文件</td>
-    </tr>
-    <tr>
-      <td>Relam</td>
-      <td>由KDC以及多个Kerberos Client组成的网络</td>
-    </tr>
-    <tr>
-      <td>KDC Admin Account</td>
-      <td>KDC中拥有管理权限的账户（例如添加、修改、删除Principal）</td>
-    </tr>
-    <tr>
-      <td>Authentication Server (AS)</td>
-      <td>用于初始化认证，并生成Ticket Granting Ticket (TGT)</td>
-    </tr>
-    <tr>
-      <td>Ticket Granting Server (TGS)</td>
-      <td>在TGT的基础上生成Service Ticket。一般情况下AS和TGS都在KDC的Server上</td>
-    </tr>
-  </tbody>
-</table>
+<ol>
+  <li>Flink基本构建块：
+    <ul>
+      <li>Streams-中间结果</li>
+      <li>Transformations-以一个或多个stream作为输入的某种operation,输出一个或多个result stream。</li>
+    </ul>
+  </li>
+  <li>运行的程序-映射成-Streaming Dataflows<br />
+Dataflow：由一组stream和transformation Operators组成。由一个或多个Source开始，一个或多个Sink结束。Dataflow类似与DAG。<br />
+当编写好的一个Flink程序运行的时候，会被映射成Streaming Dataflow。程序中写的transformation和dataflow中的operator关系一般1:1，也可能1:n。</li>
+</ol>
 
-<p>Kerberos原理则不在此处进行说明，以后再做补充@TODO。本文直接先说明测试部署过程。</p>
-<h1 id="部署操作">部署操作</h1>
-<p>本文中部署操作首先先进行Kerberos单节点KDC部署，之后将单节点KDC的基础上结合HDFS进行配置，最后对整体集群进行优化，部署主从KDC防止Kerberos单点故障。<br />
-全部部署过程均在RHEL 7.1系统上进行。</p>
-<blockquote>
-  <p>参考链接：<br />
-<a href="https://ieevee.com/tech/2016/06/07/kerberos-1.html">Kerberos从入门到放弃（一）：HDFS使用kerberos</a><br />
-<a href="https://yq.aliyun.com/articles/25636?spm=5176.100240.searchblog.8.wbY2wv">HDFS配置Kerberos认证</a></p>
-</blockquote>
+<h2 id="并行数据流-parallel-dataflows">并行数据流-Parallel Dataflows</h2>
+<p>官网地址：<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.6/concepts/programming-model.html#parallel-dataflows">Parallel Dataflows</a>。</p>
 
-<h2 id="环境说明">环境说明</h2>
-<p>系统环境：<br />
-操作系统：RHEL 7.1
-Hadoop版本：2.6.0-cdh5.11.0
-JDK版本：jdk1.8.0<br />
-运行用户：hadoop</p>
-<h2 id="kerberos单节点kdc部署">Kerberos单节点KDC部署</h2>
-<p>节点规划:</p>
+<ol>
+  <li>程序在Flink内部的执行具有并行、分布式的特性：
+    <ul>
+      <li>stream-被分割成stream partition：一个Stream可以被分成多个Stream分区（Stream Partitions）。</li>
+      <li>operator-被分割成operator subtask：一个Operator可以被分成多个Operator Subtask，每一个Operator Subtask是在不同的线程中独立执行的。</li>
+    </ul>
 
-<table>
-  <thead>
-    <tr>
-      <th>hosts</th>
-      <th>角色</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>node1</td>
-      <td>kerberos server、AS、TGS、agent、namenode、datanode、zk</td>
-    </tr>
-    <tr>
-      <td>node2</td>
-      <td>kerberos client、SecondaryNameNode 、datanode、zk</td>
-    </tr>
-    <tr>
-      <td>node3</td>
-      <td>kerberos client、datanode、zk</td>
-    </tr>
-  </tbody>
-</table>
+    <p>一个Operator的并行度=Operator Subtask的个数<br />
+ 一个Stream的并行度=生成它的Operator的并行度（The parallelism of a stream is always that of its producing operator.）<br />
+ 一个程序中，不同的operator可能具有不同的并行度。</p>
+  </li>
+  <li>数据传输形式<br />
+Stream在operator之间传输数据的形式可以是one-to-one(forwarding)的模式也可以是redistributing的模式。<br />
+官网示例图：<br />
+<img src="https://ci.apache.org/projects/flink/flink-docs-release-1.6/fig/parallel_dataflow.svg" alt="数据流" />
+    <ul>
+      <li>One-to-one模式：One-to-one streams保持着分区以及元素的顺序。比如从Source[1]到map()[1]，它保持了Source的分区特性（Partitioning）和分区内元素处理的有序性，也就是说map()[1]的Subtask看到数据流中记录的顺序，与Source[1]中看到的记录顺序是一致的。</li>
+      <li>Redistribution模式：Redistributing streams 的分区会发生改变，改变了输入数据流的分区。比如从map()[1]、map()[2]到keyBy()/window()/apply()[1]、keyBy()/window()/apply()[2]，每个上游的operator subtask向下游的多个不同的subtasks发送数据，这与选择的transformation有关（比如说keyBy() （基于hash码重分区），broadcast()或者rebalance()（随机redistribution））。在一个redistribution的交换中，只有每一对的发送、接收subtask间的elements顺序才会被维持（比如说，subtask[1] of map() and subtask[2] of keyBy/window）。So in this example, the ordering within each key is preserved, but the parallelism does introduce non-determinism regarding the order in which the aggregated results for different keys arrive at the sink。</li>
+    </ul>
 
-<h3 id="1添加主机名解析到etchosts文件或配置dns">(1)添加主机名解析到/etc/hosts文件或配置DNS</h3>
-<p>在Kerberos中，Principal中需各主机的FQDN名，所以集群中需要有DNS。<br />
-但在本次测试中，未进行DNS配置，直接使用配置hosts进行测试。</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>[root@node1 ~]# cat /etc/hosts
-::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
-10.211.55.10 node1
-10.211.55.11 node2
-10.211.55.12 node3
-</code></pre>
-</div>
-<p><strong>注意：hostname 请使用小写，要不然在集成 kerberos 时会出现一些错误。</strong></p>
-<h3 id="2配置ntp">(2)配置NTP</h3>
-<p>Kerberos集群对时间同步敏感度较高，默认时间相差超过5分钟就会出现问题，所以最好是在集群中增加NTP服务器。不过我的集群机器比较少，先跳过NTP吧。</p>
-<h3 id="3安装kerberos">(3)安装Kerberos</h3>
-<p>Kerberos有不同的实现，如MIT KDC、Microsoft Active Directory等。我这里采用的是MIT KDC。<br />
-在 KDC (这里是 node1 ) 上安装包 krb5、krb5-server 和 krb5-client：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ yum install krb5-server krb5-libs krb5-workstation  -y 
-</code></pre>
-</div>
-<p>在其他节点（node1、node2、node3）安装 krb5-devel、krb5-workstation：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ yum install krb5-libs krb5-workstation  -y
-</code></pre>
-</div>
-<h3 id="4修改配置文件">(4).修改配置文件</h3>
-<p>kdc 服务器涉及到三个配置文件：<br />
-/etc/krb5.conf<br />
-/var/kerberos/krb5kdc/kdc.conf<br />
-/var/kerberos/krb5kdc/kadm5.acl</p>
-<h4 id="akrb5conf配置">a).krb5.conf配置</h4>
-<p>/etc/krb5.conf:包含Kerberos的配置信息。例如，KDC的位置，Kerberos的admin的realms 等。需要所有使用的Kerberos的机器上的配置文件都同步。这里仅列举需要的基本配置。详细参考<a href="http://web.mit.edu/kerberos/krb5-latest/doc/admin/conf_files/krb5_conf.html">krb5.conf</a></p>
+    <p>并且在本例中，Source Operator对应2个Subtask，所以并行度为2，而Sink Operator的Subtask只有1个，故而并行度为1。</p>
+  </li>
+</ol>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>[root@node1 etc]# cat krb5.conf
-# Configuration snippets may be placed in this directory as well
-includedir /etc/krb5.conf.d/
-[logging] #[logging]：表示 server 端的日志的打印位置
- default = FILE:/var/log/krb5libs.log
- kdc = FILE:/var/log/krb5kdc.log
- admin_server = FILE:/var/log/kadmind.log
-
-[libdefaults] #[libdefaults]：每种连接的默认配置，需要注意以下几个关键的小配置
- default_realm = HADOOP.COM #设置Kerberos应用程序的默认领域。如果您有多个领域，只需向[realms]节添加其他的语句
- dns_lookup_realm = false
- #clockskew = 120 #时钟偏差是不完全符合主机系统时钟的票据时戳的容差，超过此容差将不接受此票据。通常，将时钟扭斜设置为 300 秒（5 分钟）。这意味着从服务器的角度看，票证的时间戳与它的偏差可以是在前后 5 分钟内。~~
- ticket_lifetime = 24h #表明凭证生效的时限，一般为24小时
- renew_lifetime = 7d #表明凭证最长可以被延期的时限，一般为一个礼拜。当凭证过期之后，对安全认证的服务的后续访问则会失败
- forwardable = true #允许转发解析请求  
- rdns = false
- udp_preference_limit = 1 #禁止使用udp可以防止一个Hadoop中的错误
-
-[realms] #列举使用的realm
-HADOOP.COM = {
-  kdc = node1:88 #代表要kdc的位置。格式是机器:端口。测试过程中也可不加端口。
-  admin_server = node1:749 #代表admin的位置。格式是机器:端口。测试过程中也可不加端口。
-  default_domain = HADOOP.COM #代表默认的域名。
- }
-
-[kdc]
- profile=/var/kerberos/krb5kdc/kdc.conf
- 
-#[domain_realm] 
-#.hadoop.com = HADOOP.COM
-#hadoop.com = HADOOP.COM
-</code></pre>
-</div>
-<p>总结：</p>
+<h2 id="窗口-windows">窗口-Windows</h2>
+<p>官网地址：<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.6/concepts/programming-model.html#windows">Windows</a>。<br />
+窗口可以是时间驱动的（比如，每30秒）也可以是数据驱动的（比如，每100个元素）。通常我们将窗口划分为：tumbing windows(不重叠)，sliding windows（有重叠）和session windows(有空隙的活动)。</p>
+<h2 id="时间-time">时间-Time</h2>
+<p>官网地址：<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.6/concepts/programming-model.html#time">Time</a>。</p>
 <ul>
-  <li>这个文件可以用include和includedir引入其他文件或文件夹，但必须是绝对路径</li>
-  <li>realms:包含kerberos realm的名字（部分键控），显示关于realm的特殊信息，包括该realm内的主机要从哪里寻找kerberos的server。</li>
-  <li>domain realm：将domain名和子domain名映射到realm名上</li>
-  <li>必须填的有以下几项：</li>
-  <li>default-realm：在libdefault部分</li>
-  <li>admin_server：在realm部分</li>
-  <li>domain_realm：当domain名和realm名不同的时候要设置</li>
-  <li>logging：当该机器作为KDC时要设置</li>
-  <li>[appdefaults]：可以设定一些针对特定应用的配置，覆盖默认配置。</li>
+  <li>Event Time：事件的创建时间，通常通过事件中的一个时间戳来描述。</li>
+  <li>Ingestion time：事件进入Flink 数据流的source的时间。</li>
+  <li>Processing Time：Processing Time表示某个Operator对事件进行处理时的本地系统时间（是在TaskManager节点上）。</li>
 </ul>
 
-<h4 id="bkdcconf配置">b).kdc.conf配置</h4>
-<p>/var/kerberos/krb5kdc/kdc.conf:包括KDC的配置信息。默认放在 /usr/local/var/krb5kdc。或者通过覆盖KRB5_KDC_PROFILE环境变量修改配置文件位置。详细参考<a href="http://web.mit.edu/kerberos/krb5-latest/doc/admin/conf_files/kdc_conf.html">kdc.conf</a>。</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>[root@node1 ~]# cat /var/kerberos/krb5kdc/kdc.conf
-[kdcdefaults]
- kdc_ports = 88
- kdc_tcp_ports = 88
+<h2 id="有状态的数据操作-stateful-operations">有状态的数据操作-Stateful Operations</h2>
+<p>官网地址：<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.6/concepts/programming-model.html#stateful-operations">Stateful Operations</a>。<br />
+在流处理中，有些操作仅仅在某一时间针对单一事件（如事件转换map），有些操作需要记住多个事件的信息并进行处理（window operators），则后面这些操作称为有状态的操作。<br />
+有状态的操作，其状态被维护的地方，可以将其看作是一个内嵌的key/value存储器。这些状态信息会跟数据流一起分区并且分布存储，并且可以通过有状态的数据操作来访问。因此这些key/value的状态信息仅在keyed streams（通过keyBy() 函数处理过）中才能访问到，并且只能根据当前事件的key来访问其值。数据流按照key排列能保证所有的状态更新都是本地操作，保证一致性且无事务问题。同时这种排列方式使Flink能够透明的再分发状态信息和调整数据流分区。<br />
+关于Flink有状态的流的工作，可以详细参考文章：<a href="https://www.jianshu.com/p/e9a330399b30">Flink 有状态的流的工作-Working with state</a>。</p>
 
-[realms]
- HADOOP.COM = { #是设定的 realms。名字随意。Kerberos 可以支持多个 realms，会增加复杂度。大小写敏感，一般为了识别使用全部大写。这个realms跟机器的host没有大关系。
-  #master_key_type = aes256-cts
-  #和supported_enctypes默认使用aes256-cts。由于，JAVA使用aes256-cts验证方式需要安装额外的jar包（后面再做说明）。推荐不使用，并且删除aes256-cts。
-  kadmind_port = 749
-  acl_file = /var/kerberos/krb5kdc/kadm5.acl #标注了admin的用户权限，需要用户自己创建。文件格式是：Kerberos_principal permissions [target_principal] [restrictions] 支持通配符等。最简单的写法是*/admin@HADOOP.COM *,代表名称匹配*/admin@HADOOP.COM 都认为是admin，权限是 *。代表全部权限。
-  dict_file = /usr/share/dict/words
-  database_name = /var/kerberos/krb5kdc/principal
-  key_stash_file =  /var/kerberos/krb5kdc/.k5.HADOOP.COM
-  admin_keytab = /var/kerberos/krb5kdc/kadm5.keytab #KDC 进行校验的 keytab
-  max_life = 24h
-  max_renewable_life = 10d #涉及到是否能进行ticket的renwe必须配置
-  default_principal_flags = +renewable, +forwardable
-  supported_enctypes = des3-hmac-sha1:normal arcfour-hmac:normal camellia256-cts:normal camellia128-cts:normal des-hmac-sha1:normal des-cbc-md5:normal des-cbc-crc:normal #支持的校验方式.注意把aes256-cts去掉
- }
-</code></pre>
-</div>
-<p>总结：</p>
+<h2 id="容错的checkpoint-checkpoints-for-fault-tolerance">容错的Checkpoint-Checkpoints for Fault Tolerance</h2>
+<p>官网地址：<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.6/concepts/programming-model.html#checkpoints-for-fault-tolerance">Checkpoints for Fault Tolerance</a>。<br />
+Flink 通过流回放（stream replay）和设置检查点（checkpointing）的方式实现容错。<br />
+一个checkpoint关联了输入流中的某个记录和相应状态operators。数据流（a streaming dataflow）可以从checkpoint中进行恢复，通过恢复Operators的状态以及从该checkpoint重放事件，其保证一致性（exactly-once 的处理语义）。 <br />
+Checkpoint的间隔关系到执行时的容错性和恢复时间，也决定了需要被重放的事件数。</p>
+
+<h2 id="流上的批处理-batch-on-streaming">流上的批处理-Batch on Streaming</h2>
+<p>官网地址：<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.6/concepts/programming-model.html#batch-on-streaming">Batch on Streaming</a>。<br />
+Flink把批处理作为特殊的流处理程序来执行，将其看作有界的流（有限数量的元素）。<br />
+DataSet在内部被当作一个流数据，因此上面的适用于流处理的这些概念在批处理中同样适用，除了一些小的不同：</p>
 <ul>
-  <li>HADOOP.COM： 是设定的 realms。名字随意。Kerberos可以支持多个。</li>
-  <li>realms，会增加复杂度。大小写敏感，一般为了识别使用全部大写。这个 realms 跟机器的 host 没有大关系。</li>
-  <li>master_key_type：和 supported_enctypes 默认使用 aes256-cts。JAVA 使用 aes256-cts 验证方式需要安装 JCE 包，见下面的说明。为了简便，你可以不使用aes256-cts 算法，这样就不需要安装 JCE 。</li>
-  <li>acl_file：标注了 admin 的用户权限，需要用户自己创建。文件格式是：Kerberos_principal permissions [target_principal] [restrictions]</li>
-  <li>supported_enctypes：支持的校验方式。</li>
-  <li>admin_keytab：KDC 进行校验的 keytab。</li>
+  <li>容错机制不同：批处理的容错机制不使用checkpoints，恢复机制是通过完整的流重放来实现。这是因为inputs是有界的，它将开销更多地引入到恢复操作上，但另一方面也使得运行时的常规流程代价更低，因为它规避了检查点机制。</li>
+  <li>有状态的Operations数据结构不同：DataSet API的有状态操作API使用简单的内存和堆外内存（in-memory/out-of-core）的数据结构，而不是key/value的索引。</li>
+  <li>DataSet API中引入一种独特的同步的迭代操作（superstep-based），这个仅应用于有界数据流。详见<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.6/dev/batch/iterations.html#iterations">Iterations</a>。</li>
 </ul>
 
-<blockquote>
-  <p>补充说明-关于AES-256加密（未测试，参考<a href="https://yq.aliyun.com/articles/25636?spm=5176.100240.searchblog.8.wbY2wv">HDFS配置Kerberos认证</a>）： <br />
-对于使用 centos5. 6 及以上的系统，默认使用 AES-256 来加密的。这就需要集群中的所有节点上安装 JCE，如果你使用的是 JDK1.6 ，则到 Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files for JDK/JRE 6 页面下载，如果是 JDK1.7，则到 Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files for JDK/JRE 7 下载。下载的文件是一个 zip 包，解开后，将里面的两个文件放到下面的目录中：$JAVA_HOME/jre/lib/security</p>
-</blockquote>
-
-<h4 id="ckadm5acl配置">c).kadm5.acl配置</h4>
-<p>为了能够不直接访问KDC控制台而从Kerberos数据库添加和删除主体，请对Kerberos管理服务器指示允许哪些主体执行哪些操作。通过编辑文件 /var/kerberos/krb5kdc/kadm5.acl完成此操作。ACL（访问控制列表）允许您精确指定特权。</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>[root@node1 ~]# cat /var/kerberos/krb5kdc/kadm5.acl
-*/admin@HADOOP.COM	*
-</code></pre>
-</div>
-
-<h3 id="5同步配置文件">(5)同步配置文件</h3>
-<p>将 kdc 中的 /etc/krb5.conf 拷贝到集群中其他服务器即可。</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ scp /etc/krb5.conf node2:/etc/krb5.conf
-$ scp /etc/krb5.conf node3:/etc/krb5.conf
-</code></pre>
-</div>
-<p>请确认集群如果关闭了 selinux。</p>
-
-<h3 id="6创建数据库">(6)创建数据库</h3>
-<p>在node1上运行初始化数据库命令。其中 -r 指定对应 realm。<br />
-该命令会在 /var/kerberos/krb5kdc/ 目录下创建 principal 数据库。<br />
-如果遇到数据库已经存在的提示，可以把/var/kerberos/krb5kdc/目录下的principal的相关文件都删除掉。默认的数据库名字都是 principal。可以使用 -d 指定数据库名字。</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ kdb5_util create -r JAVACHEN.COM -s
-</code></pre>
-</div>
-<blockquote>
-  <p>补充小技巧-（未测试，其他帖子看到的）：出现Loading random data的时候另开个终端执行点消耗CPU的命令如cat /dev/sda &gt; /dev/urandom 可以加快随机数采集。</p>
-</blockquote>
-
-<p>操作结果小例子：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>[root@node1 etc]# kdb5_util create -r HADOOP.COM -s
-Loading random data
-Initializing database '/var/kerberos/krb5kdc/principal' for realm 'HADOOP.COM',
-master key name 'K/M@HADOOP.COM'
-You will be prompted for the database Master Password.    #在此处输入的是root@1234
-It is important that you NOT FORGET this password.
-Enter KDC database master key:
-Re-enter KDC database master key to verify:
-</code></pre>
-</div>
-
-<h3 id="7启动服务">(7)启动服务</h3>
-<p>在node1节点上运行：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>[root@node1 etc]# service krb5kdc start
-Redirecting to /bin/systemctl start krb5kdc.service
-[root@node1 etc]# service kadmin start
-Redirecting to /bin/systemctl start kadmin.service
-</code></pre>
-</div>
-<p>至此kerberos，搭建完毕。</p>
-
-<h2 id="kerberos基本环境创建及简单命令测试">Kerberos基本环境创建及简单命令测试</h2>
-<h3 id="1创建kerberos管理员">(1)创建Kerberos管理员</h3>
-<p>关于 kerberos 的管理，可以使用 kadmin.local 或 kadmin，至于使用哪个，取决于账户和访问权限：</p>
-<ul>
-  <li>如果有访问 kdc 服务器的 root 权限，但是没有 kerberos admin 账户，使用 kadmin.local</li>
-  <li>如果没有访问 kdc 服务器的 root 权限，但是用 kerberos admin 账户，使用 kadmin</li>
-</ul>
-
-<p>在node1上创建远程管理的管理员，系统会提示输入密码，密码不能为空，且需妥善保存。：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>#手动输入两次密码，这里密码为 root
-$ kadmin.local -q "addprinc root/admin"
-# 也可以不用手动输入密码，通过echo将密码引入
-$ echo -e "root\nroot" | kadmin.local -q "addprinc root/admin"
-</code></pre>
-</div>
-<p>建议：<br />
-最好把username设为root，会提示输入密码，可以输入一个密码。<br />
-创建第一个principal，必须在KDC自身的终端上进行，而且需要以root登录，这样才可以执行kadmin.local命令。</p>
-
-<p>操作结果小例子：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>[root@node1 etc]# kadmin.local -q "addprinc root/admin"
-Authenticating as principal root/admin@HADOOP.COM with password.
-WARNING: no policy specified for root/admin@HADOOP.COM; defaulting to no policy
-Enter password for principal "root/admin@HADOOP.COM":
-Re-enter password for principal "root/admin@HADOOP.COM":
-Principal "root/admin@HADOOP.COM" created.
-</code></pre>
-</div>
-
-<h3 id="2添加更多主体-创建host主体并将自己的host主题添加到自己密钥表文件">(2)添加更多主体-创建host主体并将自己的host主题添加到自己密钥表文件</h3>
-<h4 id="a基于kerberos-的应用程序例如-kprop将使用主机主体将变更传播到从kdc服务器也可以通过该主体提供对使用应用程序如ssh的kdc服务器的安全远程访问">a).基于Kerberos 的应用程序(例如 kprop)将使用主机主体将变更传播到从KDC服务器。也可以通过该主体提供对使用应用程序(如ssh)的KDC服务器的安全远程访问。</h4>
-<p>请注意，当主体实例为主机名时，无论名称服务中的域名是大写还是小写，都必须以小写字母指定FQDN。</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>kadmin: addprinc -randkey host/node1
-Principal "host/node1@HADOOP.COM" created. 
-kadmin:
-</code></pre>
-</div>
-<p>或用命令（创建了node1、node2、node3的host主体）：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>kadmin.local -q "addprinc -randkey host/node1@HADOOP.COM"
-kadmin.local -q "addprinc -randkey host/node2@HADOOP.COM"
-kadmin.local -q "addprinc -randkey host/node3@HADOOP.COM"
-</code></pre>
-</div>
-<h4 id="b将kdc服务器的host主体添加到kdc服务器的密钥表文件">b).将KDC服务器的host主体添加到KDC服务器的密钥表文件。</h4>
-<p>通过将主机主体添加到密钥表文件，允许应用服务器(如sshd)自动使用该主体。<br />
-<strong>注意：将自己的host主体添加到自己的密钥表文件。</strong></p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>#在node1上执行
-kadmin: ktadd host/node1
-</code></pre>
-</div>
-
-<h3 id="3kerberos简单命令测试">(3)Kerberos简单命令测试</h3>
-<p>输入kadmin或者kadmin.local命令进入kerberos的shell(登录到管理员账户:如果在本机上，可以通过kadmin.local直接登录。其它机器的，先使用kinit进行验证)，如下：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>1、其他机器上先使用kinit进行验证：
-echo root@1234|kinit root/admin  
-2、之后再使用kadmin或者kadmin.local命令进入kerberos的shell
-</code></pre>
-</div>
-<h4 id="aprincipals操作">a).principals操作</h4>
-<p>查看principals</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ kadmin: list_principals
-</code></pre>
-</div>
-<p>添加一个新的 principal</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ kadmin:  addprinc user1  
-</code></pre>
-</div>
-<p>删除 principal</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ kadmin:  delprinc user1  
-$ kadmin: exit
-</code></pre>
-</div>
-<p>也可以直接通过下面的命令来执行：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>#提示需要输入密码
-$ kadmin -p root/admin -q "list_principals"
-$ kadmin -p root/admin -q "addprinc user2"
-$ kadmin -p root/admin -q "delprinc user2"
-
-#不用输入密码
-$ kadmin.local -q "list_principals"
-$ kadmin.local -q "addprinc user2"
-$ kadmin.local -q "delprinc user2"
-</code></pre>
-</div>
-
-<h4 id="bticket操作创建一个测试用户test密码设置为test">b).ticket操作:创建一个测试用户test，密码设置为test</h4>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>$ echo -e "test\ntest" | kadmin.local -q "addprinc test"
-</code></pre>
-</div>
-<p>获取 test 用户的 ticket：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>#通过用户名和密码进行登录
-[root@node2 ~]# kinit test
-Password for test@HADOOP.COM:
-[root@node2 ~]# klist  -e
-Ticket cache: KEYRING:persistent:0:krb_ccache_CGo77JQ
-Default principal: test@HADOOP.COM
-Valid starting       Expires              Service principal
-09/06/2017 16:06:57  09/07/2017 16:06:57  krbtgt/HADOOP.COM@HADOOP.COM
-	renew until 09/13/2017 16:06:57, Etype (skey, tkt): des3-cbc-sha1, des3-cbc-sha1
-</code></pre>
-</div>
-<p>销毁该 test 用户的 ticket:</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>[root@node2 ~]# kdestroy
-Other credential caches present, use -A to destroy all
-[root@node2 ~]# kdestroy -A
-[root@node2 ~]# klist  -e
-klist: Credentials cache keyring 'persistent:0:krb_ccache_CGo77JQ' not found
-[root@node2 ~]# klist
-klist: Credentials cache keyring 'persistent:0:krb_ccache_CGo77JQ' not found
-</code></pre>
-</div>
-<p>更新 ticket:</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ kinit root/admin
-  Password for root/admin@HADOOP.COM:
-$  klist
-  Ticket cache: FILE:/tmp/krb5cc_0
-  Default principal: root/admin@JAVACHEN.COM
-  Valid starting     Expires            Service principal
-  11/07/14 15:33:57  11/08/14 15:33:57  krbtgt/JAVACHEN.COM@JAVACHEN.COM
-    renew until 11/17/14 15:33:57
-  Kerberos 4 ticket cache: /tmp/tkt0
-  klist: You have no tickets cached
-$ kinit -R
-$ klist
-  Ticket cache: FILE:/tmp/krb5cc_0
-  Default principal: root/admin@JAVACHEN.COM
-  Valid starting     Expires            Service principal
-  11/07/14 15:34:05  11/08/14 15:34:05  krbtgt/JAVACHEN.COM@JAVACHEN.COM
-    renew until 11/17/14 15:33:57
-  Kerberos 4 ticket cache: /tmp/tkt0
-  klist: You have no tickets cached
-</code></pre>
-</div>
-<h4 id="c-抽取密钥到在本地keytab文件">c). 抽取密钥到在本地keytab文件</h4>
-<p>抽取密钥并将其储存在本地keytab文件/etc/krb5.keytab中。这个文件由超级用户拥有，所以您必须是root用户才能在kadmin shell 中执行以下命令:</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ kadmin.local -q "ktadd kadmin/admin"
-$ klist -k /etc/krb5.keytab
-  Keytab name: FILE:/etc/krb5.keytab
-  KVNO Principal
-  ---- ----------------------------------------------------------------------
-     3 kadmin/admin@LASHOU-INC.COM
-     3 kadmin/admin@LASHOU-INC.COM
-     3 kadmin/admin@LASHOU-INC.COM
-     3 kadmin/admin@LASHOU-INC.COM
-     3 kadmin/admin@LASHOU-INC.COM
-   -----------------
-</code></pre>
-</div>
 <hr />
-<p>至此，本篇内容完成。以上为Kerberos单KDC版搭建过程，下篇文章进行HDFS和Kerberos整合操作的整理。</p>
-
+<p>至此，本篇内容完成。</p>
 
       
     </div>
@@ -905,7 +571,7 @@ $ klist -k /etc/krb5.keytab
     </li>
     <li class="post-copyright-link">
       <strong>本文链接：</strong>
-      <a href="http://localhost:4000/bigdata/2018/05/05/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B51-Kerberos%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87%E5%8F%8A%E5%AE%89%E8%A3%85/" title="Kerberos具体实践1-Kerberos环境准备及安装">Kerberos具体实践1-Kerberos环境准备及安装</a>
+      <a href="http://localhost:4000/bigdata/2018/09/05/Flink%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/" title="Flink基础概念">Flink基础概念</a>
     </li>
     <li class="post-copyright-license">
       <strong>版权声明： </strong>
@@ -922,7 +588,7 @@ $ klist -k /etc/krb5.keytab
         <div class="post-tags">
           
             
-            <a href="/tag/#/Kerberos" rel="tag"># Kerberos</a>
+            <a href="/tag/#/Flink" rel="tag"># Flink</a>
           
         </div>
       
@@ -938,18 +604,14 @@ $ klist -k /etc/krb5.keytab
         <div class="post-nav" id="post-nav-id">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/10/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A81/" rel="next" title="机器学习入门自学-描述统计学入门1">
-                <i class="fa fa-chevron-left"></i> 机器学习入门自学-描述统计学入门1
-              </a>
-            
           </div>
 
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/bigdata/2018/04/04/SparkStreaming%E7%A8%8B%E5%BA%8F%E4%B8%ADcheckpoint%E4%B8%8E%E5%B9%BF%E6%92%AD%E5%8F%98%E9%87%8F%E5%85%BC%E5%AE%B9%E5%A4%84%E7%90%86/" rel="prev" title="SparkStreaming程序中checkpoint与广播变量兼容处理">
-                SparkStreaming程序中checkpoint与广播变量兼容处理 <i class="fa fa-chevron-right"></i>
+              <a href="/bigdata/2018/07/02/Spark-Streaming-%E5%86%99%E5%85%A5%E6%95%B0%E6%8D%AE%E5%88%B0%E6%96%87%E4%BB%B6-%E5%85%B3%E9%94%AE%E4%B8%BASpark%E6%A0%B9%E6%8D%AE%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E8%BE%93%E5%87%BA%E5%88%B0%E4%B8%8D%E5%90%8C%E8%87%AA%E5%AE%9A%E4%B9%89%E5%90%8D%E7%A7%B0%E6%96%87%E4%BB%B6-saveAsHadoopFile%E4%BB%A5%E5%8F%8A%E8%87%AA%E5%AE%9A%E4%B9%89MultipleOutputFormat/" rel="prev" title="Spark(Streaming)写入数据到文件-关键为根据数据内容输出到不同自定义名称文件(saveAsHadoopFile以及自定义MultipleOutputFormat)">
+                Spark(Streaming)写入数据到文件-关键为根据数据内容输出到不同自定义名称文件(saveAsHadoopFile以及自定义MultipleOutputFormat) <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -1116,7 +778,7 @@ $ klist -k /etc/krb5.keytab
             
               <div class="post-toc-content">
     <ol class=nav>
-      <li class="nav-item nav-level-1"> <a class="nav-link" href="#概述"> <span class="nav-number">1</span> <span class="nav-text">概述</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#为什么要将hdfs和kerberos整合"> <span class="nav-number">1.1</span> <span class="nav-text">为什么要将HDFS和Kerberos整合</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#kerberos原理"> <span class="nav-number">1.2</span> <span class="nav-text">Kerberos原理</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#术语说明"> <span class="nav-number">1.2.1</span> <span class="nav-text">术语说明</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#部署操作"> <span class="nav-number">2</span> <span class="nav-text">部署操作</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#环境说明"> <span class="nav-number">2.1</span> <span class="nav-text">环境说明</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#kerberos单节点kdc部署"> <span class="nav-number">2.2</span> <span class="nav-text">Kerberos单节点KDC部署</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#1添加主机名解析到etchosts文件或配置dns"> <span class="nav-number">2.2.1</span> <span class="nav-text">(1)添加主机名解析到/etc/hosts文件或配置DNS</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#2配置ntp"> <span class="nav-number">2.2.2</span> <span class="nav-text">(2)配置NTP</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#3安装kerberos"> <span class="nav-number">2.2.3</span> <span class="nav-text">(3)安装Kerberos</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#4修改配置文件"> <span class="nav-number">2.2.4</span> <span class="nav-text">(4).修改配置文件</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-4"> <a class="nav-link" href="#akrb5conf配置"> <span class="nav-number">2.2.4.1</span> <span class="nav-text">a).krb5.conf配置</span> </a> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li> <li class="nav-item nav-level-4"> <a class="nav-link" href="#bkdcconf配置"> <span class="nav-number">2.2.4.2</span> <span class="nav-text">b).kdc.conf配置</span> </a> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li> <li class="nav-item nav-level-4"> <a class="nav-link" href="#ckadm5acl配置"> <span class="nav-number">2.2.4.3</span> <span class="nav-text">c).kadm5.acl配置</span> </a> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#5同步配置文件"> <span class="nav-number">2.2.5</span> <span class="nav-text">(5)同步配置文件</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#6创建数据库"> <span class="nav-number">2.2.6</span> <span class="nav-text">(6)创建数据库</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#7启动服务"> <span class="nav-number">2.2.7</span> <span class="nav-text">(7)启动服务</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#kerberos基本环境创建及简单命令测试"> <span class="nav-number">2.3</span> <span class="nav-text">Kerberos基本环境创建及简单命令测试</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#1创建kerberos管理员"> <span class="nav-number">2.3.1</span> <span class="nav-text">(1)创建Kerberos管理员</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#2添加更多主体-创建host主体并将自己的host主题添加到自己密钥表文件"> <span class="nav-number">2.3.2</span> <span class="nav-text">(2)添加更多主体-创建host主体并将自己的host主题添加到自己密钥表文件</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-4"> <a class="nav-link" href="#a基于kerberos-的应用程序例如-kprop将使用主机主体将变更传播到从kdc服务器也可以通过该主体提供对使用应用程序如ssh的kdc服务器的安全远程访问"> <span class="nav-number">2.3.2.1</span> <span class="nav-text">a).基于Kerberos 的应用程序(例如 kprop)将使用主机主体将变更传播到从KDC服务器。也可以通过该主体提供对使用应用程序(如ssh)的KDC服务器的安全远程访问。</span> </a> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li> <li class="nav-item nav-level-4"> <a class="nav-link" href="#b将kdc服务器的host主体添加到kdc服务器的密钥表文件"> <span class="nav-number">2.3.2.2</span> <span class="nav-text">b).将KDC服务器的host主体添加到KDC服务器的密钥表文件。</span> </a> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#3kerberos简单命令测试"> <span class="nav-number">2.3.3</span> <span class="nav-text">(3)Kerberos简单命令测试</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-4"> <a class="nav-link" href="#aprincipals操作"> <span class="nav-number">2.3.3.1</span> <span class="nav-text">a).principals操作</span> </a> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li> <li class="nav-item nav-level-4"> <a class="nav-link" href="#bticket操作创建一个测试用户test密码设置为test"> <span class="nav-number">2.3.3.2</span> <span class="nav-text">b).ticket操作:创建一个测试用户test，密码设置为test</span> </a> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li> <li class="nav-item nav-level-4"> <a class="nav-link" href="#c-抽取密钥到在本地keytab文件"> <span class="nav-number">2.3.3.3</span> <span class="nav-text">c). 抽取密钥到在本地keytab文件</span> </a> <ol class="nav-child"> <ol class="nav-child">
+      <li class="nav-item nav-level-1"> <a class="nav-link" href="#flink基础概念"> <span class="nav-number">1</span> <span class="nav-text">Flink基础概念</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#程序和数据流-programs-and-dataflows"> <span class="nav-number">1.1</span> <span class="nav-text">程序和数据流-Programs and Dataflows</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#并行数据流-parallel-dataflows"> <span class="nav-number">1.2</span> <span class="nav-text">并行数据流-Parallel Dataflows</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#窗口-windows"> <span class="nav-number">1.3</span> <span class="nav-text">窗口-Windows</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#时间-time"> <span class="nav-number">1.4</span> <span class="nav-text">时间-Time</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#有状态的数据操作-stateful-operations"> <span class="nav-number">1.5</span> <span class="nav-text">有状态的数据操作-Stateful Operations</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#容错的checkpoint-checkpoints-for-fault-tolerance"> <span class="nav-number">1.6</span> <span class="nav-text">容错的Checkpoint-Checkpoints for Fault Tolerance</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#流上的批处理-batch-on-streaming"> <span class="nav-number">1.7</span> <span class="nav-text">流上的批处理-Batch on Streaming</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child">
     </ol>
   </div>
             
