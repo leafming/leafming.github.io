@@ -1,4 +1,173 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-10-08T18:01:17+08:00</updated><id>http://localhost:4000/</id><title type="html">iLeaf</title><subtitle>Yesterday you said tomorrow.</subtitle><author><name>叶子  ( ˘ ³˘)♥</name></author><entry><title type="html">Flink基础概念</title><link href="http://localhost:4000/bigdata/2018/09/05/Flink%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/" rel="alternate" type="text/html" title="Flink基础概念" /><published>2018-09-05T00:00:00+08:00</published><updated>2018-09-05T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/09/05/Flink%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/09/05/Flink%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/">&lt;blockquote&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-10-10T15:04:52+08:00</updated><id>http://localhost:4000/</id><title type="html">iLeaf</title><subtitle>Yesterday you said tomorrow.</subtitle><author><name>叶子  ( ˘ ³˘)♥</name></author><entry><title type="html">Flink基础运行时环境</title><link href="http://localhost:4000/bigdata/2018/10/09/Flink%E5%9F%BA%E7%A1%80%E8%BF%90%E8%A1%8C%E6%97%B6%E7%8E%AF%E5%A2%83/" rel="alternate" type="text/html" title="Flink基础运行时环境" /><published>2018-10-09T00:00:00+08:00</published><updated>2018-10-09T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/10/09/Flink%E5%9F%BA%E7%A1%80%E8%BF%90%E8%A1%8C%E6%97%B6%E7%8E%AF%E5%A2%83</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/10/09/Flink%E5%9F%BA%E7%A1%80%E8%BF%90%E8%A1%8C%E6%97%B6%E7%8E%AF%E5%A2%83/">&lt;blockquote&gt;
+  &lt;p&gt;本文所用flink版本为1.6，官方文档链接&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.6/concepts/runtime.html&quot;&gt;Apache Flink 1.6&lt;/a&gt;。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h1 id=&quot;flink运行时环境&quot;&gt;Flink运行时环境&lt;/h1&gt;
+&lt;h2 id=&quot;tasks和operator-chains&quot;&gt;Tasks和Operator Chains&lt;/h2&gt;
+&lt;ol&gt;
+  &lt;li&gt;基础说明&lt;br /&gt;
+在实际的分布式计算环境中，Flink会将多个运算子任务（ operator subtasks）链接一起（chains）形成分布式计算任务（tasks）。每个任务（task）在一个线程中执行。&lt;br /&gt;
+优点：将运算符（operators）链接成计算任务（tasks）中，形成Operator Chains对于系统性能的提升有很大的帮助：
+    &lt;ul&gt;
+      &lt;li&gt;降低了线程间的切换&lt;/li&gt;
+      &lt;li&gt;减少了数据在与缓冲区的开销&lt;/li&gt;
+      &lt;li&gt;减少消息的序列化/反序列化&lt;/li&gt;
+      &lt;li&gt;在降低延时的同时减少了系统的总体吞吐量&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;我们可以对这种chain操作进行配置，具体内容请参考&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.6/dev/stream/operators/#task-chaining-and-resource-groups&quot;&gt;chaining docs&lt;/a&gt;。&lt;br /&gt;
+如下图是官网所示的数据流图包含五个子任务，也就是说其中有五个并行线程：&lt;br /&gt;
+&lt;img src=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.6/fig/tasks_chains.svg&quot; alt=&quot;Tasks and Operator Chains&quot; /&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;形成Operator Chains的条件：&lt;br /&gt;
+上述描述了Tasks和Operator Chains的概念，下面以经典的WordCount为例，看下Operator Chains的形成。此部分结合&lt;a href=&quot;http://wuchong.me/blog/2016/05/09/flink-internals-understanding-execution-resources/&quot;&gt;Flink 原理与实现：理解 Flink 中的计算资源&lt;/a&gt;整理。&lt;br /&gt;
+下面这幅图，展示了Source并行度为1，FlatMap、KeyAggregation、Sink并行度均为2，最终以5个并行的线程来执行的优化过程。&lt;br /&gt;
+&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/flink/2018-10-09-FlinkOperatorChains形成.png?raw=true&quot; alt=&quot;flinkOperatorChains形成&quot; /&gt;&lt;br /&gt;
+上图中将KeyAggregation和Sink两个operator进行了合并，因为这两个合并后并不会改变整体的拓扑结构。但是，并不是任意两个 operator 就能 chain 一起的。还是需要一定的条件：
+    &lt;ul&gt;
+      &lt;li&gt;没有禁用Chain&lt;/li&gt;
+      &lt;li&gt;上下游算子并行度一致&lt;/li&gt;
+      &lt;li&gt;下游算子的入度为1（也就是说下游节点没有来自其他节点的输入）&lt;/li&gt;
+      &lt;li&gt;上下游算子都在同一个slot group中（文章后续会解释slot group）&lt;/li&gt;
+      &lt;li&gt;上下游算子之间没有shuffle（两个算子间数据分区方式是forward）&lt;/li&gt;
+      &lt;li&gt;下游的chain策略为ALWAYS（可以与上下游链接，map、flatmap、filter等默认是ALWAYS）&lt;/li&gt;
+      &lt;li&gt;上游的chain策略为ALWAYS或HEAD（只能与下游链接，不能与上游链接，Source默认是HEAD）&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;Operator chain的行为可以通过编程API中进行指定。可以通过在DataStream的operator后面（如someStream.map(..))调用startNewChain()来指示从该operator开始一个新的chain（与前面截断，不会被chain到前面）。或者调用disableChaining()来指示该operator不参与chaining（不会与前后的operator chain一起）。在底层，这两个方法都是通过调整operator的 chain 策略（HEAD、NEVER）来实现的。另外，也可以通过调用StreamExecutionEnvironment.disableOperatorChaining()来全局禁用chaining。参考官网API&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.6/dev/stream/operators/#task-chaining-and-resource-groups&quot;&gt;Task chaining and resource groups&lt;/a&gt;。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;原理与实现（转）&lt;br /&gt;
+转载自&lt;a href=&quot;https://yq.aliyun.com/articles/64819#&quot;&gt;Flink 原理与实现：理解 Flink 中的计算资源&lt;/a&gt;，此文应该是基于flink1.3，可以参考。&lt;br /&gt;
+那么 Flink 是如何将多个 operators chain在一起的呢？chain在一起的operators是如何作为一个整体被执行的呢？它们之间的数据流又是如何避免了序列化/反序列化以及网络传输的呢？下图展示了operators chain的内部实现：&lt;br /&gt;
+&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/flink/2018-10-09-FlinkChains原理.png?raw=true&quot; alt=&quot;2018-10-09-FlinkChains原理&quot; /&gt;&lt;br /&gt;
+如上图所示，Flink内部是通过OperatorChain这个类来将多个operator链在一起形成一个新的operator。OperatorChain形成的框框就像一个黑盒，Flink 无需知道黑盒中有多少个ChainOperator、数据在chain内部是怎么流动的，只需要将input数据交给 HeadOperator 就可以了，这就使得OperatorChain在行为上与普通的operator无差别，上面的OperaotrChain就可以看做是一个入度为1，出度为2的operator。所以在实现中，对外可见的只有HeadOperator，以及与外部连通的实线输出，这些输出对应了JobGraph中的JobEdge，在底层通过RecordWriterOutput来实现。另外，框中的虚线是operator chain内部的数据流，这个流内的数据不会经过序列化/反序列化、网络传输，而是直接将消息对象传递给下游的 ChainOperator 处理，这是性能提升的关键点，在底层是通过 ChainingOutput 实现的，源码如下方所示：&lt;br /&gt;
+注：HeadOperator和ChainOperator并不是具体的数据结构，前者指代chain中的第一个operator，后者指代chain中其余的operator，它们实际上都是StreamOperator。
+    &lt;div class=&quot;language-scala highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ChainingOutput&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;implements&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Output&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;StreamRecord&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+ &lt;span class=&quot;c1&quot;&gt;// 注册的下游operator
+&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;protected&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;OneInputStreamOperator&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;?&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;operator&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+ &lt;span class=&quot;n&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ChainingOutput&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;OneInputStreamOperator&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;?&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;operator&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+     &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;operator&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;operator&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+ &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+ &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
+ &lt;span class=&quot;c1&quot;&gt;// 发送消息方法的实现，直接将消息对象传递给operator处理，不经过序列化/反序列化、网络传输
+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;collect&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;StreamRecord&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;record&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+     &lt;span class=&quot;k&quot;&gt;try&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+         &lt;span class=&quot;n&quot;&gt;operator&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setKeyContextElement1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;record&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+         &lt;span class=&quot;c1&quot;&gt;// 下游operator直接处理消息对象
+&lt;/span&gt;         &lt;span class=&quot;n&quot;&gt;operator&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;processElement&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;record&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+     &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+     &lt;span class=&quot;k&quot;&gt;catch&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Exception&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;e&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+         &lt;span class=&quot;k&quot;&gt;throw&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ExceptionInChainedOperatorException&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;e&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+     &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+ &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+ &lt;span class=&quot;o&quot;&gt;...&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;作业管理器任务管理器与客户端-job-managers-task-managers-clients&quot;&gt;作业管理器，任务管理器与客户端-Job Managers, Task Managers, Clients&lt;/h2&gt;
+&lt;ol&gt;
+  &lt;li&gt;Flink运行时环境由两种类型进程组成：
+    &lt;ul&gt;
+      &lt;li&gt;JobManagers-作业管理器（也称为master）&lt;br /&gt;
+用于协调程序的分布式执行。它的主要功能是调度任务（tasks），协调checkpoint，故障恢复等。&lt;br /&gt;
+每个Flink环境中只有一个JobManagers。高可用设计中会包含多个JobManagers，其中一个是leader，其他standby。&lt;/li&gt;
+      &lt;li&gt;TaskManagers-任务管理器（也称为worker）&lt;br /&gt;
+用于执行数据流图（dataflow）的任务（tasks）（更准确地说，是计算子任务（subtasks）），并对数据流进行缓冲、交换。&lt;br /&gt;
+每个Flink环境中至少包含一个TaskManagers。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;JobManagers和TaskManagers可以以多种方式启动：
+    &lt;ul&gt;
+      &lt;li&gt;直接在机器上作为独立群集(&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.6/ops/deployment/cluster_setup.html&quot;&gt;standalone cluster&lt;/a&gt;)&lt;/li&gt;
+      &lt;li&gt;容器中启动&lt;/li&gt;
+      &lt;li&gt;YARN或Mesos等资源框架来管理&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;启动之后，TaskManagers会连接到JobManagers来宣布自己可用报告自身的状态，便于JobManagers来分配工作。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;关于客户端（Client）&lt;br /&gt;
+ Client其实并不是运行时及程序执行时的一个组成部分，而是被用来准备和发送的数据流(dataflow)给JobManager的。在发送完数据流图之后，客户端可以选择断开与JobManager的连接，或继续保持连接以接收程序运行的进度报告。Client程序可以以 Java/Scala 程序的形式执行，也可以以命令行的形式（./bin/flink run …）执行。&lt;/p&gt;
+
+    &lt;p&gt;官网运行时架构图如下：&lt;br /&gt;
+ &lt;img src=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.6/fig/processes.svg&quot; alt=&quot;runtime架构图&quot; /&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;小结(转)&lt;br /&gt;
+本部分内容转载自&lt;a href=&quot;http://wuchong.me/blog/2016/05/03/flink-internals-overview/#Job-例子&quot;&gt;Flink 原理与实现：架构和拓扑概览&lt;/a&gt;，此文章应该是基于flink1.3，可以参考。&lt;br /&gt;
+当Flink集群启动后，首先会启动一个JobManger和一个或多个的TaskManager。由Client提交任务给JobManager，JobManager再调度任务到各个TaskManager去执行，然后TaskManager将心跳和统计信息汇报给JobManager。TaskManager 之间以流的形式进行数据的传输。上述三者均为独立的JVM 进程。
+    &lt;ul&gt;
+      &lt;li&gt;Client为提交Job的客户端，可以是运行在任何机器上（与JobManager环境连通即可）。提交Job后，Client可以结束进程（Streaming的任务），也可以不结束并等待结果返回。&lt;/li&gt;
+      &lt;li&gt;JobManager主要负责调度Job并协调Task做checkpoint，职责上很像Storm的Nimbus。从Client处接收到Job和JAR包等资源后，会生成优化后的执行计划，并以Task的单元调度到各个TaskManager去执行。&lt;/li&gt;
+      &lt;li&gt;TaskManager在启动的时候就设置好了槽位数（Slot），每个slot能启动一个Task，Task为线程。从JobManager处接收需要部署的Task，部署启动后，与自己的上游建立 Netty 连接，接收数据并处理。&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;可以看到Flink的任务调度是多线程模型，并且不同Job/Task混合在一个TaskManager进程中。虽然这种方式可以有效提高CPU利用率，但是个人不太喜欢这种设计，因为不仅缺乏资源隔离机制，同时也不方便调试。类似Storm的进程模型，一个JVM中只跑该Job的Tasks实际应用中更为合理。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;其它&lt;br /&gt;
+Flink运行时角色间的通信使用akka，数据的传输使用netty。对比spark，从Spark1.3.1版本开始，为了解决大数据块（如shuffle）的传输问题，Spark引入了Netty通信框架，到了1.6.0版本，Netty完全取代了Akka，承担Spark内部所有的RPC通信以及数据流传输。&lt;br /&gt;
+参考&lt;a href=&quot;https://blog.csdn.net/yanghua_kobe/article/details/51156218?utm_source=itdadao&amp;amp;utm_medium=referral&quot;&gt;Akka在Flink中的使用剖析&lt;/a&gt;。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;任务槽与资源-task-slots-and-resources&quot;&gt;任务槽与资源-Task Slots and Resources&lt;/h2&gt;
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;TaskManager和Slot的关系&lt;br /&gt;
+每个worker（即TaskManager）都是一个独立的JVM进程，可以运行一个或多个子任务（subtask）在其不同的线程中。为了控制worker（TaskManager）接收任务（tasks）的数量，在worker 中引入了任务槽（task slots）的概念（每个worker中至少包含一个任务槽）。&lt;br /&gt;
+每个任务槽（task slots）代表任务管理器（TaskManager）中一个特定的资源池子集，槽把TaskManager的资源进行平分。例如，如果任务管理器有3个槽，它会为每个槽分配1/3的内存。将资源池槽化可以让子任务（subtask）获取指定容量的内存资源，而避免同其他作业（job）中的子任务（subtask）竞争。注意，这里没有对CPU进行隔离；目前任务槽仅仅用于隔离任务（tasks）的内存。&lt;br /&gt;
+通过调整任务槽（task slots）的数量，用户可以设定子任务（subtasks）如何相互隔离。如果任务管理器（TaskManager）中只有一个槽，那么每个任务组（task group）都运行在一个独立的JVM中（which can be started in a separate container, for example）。若任务管理器（TaskManager ）有多个槽就意味着会有更多的子任务共享同一个JVM。在同一个JVM中的任务会共享 TCP连接（通过多路复用（multiplexing）的方式）和心跳信息，可以减少数据的网络传输，同时他们也会共享数据集和数据结构，一定程度上可以降低每个task的开销。&lt;br /&gt;
+如上文所述的 WordCount 例子，5个Task可能会在TaskManager的slots中如下图分布，2个TaskManager，每个有3个slot：&lt;br /&gt;
+&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/flink/2018-10-09-FlinkSlot分布例子.png?raw=true&quot; alt=&quot;2018-10-09-FlinkSlot分布例子&quot; /&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;slot共享机制-SlotSharingGroup与CoLocationGroup&lt;br /&gt;
+参考官网和&lt;a href=&quot;http://wuchong.me/blog/2016/05/09/flink-internals-understanding-execution-resources/&quot;&gt;Flink 原理与实现：理解 Flink 中的计算资源&lt;/a&gt;。&lt;br /&gt;
+默认情况下，Flink允许subtasks共享slot，即Flink会允许同一个作业（job）中来自不同的task的多个子任务（subtasks）共享一个槽，即前提是他们来自同一个job，哪怕不同task也可以。这种情况下，有可能会出现某个槽中包含一个完整的作业流水的场景(原文：The result is that one slot may hold an entire pipeline of the job.)。开启这样的slot共享机制主要有两点好处：&lt;/p&gt;
+    &lt;ul&gt;
+      &lt;li&gt;Flink集群需要确保job中任务槽的数量和程序最高并发量完全一致，因此不需要去计算一个程序中一共会起多少个task。&lt;/li&gt;
+      &lt;li&gt;可以提高资源利用率。如果没有任务槽共享机制，非密集型（non-intensive）的source/map()子任务就会和（intensive）密集型的window子任务一样阻塞大量资源。如果有任务槽共享机制，会提高程序的基础并发量，比如说从2提高到6，就可以让密集型子任务（heavy subtasks）公平的完全分散到任务管理器（TaskManager）中，从而可以显著提高槽的资源利用率充分利用资源。&lt;br /&gt;
+如下图，我们将WordCount的并行度从之前的2个增加到6个（Source并行度仍为1），并开启slot共享（所有operator都在default共享组），就可以得到下图所示的slot分布图。首先，我们不用去计算这个job会其多少个task，总之该任务最终会占用6个slots（最高并行度为6）。其次，我们可以看到密集型操作keyAggregation/sink被平均地分配到各个TaskManager。&lt;br /&gt;
+&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/flink/2018-10-09-slot共享示例.png?raw=true&quot; alt=&quot;2018-10-09-slot共享示例&quot; /&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;a. 关于是如何实现共享slot呢？槽分配的策略？&lt;br /&gt;
+       - SlotSharingGroup是Flink中用来实现slot共享的类，它尽可能地让subtasks共享一个slot。&lt;br /&gt;
+       - CoLocationGroup类用来强制将subtasks放到同一个slot中。CoLocationGroup主要用于迭代流中，用来保证迭代头与迭代尾的第i个subtask能被调度到同一个TaskManager上。这里我们不会详细讨论CoLocationGroup的实现细节。&lt;/p&gt;
+
+    &lt;p&gt;b. 怎么判断operator（算子）属于哪个slot共享组呢？（怎么确定一个算子的SlotSharingGroup？）&lt;br /&gt;
+默认情况下，所有的operator（算子）都属于默认的共享组default，也就是说默认情况下所有的operator都是可以共享一个slot的。而当所有input operators具有相同的slot共享组时，该operator会继承这个共享组。最后，为了防止不合理的共享，用户也能通过API来强制指定operator的共享组，比如：someStream.filter(…).slotSharingGroup(“group1”);就强制指定了filter的slot共享组为group1。（总结：根据input的group和自身是否设置group共同确定）适当的设置可以减少每个slot运行的线程数，从而整体上减少机器的负载。&lt;br /&gt;
+ c.原理与实现（转）&lt;br /&gt;
+那么多个tasks（或者说operators）是如何共享slot的呢？本部分转自&lt;a href=&quot;http://wuchong.me/blog/2016/05/09/flink-internals-understanding-execution-resources/&quot;&gt;Flink 原理与实现：理解 Flink 中的计算资源&lt;/a&gt;。&lt;br /&gt;
+来看一下用来定义计算资源的slot的类。抽象类Slot定义了该槽位属于哪个TaskManager（instance）的第几个槽位（slotNumber），属于哪个Job（jobID）等信息。最简单的情况下，一个slot只持有一个task，也就是SimpleSlot的实现。复杂点的情况，一个slot能共享给多个task使用，也就是SharedSlot的实现。SharedSlot能包含其他的SharedSlot，也能包含SimpleSlot。所以一个SharedSlot能定义出一棵slots树。&lt;br /&gt;
+接下来我们来看看 Flink 为subtask分配slot的过程。关于Flink调度，有两个非常重要的原则我们必须知道：（1）同一个operator的各个subtask是不能呆在同一个SharedSlot中的，例如FlatMap[1]和FlatMap[2]是不能在同一个SharedSlot中的。（2）Flink是按照拓扑顺序从Source一个个调度到Sink的。例如WordCount（Source并行度为1，其他并行度为2），那么调度的顺序依次是：Source -&amp;gt; FlatMap[1] -&amp;gt; FlatMap[2] -&amp;gt; KeyAgg-&amp;gt;Sink[1] -&amp;gt; KeyAgg-&amp;gt;Sink[2]。假设现在有2个TaskManager，每个只有1个slot（为简化问题），那么分配slot的过程如图所示：&lt;br /&gt;
+&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/flink/2018-10-10-slot共享机制实现例子图.png?raw=true&quot; alt=&quot;2018-10-10-slot共享机制实现例子图&quot; /&gt;&lt;br /&gt;
+注：图中 SharedSlot 与 SimpleSlot 后带的括号中的数字代表槽位号（slotNumber）。&lt;br /&gt;
+(1).为Source分配slot。首先，我们从TaskManager1中分配出一个SharedSlot。并从SharedSlot中为Source分配出一个SimpleSlot。如上图中的①和②。&lt;br /&gt;
+(2).为FlatMap[1]分配slot。目前已经有一个SharedSlot，则从该SharedSlot中分配出一个SimpleSlot用来部署FlatMap[1]。如上图中的③。&lt;br /&gt;
+(3).为FlatMap[2]分配slot。由于TaskManager1的SharedSlot中已经有同operator的FlatMap[1]了，我们只能分配到其他SharedSlot中去。从TaskManager2中分配出一个SharedSlot，并从该SharedSlot中为FlatMap[2]分配出一个SimpleSlot。如上图的④和⑤。&lt;br /&gt;
+(4).为Key-&amp;gt;Sink[1]分配slot。目前两个SharedSlot都符合条件，从TaskManager1的SharedSlot中分配出一个SimpleSlot用来部署Key-&amp;gt;Sink[1]。如上图中的⑥。&lt;br /&gt;
+(5).为Key-&amp;gt;Sink[2]分配slot。TaskManager1的SharedSlot中已经有同operator的Key-&amp;gt;Sink[1]了，则只能选择另一个SharedSlot中分配出一个SimpleSlot用来部署Key-&amp;gt;Sink[2]。如上图中的⑦。&lt;br /&gt;
+最后Source、FlatMap[1]、Key-&amp;gt;Sink[1]这些subtask都会部署到TaskManager1的唯一一个slot中，并启动对应的线程。FlatMap[2]、Key-&amp;gt;Sink[2]这些subtask都会被部署到TaskManager2的唯一一个slot中，并启动对应的线程。从而实现了slot共享。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Flink API中包含一个资源组机制，可以避免不合理的任务槽共享。&lt;br /&gt;
+依照以往的经验来说，默认的任务槽数量应设置为CPU core的数量。如果使用超线程技术，每个槽中甚至可以调度处理超过2个硬件线程。&lt;/p&gt;
+
+&lt;h2 id=&quot;state-backends&quot;&gt;State Backends&lt;/h2&gt;
+&lt;p&gt;通过键值对索引的数据结构保存在指定的后端存储(State Backends)中。有的后端存储将数据保存在内存中的哈希表中，而有的存储会使用RocksDB来保存键值对。除了定义保存状态的数据结构之外，后端存储还实现了获取键值对的特定时间点快照的功能，该功能可以将快照保存为检查点的一部分。&lt;br /&gt;
+&lt;img src=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.6/fig/checkpoints.svg&quot; alt=&quot;State Backends官网图片&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;保存点-savepoints&quot;&gt;保存点-Savepoints&lt;/h2&gt;
+&lt;p&gt;使用Data Stream API的程序可以从指定的保存点恢复。保存点可以更新程序和Flink集群，并且不丢失任何状态的功能。也就是相对于checkpoint来比较，checkpoint是针对于内部的，savepoint是针对于外部的。SparkStreaming中，如果使用了checkpoint，流处理程序有更新的话，进行程序替换需要清理调checkpoint才能生效，而在flink中，可以在流处理程序更新后，手动添加savepoint，那么新程序能从savepoint的地方开始读取数据，能与老程序并行存在或者直接替换。&lt;br /&gt;
+保存点可以看作是一种手动触发的检查点，该检查点可以获取程序的快照并将其写入后端存储（State Backend）中。所以说保存点的功能依赖于一般的检查点机制。程序执行时会定期在worker节点生成快照和检查点（checkpoint）。由于Flink的恢复机制只需要使用最新一个有效的检查点（checkpoint），在新的检查点（checkpoint）生成后就可以安全移除其余旧的检查点（checkpoint）了。&lt;br /&gt;
+保存点（savepoint）和定期检查点（checkpoint）在大部分情况下都很相似，区别只在于保存点是由用户触发的，并且在新的检查点生成后不会自动过期失效。保存点可以通过命令行生成，也可以在调用&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.6/monitoring/rest_api.html#cancel-job-with-savepoint&quot;&gt;REST API&lt;/a&gt;取消作业时产生。&lt;br /&gt;
+关于Savepoints的详细说明，可见官网&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.6/ops/state/savepoints.html#savepoints&quot;&gt;Savepoints&lt;/a&gt;。&lt;/p&gt;
+
+&lt;hr /&gt;
+&lt;p&gt;至此，本篇内容完成。&lt;/p&gt;</content><author><name>叶子  ( ˘ ³˘)♥</name></author><category term="Flink" /><summary type="html">本文所用flink版本为1.6，官方文档链接Apache Flink 1.6。</summary></entry><entry><title type="html">Flink基础概念</title><link href="http://localhost:4000/bigdata/2018/09/05/Flink%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/" rel="alternate" type="text/html" title="Flink基础概念" /><published>2018-09-05T00:00:00+08:00</published><updated>2018-09-05T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/09/05/Flink%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/09/05/Flink%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/">&lt;blockquote&gt;
   &lt;p&gt;项目说要做创新活动，所以需要把原来的流处理从Spark替换成Flink。嗯，学习Flink！本文所用flink版本为1.6。&lt;/p&gt;
 &lt;/blockquote&gt;
 
@@ -3929,116 +4098,4 @@ log4j.logger.org.apache.hadoop.hive.ql.exec.FunctionRegistry=ERROR
 &lt;/ol&gt;
 
 &lt;hr /&gt;
-&lt;p&gt;至此，本篇内容完成。&lt;/p&gt;</content><author><name>叶子  ( ˘ ³˘)♥</name></author><category term="Spark" /><summary type="html">本文主要关于spark日志相关的部分内容，包括spark日志位置以及其中一种&amp;gt;日志配置方法，后续可再对本文进行其他配置方法的补充。 注意: 本文中使用的版本是spark2.2.1 最近平台中某租户使用的容器化集群spark集群，提交的spark streaming任务的日志没有进行级别控制，疯狂的刷日志，导致会占满宿主机的存储空间，并且集群均使用的是standalone模式，没有配置删除日志，所以日志太多会影响同一个宿主机下其他租户spark的使用。因此，在今天进行了一下集群的全局配置，直接将日志级别进行了更改，并且也趁这个时间，总结下对于spark日志相关的部分内容，后续有时间再进行其他补充。 Spark应用程序运行日志的存放 在很多情况下，我们需要查看driver和executor在运行spark程序时候产生的日志，以便于我们调试和查找问题。 Driver端日志 Spark Driver端的日志在默认情况下是直接输出在控制台的，driver本身没有stderr和stdout文件，所以只能在控制台输出。不过可以通过配置，将日志打印到文件中，具体配置方式后续再进行说明。 Executor端日志 Spark Executor日志的存放位置，是与Spark的部署模式相关的；Spark目前3种部署方式：Spark Standalone、Mesos、YARN。 Spark Standalone模式：在spark standalone的部署模式下，可以直接在Master UI界面查看到相应的应用程序的日志，如下图。其中可以看到是有stderr和stdout两种日志，区别就是如果你在程序中使用了println(….)输出语句，并且位置是在executor端执行的，这些信息会在stdout文件里面显示，而在driver端执行的会直接在控制台输出；其余的Spark运行日志会在stderr文件里面显示。 通常，每个job的详细日志输出是在每个worker（slave）节点的work目录下，这个目录可以通过spark-env.sh下配置SPARK_WORKER_DIR参数（Directory to run applications in, which will include both logs and scratch space，默认情况下是SPARK_HOME/work）设置。 此部分，可以进行worker配置使日志自动删除，详情见后续“配置日志”部分。 Mesos模式：在Mesos模式下，也可以通过Mesos的Master UI界面上看到相关的应用程序日志，这些日志是存储在Mesos Slave的work目录下的，通常情况下通过修改mesos-slave-env.sh或mesos-master-env.sh文件下的MESOS_log_dir参数和MESOS_work_dir参数可以设置slave或master的日志目录和工作目录，默认情况下是master和slave的logs都在/var/log/mesos下。 YARN模式：在yarn模式下，executor和application master都运行在“containers”内。 YARN在一个application结束后，有2种处理容器内日志的方式。 其中在yarn模式下，最简单的收集日志的方式是使用Yarn的日志收集工具(yarn logs -applicationId )，这个工具可以收集应用程序的相关日志，但是要求:a.开启了日志聚合功能（yarn.log-aggregation-enable，默认情况下这参数是false）；b.application必须运行完，因为yarn必须先聚合这些日志。这种情况下，容器日志将被复制到HDFS，并删除本地日志，从而腾出更多空间。这样的话，这些日志可以在集群任何节点上用yarn logs命令查看：yarn logs -applicationId ，用这个命令会打印出指定应用的所有日志文件的内容，或者也可以直接在HDFS上查看这些日志（HDFS shell或者HDFS API）。这个目录的配置可以在YARN配置中指定（yarn.nodemanager.remote-app-log-dir和yarn.nodemanager.remote-app-log-dir-suffix）。这些日志同样还可以在Spark Web UI上Executors页查看，但是也有前提，需要启动Spark history server和MapReduce history server，再在yarn-site.xml中配置好yarn.log.server.url。Spark history server UI将把你重定向到MapReduce history server以查看这些聚合日志。 如果日志聚合没有开启，那么日志文件将在每台机器上的YARN_APP_LOGS_DIR目录保留，通常这个目录指向NodeManager节点(ResourceManager节点下没输出)的/tmp/logs或者$HADOOP_HOME/log/userlogs（这取决于Hadoop版本和安全方式）。查看日志的话，需要到每台机器上查看这些目录。子目录是按application ID和container ID来组织的。这些日志同样可以在 Spark Web UI上Executors页查看，而且这时你不需要运行MapReduce history server。这里还有一个需要注意的地方，在没有开启日志聚合的时候，有一个参数yarn.nodemanager.log.retain-seconds，这个参数指应用程序输入出日志的保存时间，默认是10800，单位s，也就是3个小时，所以有可能超过时间再去查看日志的时候，原来的运行日志就自动删除了。 额外补充：在yarn模式下，kill掉某个job（直接在UI界面或者是终端kill掉任务都是不对的，该任务可能还会继续执行下去，所以要用如下命令才算完全停止该job的执行），yarn application -kill 。 配置日志 Standalone日志自动删除配置 目前，在使用中，平台中的容器化的spark集群因为资源已经由docker+mesos+marathon控制了，一个集群只有一个租户使用，因此均是standalone模式部署的，不过在使用过程中，应用程序日志不会自动删除会占很大空间，因此进行了worker配置，使日志自动删除。 其中，更改了conf/spark-env.sh，设置SPARK_WORKER_OPTS，即在文件内增加： export SPARK_WORKER_OPTS=&quot;-Dspark.worker.cleanup.enabled=true -Dspark.worker.cleanup.interval=3600 -Dspark.worker.cleanup.appDataTtl=604800 -Dspark.worker.ui.compressedLogFileLengthCacheSize=100&quot; 参数解释： (1)spark.worker.cleanup.enabled（默认false）：仅在standalone模式下生效，开启后定期清理worker节点的worker目录下的应用程序日志，并且仅会清理已经停止的application日志。Enable periodic cleanup of worker / application directories. Note that this only affects standalone mode, as YARN works differently. Only the directories of stopped applications are cleaned up. (2)spark.worker.cleanup.interval（默认1800）：清理频率。Controls the interval, in seconds, at which the worker cleans up old application work dirs on the local machine. (3)spark.worker.cleanup.appDataTtl（604800(7days,7243600)）：The number of seconds to retain application work directories on each worker. This is a Time To Live and should depend on the amount of available disk space you have. Application logs and jars are downloaded to each application work dir. Over time, the work dirs can quickly fill up disk space, especially if you run jobs very frequently. (4)spark.worker.ui.compressedLogFileLengthCacheSize（默认100）：For compressed log files, the uncompressed file can only be computed by uncompressing the files. Spark caches the uncompressed file size of compressed log files. This property controls the cache size.</summary></entry><entry><title type="html">机器学习入门自学-描述统计学入门2</title><link href="http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/16/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A82/" rel="alternate" type="text/html" title="机器学习入门自学-描述统计学入门2" /><published>2018-05-16T00:00:00+08:00</published><updated>2018-05-16T00:00:00+08:00</updated><id>http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/16/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A82</id><content type="html" xml:base="http://localhost:4000/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2018/05/16/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%85%A5%E9%97%A8%E8%87%AA%E5%AD%A6-%E6%8F%8F%E8%BF%B0%E7%BB%9F%E8%AE%A1%E5%AD%A6%E5%85%A5%E9%97%A82/">&lt;blockquote&gt;
-  &lt;p&gt;本文关于自学udacity机器学习课程的自学笔记，为第一部分，描述统计学入门(2)。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h1 id=&quot;2018-05-16-可变性&quot;&gt;2018-05-16-可变性&lt;/h1&gt;
-&lt;p&gt;&lt;strong&gt;范围(值域)&lt;/strong&gt;是观察到的最大值和最小值之间的差。&lt;br /&gt;
-值域不包括细节信息，因为值域是仅仅在2个数据的基础上得出的。&lt;br /&gt;
-异常数值增大差异性，值域作为度量标准时，有异常数值，值域不可能准确的代表数据的差异性。&lt;/p&gt;
-
-&lt;h2 id=&quot;忽略尾部&quot;&gt;忽略尾部&lt;/h2&gt;
-&lt;p&gt;处理异常数值：处理异常数值的一种方法就是忽略分布中的上尾和下尾。习惯上，统计学家会忽略较低的25%和较高的25%。
-虽然建议去除上下各25%的数据点，但我们在去除数据点时还需要特别谨慎，特别是在数据量不大的情况下，去除一半的数据点&amp;gt;会让我们丢失大量数据的信息。&lt;br /&gt;
-一般来说，在去除数据点前，我们建议首先将数据点通过图像表述出来（直方图、散点图、箱线图等），这样可以帮助你获得对数据整理分析的了解。然后，基于项目的背景，判断你更关心数据的哪一部分（大多数正常数据，还是小部分异常数据），因为在一些项目背景下，你可能更关心那些异常值。最后，是基于现有的数据量作出决定，究竟是直接丢弃部分数据还是对部分作出调整，亦或是有保留地接受所有数据。特别记住一点，没有一种分析方法100%正确，但我们总可以尝试根据不同的需求找到一种最合理的方法。&lt;/p&gt;
-
-&lt;h2 id=&quot;四分位差&quot;&gt;四分位差&lt;/h2&gt;
-&lt;p&gt;找出方法：排序的数据集，从中间分成2半，再找一半的中位数。&lt;br /&gt;
-第一个四分位数：称为总体的&lt;strong&gt;Q1&lt;/strong&gt;&lt;br /&gt;
-中位数：Q2&lt;br /&gt;
-第三个四分位：称为总体的&lt;strong&gt;Q3&lt;/strong&gt;&lt;br /&gt;
-&lt;strong&gt;四分位差(IQR)&lt;/strong&gt;：Q3-Q1 能表示图的差异性。&lt;br /&gt;
-几乎50%的数据在IQR间。&lt;br /&gt;
-IQR不受异常值的影响。&lt;br /&gt;
-The Interquartile range (IQR) is the distance be- tween the 1st quartile and 3rd quartile and gives us the range of the middle 50% of our data. The IQR is easily found by computing: Q3-Q1.&lt;/p&gt;
-
-&lt;h2 id=&quot;异常值&quot;&gt;异常值&lt;/h2&gt;
-&lt;p&gt;&lt;strong&gt;异常值&lt;/strong&gt;：如果一个值小于Q1减去1.5倍的IQR或者大于Q3加上1.5倍IQR，则这个数就被认为是异常数值。&lt;br /&gt;
-Lower Outliers &amp;lt; Q1-1.5(IQR)&lt;br /&gt;
-Upper Outliers &amp;gt; Q3+1.5(IQR)&lt;/p&gt;
-
-&lt;h2 id=&quot;箱线图&quot;&gt;箱线图&lt;/h2&gt;
-&lt;p&gt;表示中位数、四分位差、最小值和最大值有效。&lt;br /&gt;
-&lt;strong&gt;箱线图（盒须图）&lt;/strong&gt;：直观的表示四分位数和异常数值。箱线图外面的点表示异常值，在此上下文中，“min”和“max”是指样本中不包括异常值在内的最小值和最大值。箱线图的方向可以有不同。&lt;br /&gt;
-&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-16-箱线图.png?raw=true&quot; alt=&quot;普通箱线图例子&quot; /&gt;&lt;br /&gt;
-箱线图的对比，箱线图与直方图连线对应：&lt;br /&gt;
-&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-16-箱线图与分布图连线对应.png?raw=true&quot; alt=&quot;箱线图和直方图对应连线例子&quot; /&gt;&lt;br /&gt;
-值域和IQR都无法将所有数据集考虑进来，完全不相同的两个数据集也可能有相同的IQR，不同的图可能有相同的箱线图。&lt;br /&gt;
-&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-16-不同图IQR相同.png?raw=true&quot; alt=&quot;不同图相同IQR&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;基础概念&quot;&gt;基础概念&lt;/h2&gt;
-&lt;p&gt;&lt;strong&gt;离均差&lt;/strong&gt;(Deviation from Mean)：用每个值减去平均值 &lt;script type=&quot;math/tex&quot;&gt;x_{i}-\overline{x}&lt;/script&gt; （减的顺序保持一致）。&lt;br /&gt;
-&lt;strong&gt;平均偏差&lt;/strong&gt;：计算离均差的平均值。&lt;script type=&quot;math/tex&quot;&gt;\frac{\sum(x_{i}-\overline{x}) }{n}&lt;/script&gt;&lt;br /&gt;
-&lt;strong&gt;绝对偏差&lt;/strong&gt;(Absolute Deviations)：&lt;script type=&quot;math/tex&quot;&gt;|x_{i}-\overline{x}|&lt;/script&gt;&lt;br /&gt;
-&lt;strong&gt;平均绝对偏差&lt;/strong&gt;(Average Absolute Deviation)：各次测量值的绝对偏差绝对值的平均值。 &lt;script type=&quot;math/tex&quot;&gt;\overline{d}=\frac{\sum_{i=1}^{n}|x_{i}-\overline{x}|}{n}=\sum (\frac{|x_{i}-\overline{x}|}{n})&lt;/script&gt;&lt;br /&gt;
-&lt;strong&gt;相对平均偏差&lt;/strong&gt;：指平均偏差占平均值的百分率。&lt;script type=&quot;math/tex&quot;&gt;R\overline{d}=\frac{\overline{d}}{ \overline{x}}&lt;/script&gt;*100%&lt;br /&gt;
-&lt;strong&gt;平方偏差&lt;/strong&gt;(Squared Deviation)：&lt;script type=&quot;math/tex&quot;&gt;\left ( x_{i}-\overline{x} \right )^{2}&lt;/script&gt;&lt;br /&gt;
-&lt;strong&gt;平方和&lt;/strong&gt;SS(sum of squares)：&lt;script type=&quot;math/tex&quot;&gt;\sum_{i=1}^{n} \left ( x_{i}-\overline{x} \right )^{2}&lt;/script&gt;&lt;/p&gt;
-
-&lt;p&gt;因为抽样往往是总体居于中间的值，因此抽样中的差异性将少于整个总体的差异性，所以使用贝塞尔校正系数：将除以n换为除以n-1。&lt;br /&gt;
-&lt;strong&gt;平均平方偏差&lt;/strong&gt;（Arerage Square Deviation）-&lt;strong&gt;方差&lt;/strong&gt;：平方偏差的均值 &lt;script type=&quot;math/tex&quot;&gt;\frac{\sum_{i=1}^{n} \left ( x_{i}-\overline{x} \right )^{2}}{n}&lt;/script&gt;，贝塞尔校正后的方差(样本方差)&lt;script type=&quot;math/tex&quot;&gt;s^{2}=\frac{\sum_{i=1}^{n} \left ( x_{i}-\overline{x} \right )^{2}}{n-1}&lt;/script&gt;&lt;br /&gt;
-&lt;strong&gt;标准偏差（标准差）(standard deviation)&lt;/strong&gt;：最常用的分布测量方法,平均平方偏差的平方根;方差的平方根(平方偏差的和除以n，再开平方)。&lt;/p&gt;
-&lt;ol&gt;
-  &lt;li&gt;&lt;strong&gt;样本标准差&lt;/strong&gt;(standard deviation of sample): &lt;script type=&quot;math/tex&quot;&gt;s=\sqrt{\frac{\sum_{i=1}^{n}\left ( x_{i}-\overline{x} \right )^{2}}{n-1}}&lt;/script&gt;,&lt;script type=&quot;math/tex&quot;&gt;\overline{x}&lt;/script&gt;代表样本的X1,X2,…,Xn的均值。-估算总体标准差。&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;总体标准差&lt;/strong&gt;(standard deviation of population): &lt;script type=&quot;math/tex&quot;&gt;\sigma=\sqrt{\frac{\sum_{i=1}^{n}\left ( x_{i}-\mu \right )^{2}}{n}}&lt;/script&gt;,&lt;script type=&quot;math/tex&quot;&gt;\sigma&lt;/script&gt;代表总体X的均值。-计算数据集自己的标准差。&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;&lt;strong&gt;如果使用这个数据集估算此样本所属的较大型总体的标准差，要除以n-1，即使用样本标准差公式。如果这个数据集较小，计算这个数据集自己的标准差，则除以n，即使用总体标准差公式。&lt;/strong&gt;&lt;br /&gt;
-计算过程：求平均值、求离均差、再求每个偏差
-的平方、再取平均值、在取平方根。  &lt;br /&gt;
-&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-16-方差到标准方差.png?raw=true&quot; alt=&quot;方差到标准方差&quot; /&gt; &lt;br /&gt;
-&lt;strong&gt;相对标准偏差&lt;/strong&gt;：指标准偏差占平均值的百分率，又称为变异系数(CV)，通常用RSD表示。&lt;script type=&quot;math/tex&quot;&gt;RSD=\frac{s}{\overline{x}}&lt;/script&gt;*100%&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;平均绝对离差&lt;/strong&gt;：平均绝对离差(mean absolute deviation)是用样本数据相对于其平均值的绝对距离来度量数据的离散程度。平均绝对离差也称为平均离差(mean deviation)。平均绝对离差定义为各数据与平均值的离差的绝对值的平均数。&lt;br /&gt;
-设样本的n个观测值为x1,x2..xn，平均绝对离差为：&lt;br /&gt;
-&lt;script type=&quot;math/tex&quot;&gt;M_{D}=\frac{1}{n}\sum_{i=1}^{n}|x_{i}-\overline{x}|&lt;/script&gt;&lt;br /&gt;
-对于分组数据，平均绝对离差为：&lt;br /&gt;
-&lt;script type=&quot;math/tex&quot;&gt;M_{D}=\frac{\sum_{i=1}^{k}f_{i}\left|x_{i} -\overline{x}\right|}{\sum_{i=1}^{k}f_{i}}&lt;/script&gt;&lt;br /&gt;
-其中&lt;script type=&quot;math/tex&quot;&gt;f_{i}&lt;/script&gt;,&lt;script type=&quot;math/tex&quot;&gt;x_{i}&lt;/script&gt;分别为第i(i=1,2…,k)组数据的频数及组中值，k为数据分组的组数。&lt;/p&gt;
-
-&lt;h2 id=&quot;标准差重要性&quot;&gt;标准差重要性&lt;/h2&gt;
-&lt;p&gt;在正态分布中，数据均匀分布，平均值=中位数=众数，并且位于分布的中心。&lt;strong&gt;大约68%的数据与平均值的偏差不超过1个标准差；95%的数据与平均值的偏差不超过2个标准差。&lt;/strong&gt;&lt;br /&gt;
-&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-17-正态分布与标准差.png?raw=true&quot; alt=&quot;正态分布与标准差&quot; /&gt;&lt;/p&gt;
-
-&lt;h1 id=&quot;2018-05-17-归一化&quot;&gt;2018-05-17 归一化&lt;/h1&gt;
-&lt;h2 id=&quot;标准化分布图&quot;&gt;标准化分布图&lt;/h2&gt;
-&lt;p&gt;正态分布类型：宽扁型、瘦高型、或者介于2者之间，但曲线下面积始终为1或100%。&lt;strong&gt;大约68%的数据与平均值的偏差不超过1个标准差；95%的数据与平均值的偏差不超过2个标准差。&lt;/strong&gt;   &lt;br /&gt;
-&lt;strong&gt;特定值在x轴上的位置通常用标准偏差来描述&lt;/strong&gt;。与平均值的距离多少个标准差的值，称为&lt;strong&gt;z&lt;/strong&gt;。通过将正态分布中的值转换为这个特殊数字z，就可以知道小于或大于该值的百分比。&lt;br /&gt;
-&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-17-正态分布的z值.png?raw=true&quot; alt=&quot;正态分布的z值&quot; /&gt;&lt;br /&gt;
-&lt;strong&gt;标准差数量&lt;/strong&gt;z公式：计算某个值与平均值之间相差多少个标准差，即&lt;script type=&quot;math/tex&quot;&gt;z=\frac{x-\mu}{\sigma }&lt;/script&gt;。始终用x减去平均值。&lt;br /&gt;
-当某个值小于平均值是，是负的z值；z值是指任何值距离平均值的标准偏差数；如果一个值与均值相等，它的Z值为0。&lt;br /&gt;
-&lt;strong&gt;标准化（归一化）分布图&lt;/strong&gt;：将正态分布图中的任意值转化称z值，则标准化了分布图。&lt;br /&gt;
-如果我们将数据归一化处理为z值，该归一化分布的新平均值会是多少？-0&lt;br /&gt;
-如果我们将数据归一化处理为z值，该归一化分布的新标准偏差会是多少？-1&lt;/p&gt;
-
-&lt;p&gt;总结：对于任何正态分布，都可以通过以下方式归一化该分布：&lt;/p&gt;
-&lt;ol&gt;
-  &lt;li&gt;减去平均值，将其平移到0处&lt;/li&gt;
-  &lt;li&gt;除以标准偏差，使标准偏差=1&lt;br /&gt;
-这就叫做&lt;strong&gt;标准正态分布&lt;/strong&gt;。&lt;br /&gt;
-&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-17-标准正态分布.png?raw=true&quot; alt=&quot;标准正态分布&quot; /&gt; &lt;br /&gt;
-&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-06-04-标准正态分布.png?raw=true&quot; alt=&quot;标准正态分布2&quot; /&gt;&lt;br /&gt;
-可以将任意正态分布转成任意正态分布：即通过转成标准正态分布，再转换成其他正态分布。&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h1 id=&quot;2018-05-21-概率密度函数&quot;&gt;2018-05-21-概率密度函数&lt;/h1&gt;
-&lt;h2 id=&quot;概率密度函数&quot;&gt;概率密度函数&lt;/h2&gt;
-&lt;p&gt;在正态分布中，通过查看某个值在x轴上的位置即标准偏差，能改确定大于或小于任何值的百分比，下面学习如何计算这些百分比。&lt;br /&gt;
-我们使用理论曲线来绘制数据模型，曲线下的面积是1 ，因为它是用分布数据的相对频率（即比例）来绘制数据模型，该曲线叫做&lt;strong&gt;概率密度函数&lt;/strong&gt;，通常缩写为PDF。&lt;br /&gt;
-概率密度函数曲线下的面积表示概率。&lt;br /&gt;
-&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-21-概率密度函数.png?raw=true&quot; alt=&quot;概率密度函数&quot; /&gt;&lt;br /&gt;
-绘制概率密度函数时，绝对频率（absolute frequency）变成相对频率（relative frequency）。&lt;br /&gt;
-&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-05-21-直方图-概率密度函数.png?raw=true&quot; alt=&quot;直方图-概率密度函数&quot; /&gt;&lt;/p&gt;
-&lt;h2 id=&quot;正态概率密度函数&quot;&gt;正态概率密度函数&lt;/h2&gt;
-&lt;p&gt;曲线的末端实际上不会接触到x轴，只是越来越接近x轴，x轴是水平渐进线，该理论模型的曲线末端不能接触到x轴是因为我们永远都不能100%确定某件事；&lt;br /&gt;
-假设有某个值（x），从负无穷到x之间的曲线下的面积，等于随机地从样本中选择一个小于x的受试者对应的概率，也就等于样本或总体中值小于x的比例。如果这个概率是80%，可以说x是第80个百分位。&lt;br /&gt;
-&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/machineLearning/2018-06-04-认识概率密度函数.png?raw=true&quot; alt=&quot;认识概率密度函数&quot; /&gt;&lt;br /&gt;
-概率密度函数公式见百科：&lt;a href=&quot;https://baike.baidu.com/item/概率密度函数/5021996?fr=aladdin&quot;&gt;概率密度函数&lt;/a&gt;。&lt;br /&gt;
-正态概率密度函数公式（一维正态分布）：&lt;br /&gt;
-若随机变量X服从一个位置参数为&lt;script type=&quot;math/tex&quot;&gt;\mu&lt;/script&gt;、尺度参数为&lt;script type=&quot;math/tex&quot;&gt;\sigma&lt;/script&gt;的概率分布，其概率密度函数为&lt;script type=&quot;math/tex&quot;&gt;f\left ( x \right )=\frac{1}{\sqrt{2\pi }\sigma }e^{\left ( -\frac{\left ( x-\mu \right )^{2}}{2\sigma^{2}} \right )}&lt;/script&gt;，则这个随机变量就称为正态随机变量，正态随机变量服从的正态分布就称为正态分布，记作&lt;script type=&quot;math/tex&quot;&gt;&lt;/script&gt;，读作X服从&lt;script type=&quot;math/tex&quot;&gt;&lt;/script&gt;，或X服从正态分布。  &lt;br /&gt;
-μ维随机向量具有类似的概率规律时，称此随机向量遵从多维正态分布。多元正态分布有很好的性质，例如，多元正态分布的边缘分布仍为正态分布，它经任何线性变换得到的随机向量仍为多维正态分布，特别它的线性组合为一元正态分布。&lt;br /&gt;
-标准正态分布：&lt;br /&gt;
-当μ=0，&lt;script type=&quot;math/tex&quot;&gt;\sigma&lt;/script&gt;=1时，正态分布就成为标准正态分布：&lt;script type=&quot;math/tex&quot;&gt;f(x)=\frac{1}{\sqrt{2\pi }}e^{(-\frac{x^{2}}{2})}&lt;/script&gt;&lt;/p&gt;
-
-&lt;hr /&gt;</content><author><name>叶子  ( ˘ ³˘)♥</name></author><category term="机器学习" /><category term="描述统计学" /><summary type="html">本文关于自学udacity机器学习课程的自学笔记，为第一部分，描述统计学入门(2)。 2018-05-16-可变性 范围(值域)是观察到的最大值和最小值之间的差。 值域不包括细节信息，因为值域是仅仅在2个数据的基础上得出的。 异常数值增大差异性，值域作为度量标准时，有异常数值，值域不可能准确的代表数据的差异性。 忽略尾部 处理异常数值：处理异常数值的一种方法就是忽略分布中的上尾和下尾。习惯上，统计学家会忽略较低的25%和较高的25%。 虽然建议去除上下各25%的数据点，但我们在去除数据点时还需要特别谨慎，特别是在数据量不大的情况下，去除一半的数据点&amp;gt;会让我们丢失大量数据的信息。 一般来说，在去除数据点前，我们建议首先将数据点通过图像表述出来（直方图、散点图、箱线图等），这样可以帮助你获得对数据整理分析的了解。然后，基于项目的背景，判断你更关心数据的哪一部分（大多数正常数据，还是小部分异常数据），因为在一些项目背景下，你可能更关心那些异常值。最后，是基于现有的数据量作出决定，究竟是直接丢弃部分数据还是对部分作出调整，亦或是有保留地接受所有数据。特别记住一点，没有一种分析方法100%正确，但我们总可以尝试根据不同的需求找到一种最合理的方法。 四分位差 找出方法：排序的数据集，从中间分成2半，再找一半的中位数。 第一个四分位数：称为总体的Q1 中位数：Q2 第三个四分位：称为总体的Q3 四分位差(IQR)：Q3-Q1 能表示图的差异性。 几乎50%的数据在IQR间。 IQR不受异常值的影响。 The Interquartile range (IQR) is the distance be- tween the 1st quartile and 3rd quartile and gives us the range of the middle 50% of our data. The IQR is easily found by computing: Q3-Q1. 异常值 异常值：如果一个值小于Q1减去1.5倍的IQR或者大于Q3加上1.5倍IQR，则这个数就被认为是异常数值。 Lower Outliers &amp;lt; Q1-1.5(IQR) Upper Outliers &amp;gt; Q3+1.5(IQR) 箱线图 表示中位数、四分位差、最小值和最大值有效。 箱线图（盒须图）：直观的表示四分位数和异常数值。箱线图外面的点表示异常值，在此上下文中，“min”和“max”是指样本中不包括异常值在内的最小值和最大值。箱线图的方向可以有不同。 箱线图的对比，箱线图与直方图连线对应： 值域和IQR都无法将所有数据集考虑进来，完全不相同的两个数据集也可能有相同的IQR，不同的图可能有相同的箱线图。 基础概念 离均差(Deviation from Mean)：用每个值减去平均值 （减的顺序保持一致）。 平均偏差：计算离均差的平均值。 绝对偏差(Absolute Deviations)： 平均绝对偏差(Average Absolute Deviation)：各次测量值的绝对偏差绝对值的平均值。 相对平均偏差：指平均偏差占平均值的百分率。*100% 平方偏差(Squared Deviation)： 平方和SS(sum of squares)： 因为抽样往往是总体居于中间的值，因此抽样中的差异性将少于整个总体的差异性，所以使用贝塞尔校正系数：将除以n换为除以n-1。 平均平方偏差（Arerage Square Deviation）-方差：平方偏差的均值 ，贝塞尔校正后的方差(样本方差) 标准偏差（标准差）(standard deviation)：最常用的分布测量方法,平均平方偏差的平方根;方差的平方根(平方偏差的和除以n，再开平方)。 样本标准差(standard deviation of sample): ,代表样本的X1,X2,…,Xn的均值。-估算总体标准差。 总体标准差(standard deviation of population): ,代表总体X的均值。-计算数据集自己的标准差。 如果使用这个数据集估算此样本所属的较大型总体的标准差，要除以n-1，即使用样本标准差公式。如果这个数据集较小，计算这个数据集自己的标准差，则除以n，即使用总体标准差公式。 计算过程：求平均值、求离均差、再求每个偏差 的平方、再取平均值、在取平方根。 相对标准偏差：指标准偏差占平均值的百分率，又称为变异系数(CV)，通常用RSD表示。*100% 平均绝对离差：平均绝对离差(mean absolute deviation)是用样本数据相对于其平均值的绝对距离来度量数据的离散程度。平均绝对离差也称为平均离差(mean deviation)。平均绝对离差定义为各数据与平均值的离差的绝对值的平均数。 设样本的n个观测值为x1,x2..xn，平均绝对离差为： 对于分组数据，平均绝对离差为： 其中,分别为第i(i=1,2…,k)组数据的频数及组中值，k为数据分组的组数。 标准差重要性 在正态分布中，数据均匀分布，平均值=中位数=众数，并且位于分布的中心。大约68%的数据与平均值的偏差不超过1个标准差；95%的数据与平均值的偏差不超过2个标准差。 2018-05-17 归一化 标准化分布图 正态分布类型：宽扁型、瘦高型、或者介于2者之间，但曲线下面积始终为1或100%。大约68%的数据与平均值的偏差不超过1个标准差；95%的数据与平均值的偏差不超过2个标准差。 特定值在x轴上的位置通常用标准偏差来描述。与平均值的距离多少个标准差的值，称为z。通过将正态分布中的值转换为这个特殊数字z，就可以知道小于或大于该值的百分比。 标准差数量z公式：计算某个值与平均值之间相差多少个标准差，即。始终用x减去平均值。 当某个值小于平均值是，是负的z值；z值是指任何值距离平均值的标准偏差数；如果一个值与均值相等，它的Z值为0。 标准化（归一化）分布图：将正态分布图中的任意值转化称z值，则标准化了分布图。 如果我们将数据归一化处理为z值，该归一化分布的新平均值会是多少？-0 如果我们将数据归一化处理为z值，该归一化分布的新标准偏差会是多少？-1 总结：对于任何正态分布，都可以通过以下方式归一化该分布： 减去平均值，将其平移到0处 除以标准偏差，使标准偏差=1 这就叫做标准正态分布。 可以将任意正态分布转成任意正态分布：即通过转成标准正态分布，再转换成其他正态分布。 2018-05-21-概率密度函数 概率密度函数 在正态分布中，通过查看某个值在x轴上的位置即标准偏差，能改确定大于或小于任何值的百分比，下面学习如何计算这些百分比。 我们使用理论曲线来绘制数据模型，曲线下的面积是1 ，因为它是用分布数据的相对频率（即比例）来绘制数据模型，该曲线叫做概率密度函数，通常缩写为PDF。 概率密度函数曲线下的面积表示概率。 绘制概率密度函数时，绝对频率（absolute frequency）变成相对频率（relative frequency）。 正态概率密度函数 曲线的末端实际上不会接触到x轴，只是越来越接近x轴，x轴是水平渐进线，该理论模型的曲线末端不能接触到x轴是因为我们永远都不能100%确定某件事； 假设有某个值（x），从负无穷到x之间的曲线下的面积，等于随机地从样本中选择一个小于x的受试者对应的概率，也就等于样本或总体中值小于x的比例。如果这个概率是80%，可以说x是第80个百分位。 概率密度函数公式见百科：概率密度函数。 正态概率密度函数公式（一维正态分布）： 若随机变量X服从一个位置参数为、尺度参数为的概率分布，其概率密度函数为，则这个随机变量就称为正态随机变量，正态随机变量服从的正态分布就称为正态分布，记作，读作X服从，或X服从正态分布。 μ维随机向量具有类似的概率规律时，称此随机向量遵从多维正态分布。多元正态分布有很好的性质，例如，多元正态分布的边缘分布仍为正态分布，它经任何线性变换得到的随机向量仍为多维正态分布，特别它的线性组合为一元正态分布。 标准正态分布： 当μ=0，=1时，正态分布就成为标准正态分布：</summary></entry></feed>
+&lt;p&gt;至此，本篇内容完成。&lt;/p&gt;</content><author><name>叶子  ( ˘ ³˘)♥</name></author><category term="Spark" /><summary type="html">本文主要关于spark日志相关的部分内容，包括spark日志位置以及其中一种&amp;gt;日志配置方法，后续可再对本文进行其他配置方法的补充。 注意: 本文中使用的版本是spark2.2.1 最近平台中某租户使用的容器化集群spark集群，提交的spark streaming任务的日志没有进行级别控制，疯狂的刷日志，导致会占满宿主机的存储空间，并且集群均使用的是standalone模式，没有配置删除日志，所以日志太多会影响同一个宿主机下其他租户spark的使用。因此，在今天进行了一下集群的全局配置，直接将日志级别进行了更改，并且也趁这个时间，总结下对于spark日志相关的部分内容，后续有时间再进行其他补充。 Spark应用程序运行日志的存放 在很多情况下，我们需要查看driver和executor在运行spark程序时候产生的日志，以便于我们调试和查找问题。 Driver端日志 Spark Driver端的日志在默认情况下是直接输出在控制台的，driver本身没有stderr和stdout文件，所以只能在控制台输出。不过可以通过配置，将日志打印到文件中，具体配置方式后续再进行说明。 Executor端日志 Spark Executor日志的存放位置，是与Spark的部署模式相关的；Spark目前3种部署方式：Spark Standalone、Mesos、YARN。 Spark Standalone模式：在spark standalone的部署模式下，可以直接在Master UI界面查看到相应的应用程序的日志，如下图。其中可以看到是有stderr和stdout两种日志，区别就是如果你在程序中使用了println(….)输出语句，并且位置是在executor端执行的，这些信息会在stdout文件里面显示，而在driver端执行的会直接在控制台输出；其余的Spark运行日志会在stderr文件里面显示。 通常，每个job的详细日志输出是在每个worker（slave）节点的work目录下，这个目录可以通过spark-env.sh下配置SPARK_WORKER_DIR参数（Directory to run applications in, which will include both logs and scratch space，默认情况下是SPARK_HOME/work）设置。 此部分，可以进行worker配置使日志自动删除，详情见后续“配置日志”部分。 Mesos模式：在Mesos模式下，也可以通过Mesos的Master UI界面上看到相关的应用程序日志，这些日志是存储在Mesos Slave的work目录下的，通常情况下通过修改mesos-slave-env.sh或mesos-master-env.sh文件下的MESOS_log_dir参数和MESOS_work_dir参数可以设置slave或master的日志目录和工作目录，默认情况下是master和slave的logs都在/var/log/mesos下。 YARN模式：在yarn模式下，executor和application master都运行在“containers”内。 YARN在一个application结束后，有2种处理容器内日志的方式。 其中在yarn模式下，最简单的收集日志的方式是使用Yarn的日志收集工具(yarn logs -applicationId )，这个工具可以收集应用程序的相关日志，但是要求:a.开启了日志聚合功能（yarn.log-aggregation-enable，默认情况下这参数是false）；b.application必须运行完，因为yarn必须先聚合这些日志。这种情况下，容器日志将被复制到HDFS，并删除本地日志，从而腾出更多空间。这样的话，这些日志可以在集群任何节点上用yarn logs命令查看：yarn logs -applicationId ，用这个命令会打印出指定应用的所有日志文件的内容，或者也可以直接在HDFS上查看这些日志（HDFS shell或者HDFS API）。这个目录的配置可以在YARN配置中指定（yarn.nodemanager.remote-app-log-dir和yarn.nodemanager.remote-app-log-dir-suffix）。这些日志同样还可以在Spark Web UI上Executors页查看，但是也有前提，需要启动Spark history server和MapReduce history server，再在yarn-site.xml中配置好yarn.log.server.url。Spark history server UI将把你重定向到MapReduce history server以查看这些聚合日志。 如果日志聚合没有开启，那么日志文件将在每台机器上的YARN_APP_LOGS_DIR目录保留，通常这个目录指向NodeManager节点(ResourceManager节点下没输出)的/tmp/logs或者$HADOOP_HOME/log/userlogs（这取决于Hadoop版本和安全方式）。查看日志的话，需要到每台机器上查看这些目录。子目录是按application ID和container ID来组织的。这些日志同样可以在 Spark Web UI上Executors页查看，而且这时你不需要运行MapReduce history server。这里还有一个需要注意的地方，在没有开启日志聚合的时候，有一个参数yarn.nodemanager.log.retain-seconds，这个参数指应用程序输入出日志的保存时间，默认是10800，单位s，也就是3个小时，所以有可能超过时间再去查看日志的时候，原来的运行日志就自动删除了。 额外补充：在yarn模式下，kill掉某个job（直接在UI界面或者是终端kill掉任务都是不对的，该任务可能还会继续执行下去，所以要用如下命令才算完全停止该job的执行），yarn application -kill 。 配置日志 Standalone日志自动删除配置 目前，在使用中，平台中的容器化的spark集群因为资源已经由docker+mesos+marathon控制了，一个集群只有一个租户使用，因此均是standalone模式部署的，不过在使用过程中，应用程序日志不会自动删除会占很大空间，因此进行了worker配置，使日志自动删除。 其中，更改了conf/spark-env.sh，设置SPARK_WORKER_OPTS，即在文件内增加： export SPARK_WORKER_OPTS=&quot;-Dspark.worker.cleanup.enabled=true -Dspark.worker.cleanup.interval=3600 -Dspark.worker.cleanup.appDataTtl=604800 -Dspark.worker.ui.compressedLogFileLengthCacheSize=100&quot; 参数解释： (1)spark.worker.cleanup.enabled（默认false）：仅在standalone模式下生效，开启后定期清理worker节点的worker目录下的应用程序日志，并且仅会清理已经停止的application日志。Enable periodic cleanup of worker / application directories. Note that this only affects standalone mode, as YARN works differently. Only the directories of stopped applications are cleaned up. (2)spark.worker.cleanup.interval（默认1800）：清理频率。Controls the interval, in seconds, at which the worker cleans up old application work dirs on the local machine. (3)spark.worker.cleanup.appDataTtl（604800(7days,7243600)）：The number of seconds to retain application work directories on each worker. This is a Time To Live and should depend on the amount of available disk space you have. Application logs and jars are downloaded to each application work dir. Over time, the work dirs can quickly fill up disk space, especially if you run jobs very frequently. (4)spark.worker.ui.compressedLogFileLengthCacheSize（默认100）：For compressed log files, the uncompressed file can only be computed by uncompressing the files. Spark caches the uncompressed file size of compressed log files. This property controls the cache size.</summary></entry></feed>
