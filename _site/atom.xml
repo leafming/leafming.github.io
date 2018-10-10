@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-10-10T15:04:52+08:00</updated><id>http://localhost:4000/</id><title type="html">iLeaf</title><subtitle>Yesterday you said tomorrow.</subtitle><author><name>叶子  ( ˘ ³˘)♥</name></author><entry><title type="html">Flink基础运行时环境</title><link href="http://localhost:4000/bigdata/2018/10/09/Flink%E5%9F%BA%E7%A1%80%E8%BF%90%E8%A1%8C%E6%97%B6%E7%8E%AF%E5%A2%83/" rel="alternate" type="text/html" title="Flink基础运行时环境" /><published>2018-10-09T00:00:00+08:00</published><updated>2018-10-09T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/10/09/Flink%E5%9F%BA%E7%A1%80%E8%BF%90%E8%A1%8C%E6%97%B6%E7%8E%AF%E5%A2%83</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/10/09/Flink%E5%9F%BA%E7%A1%80%E8%BF%90%E8%A1%8C%E6%97%B6%E7%8E%AF%E5%A2%83/">&lt;blockquote&gt;
-  &lt;p&gt;本文所用flink版本为1.6，官方文档链接&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.6/concepts/runtime.html&quot;&gt;Apache Flink 1.6&lt;/a&gt;。&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.5.2">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-10-10T15:22:16+08:00</updated><id>http://localhost:4000/</id><title type="html">iLeaf</title><subtitle>Yesterday you said tomorrow.</subtitle><author><name>叶子  ( ˘ ³˘)♥</name></author><entry><title type="html">Flink基础运行时环境</title><link href="http://localhost:4000/bigdata/2018/10/09/Flink%E5%9F%BA%E7%A1%80%E8%BF%90%E8%A1%8C%E6%97%B6%E7%8E%AF%E5%A2%83/" rel="alternate" type="text/html" title="Flink基础运行时环境" /><published>2018-10-09T00:00:00+08:00</published><updated>2018-10-09T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/10/09/Flink%E5%9F%BA%E7%A1%80%E8%BF%90%E8%A1%8C%E6%97%B6%E7%8E%AF%E5%A2%83</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/10/09/Flink%E5%9F%BA%E7%A1%80%E8%BF%90%E8%A1%8C%E6%97%B6%E7%8E%AF%E5%A2%83/">&lt;blockquote&gt;
+  &lt;p&gt;本文所用flink版本为1.6，官方文档链接&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.6/concepts/runtime.html&quot;&gt;Apache Flink 1.6&lt;/a&gt;，本文所参考的文档均在正文中每个部分直接详细指出了，就不再汇总了。&lt;/p&gt;
 &lt;/blockquote&gt;
 
 &lt;h1 id=&quot;flink运行时环境&quot;&gt;Flink运行时环境&lt;/h1&gt;
@@ -132,24 +132,30 @@ Flink运行时角色间的通信使用akka，数据的传输使用netty。对比
 &lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/flink/2018-10-09-slot共享示例.png?raw=true&quot; alt=&quot;2018-10-09-slot共享示例&quot; /&gt;&lt;/li&gt;
     &lt;/ul&gt;
 
-    &lt;p&gt;a. 关于是如何实现共享slot呢？槽分配的策略？&lt;br /&gt;
-       - SlotSharingGroup是Flink中用来实现slot共享的类，它尽可能地让subtasks共享一个slot。&lt;br /&gt;
-       - CoLocationGroup类用来强制将subtasks放到同一个slot中。CoLocationGroup主要用于迭代流中，用来保证迭代头与迭代尾的第i个subtask能被调度到同一个TaskManager上。这里我们不会详细讨论CoLocationGroup的实现细节。&lt;/p&gt;
+    &lt;p&gt;a. 关于是如何实现共享slot呢？槽分配的策略？&lt;/p&gt;
+    &lt;ul&gt;
+      &lt;li&gt;SlotSharingGroup是Flink中用来实现slot共享的类，它尽可能地让subtasks共享一个slot。&lt;/li&gt;
+      &lt;li&gt;CoLocationGroup类用来强制将subtasks放到同一个slot中。CoLocationGroup主要用于迭代流中，用来保证迭代头与迭代尾的第i个subtask能被调度到同一个TaskManager上。这里我们不会详细讨论CoLocationGroup的实现细节。&lt;/li&gt;
+    &lt;/ul&gt;
 
     &lt;p&gt;b. 怎么判断operator（算子）属于哪个slot共享组呢？（怎么确定一个算子的SlotSharingGroup？）&lt;br /&gt;
-默认情况下，所有的operator（算子）都属于默认的共享组default，也就是说默认情况下所有的operator都是可以共享一个slot的。而当所有input operators具有相同的slot共享组时，该operator会继承这个共享组。最后，为了防止不合理的共享，用户也能通过API来强制指定operator的共享组，比如：someStream.filter(…).slotSharingGroup(“group1”);就强制指定了filter的slot共享组为group1。（总结：根据input的group和自身是否设置group共同确定）适当的设置可以减少每个slot运行的线程数，从而整体上减少机器的负载。&lt;br /&gt;
- c.原理与实现（转）&lt;br /&gt;
+默认情况下，所有的operator（算子）都属于默认的共享组default，也就是说默认情况下所有的operator都是可以共享一个slot的。而当所有input operators具有相同的slot共享组时，该operator会继承这个共享组。最后，为了防止不合理的共享，用户也能通过API来强制指定operator的共享组，比如：someStream.filter(…).slotSharingGroup(“group1”);就强制指定了filter的slot共享组为group1。（总结：根据input的group和自身是否设置group共同确定）适当的设置可以减少每个slot运行的线程数，从而整体上减少机器的负载。&lt;/p&gt;
+
+    &lt;p&gt;c.原理与实现（转）&lt;br /&gt;
 那么多个tasks（或者说operators）是如何共享slot的呢？本部分转自&lt;a href=&quot;http://wuchong.me/blog/2016/05/09/flink-internals-understanding-execution-resources/&quot;&gt;Flink 原理与实现：理解 Flink 中的计算资源&lt;/a&gt;。&lt;br /&gt;
 来看一下用来定义计算资源的slot的类。抽象类Slot定义了该槽位属于哪个TaskManager（instance）的第几个槽位（slotNumber），属于哪个Job（jobID）等信息。最简单的情况下，一个slot只持有一个task，也就是SimpleSlot的实现。复杂点的情况，一个slot能共享给多个task使用，也就是SharedSlot的实现。SharedSlot能包含其他的SharedSlot，也能包含SimpleSlot。所以一个SharedSlot能定义出一棵slots树。&lt;br /&gt;
-接下来我们来看看 Flink 为subtask分配slot的过程。关于Flink调度，有两个非常重要的原则我们必须知道：（1）同一个operator的各个subtask是不能呆在同一个SharedSlot中的，例如FlatMap[1]和FlatMap[2]是不能在同一个SharedSlot中的。（2）Flink是按照拓扑顺序从Source一个个调度到Sink的。例如WordCount（Source并行度为1，其他并行度为2），那么调度的顺序依次是：Source -&amp;gt; FlatMap[1] -&amp;gt; FlatMap[2] -&amp;gt; KeyAgg-&amp;gt;Sink[1] -&amp;gt; KeyAgg-&amp;gt;Sink[2]。假设现在有2个TaskManager，每个只有1个slot（为简化问题），那么分配slot的过程如图所示：&lt;br /&gt;
+接下来我们来看看 Flink 为subtask分配slot的过程。关于Flink调度，有两个非常重要的原则我们必须知道：A.同一个operator的各个subtask是不能呆在同一个SharedSlot中的，例如FlatMap[1]和FlatMap[2]是不能在同一个SharedSlot中的。B.Flink是按照拓扑顺序从Source一个个调度到Sink的。例如WordCount（Source并行度为1，其他并行度为2），那么调度的顺序依次是：Source -&amp;gt; FlatMap[1] -&amp;gt; FlatMap[2] -&amp;gt; KeyAgg-&amp;gt;Sink[1] -&amp;gt; KeyAgg-&amp;gt;Sink[2]。假设现在有2个TaskManager，每个只有1个slot（为简化问题），那么分配slot的过程如图所示：&lt;br /&gt;
 &lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/flink/2018-10-10-slot共享机制实现例子图.png?raw=true&quot; alt=&quot;2018-10-10-slot共享机制实现例子图&quot; /&gt;&lt;br /&gt;
-注：图中 SharedSlot 与 SimpleSlot 后带的括号中的数字代表槽位号（slotNumber）。&lt;br /&gt;
-(1).为Source分配slot。首先，我们从TaskManager1中分配出一个SharedSlot。并从SharedSlot中为Source分配出一个SimpleSlot。如上图中的①和②。&lt;br /&gt;
-(2).为FlatMap[1]分配slot。目前已经有一个SharedSlot，则从该SharedSlot中分配出一个SimpleSlot用来部署FlatMap[1]。如上图中的③。&lt;br /&gt;
-(3).为FlatMap[2]分配slot。由于TaskManager1的SharedSlot中已经有同operator的FlatMap[1]了，我们只能分配到其他SharedSlot中去。从TaskManager2中分配出一个SharedSlot，并从该SharedSlot中为FlatMap[2]分配出一个SimpleSlot。如上图的④和⑤。&lt;br /&gt;
-(4).为Key-&amp;gt;Sink[1]分配slot。目前两个SharedSlot都符合条件，从TaskManager1的SharedSlot中分配出一个SimpleSlot用来部署Key-&amp;gt;Sink[1]。如上图中的⑥。&lt;br /&gt;
-(5).为Key-&amp;gt;Sink[2]分配slot。TaskManager1的SharedSlot中已经有同operator的Key-&amp;gt;Sink[1]了，则只能选择另一个SharedSlot中分配出一个SimpleSlot用来部署Key-&amp;gt;Sink[2]。如上图中的⑦。&lt;br /&gt;
-最后Source、FlatMap[1]、Key-&amp;gt;Sink[1]这些subtask都会部署到TaskManager1的唯一一个slot中，并启动对应的线程。FlatMap[2]、Key-&amp;gt;Sink[2]这些subtask都会被部署到TaskManager2的唯一一个slot中，并启动对应的线程。从而实现了slot共享。&lt;/p&gt;
+注：图中 SharedSlot 与 SimpleSlot 后带的括号中的数字代表槽位号（slotNumber）。&lt;/p&gt;
+    &lt;ul&gt;
+      &lt;li&gt;为Source分配slot。首先，我们从TaskManager1中分配出一个SharedSlot。并从SharedSlot中为Source分配出一个SimpleSlot。如上图中的①和②。&lt;/li&gt;
+      &lt;li&gt;为FlatMap[1]分配slot。目前已经有一个SharedSlot，则从该SharedSlot中分配出一个SimpleSlot用来部署FlatMap[1]。如上图中的③。&lt;/li&gt;
+      &lt;li&gt;为FlatMap[2]分配slot。由于TaskManager1的SharedSlot中已经有同operator的FlatMap[1]了，我们只能分配到其他SharedSlot中去。从TaskManager2中分配出一个SharedSlot，并从该SharedSlot中为FlatMap[2]分配出一个SimpleSlot。如上图的④和⑤。&lt;/li&gt;
+      &lt;li&gt;为Key-&amp;gt;Sink[1]分配slot。目前两个SharedSlot都符合条件，从TaskManager1的SharedSlot中分配出一个SimpleSlot用来部署Key-&amp;gt;Sink[1]。如上图中的⑥。&lt;/li&gt;
+      &lt;li&gt;为Key-&amp;gt;Sink[2]分配slot。TaskManager1的SharedSlot中已经有同operator的Key-&amp;gt;Sink[1]了，则只能选择另一个SharedSlot中分配出一个SimpleSlot用来部署Key-&amp;gt;Sink[2]。如上图中的⑦。&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;最后Source、FlatMap[1]、Key-&amp;gt;Sink[1]这些subtask都会部署到TaskManager1的唯一一个slot中，并启动对应的线程。FlatMap[2]、Key-&amp;gt;Sink[2]这些subtask都会被部署到TaskManager2的唯一一个slot中，并启动对应的线程。从而实现了slot共享。&lt;/p&gt;
   &lt;/li&gt;
 &lt;/ol&gt;
 
@@ -167,7 +173,7 @@ Flink运行时角色间的通信使用akka，数据的传输使用netty。对比
 关于Savepoints的详细说明，可见官网&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.6/ops/state/savepoints.html#savepoints&quot;&gt;Savepoints&lt;/a&gt;。&lt;/p&gt;
 
 &lt;hr /&gt;
-&lt;p&gt;至此，本篇内容完成。&lt;/p&gt;</content><author><name>叶子  ( ˘ ³˘)♥</name></author><category term="Flink" /><summary type="html">本文所用flink版本为1.6，官方文档链接Apache Flink 1.6。</summary></entry><entry><title type="html">Flink基础概念</title><link href="http://localhost:4000/bigdata/2018/09/05/Flink%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/" rel="alternate" type="text/html" title="Flink基础概念" /><published>2018-09-05T00:00:00+08:00</published><updated>2018-09-05T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/09/05/Flink%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/09/05/Flink%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/">&lt;blockquote&gt;
+&lt;p&gt;至此，本篇内容完成。&lt;/p&gt;</content><author><name>叶子  ( ˘ ³˘)♥</name></author><category term="Flink" /><summary type="html">本文所用flink版本为1.6，官方文档链接Apache Flink 1.6，本文所参考的文档均在正文中每个部分直接详细指出了，就不再汇总了。</summary></entry><entry><title type="html">Flink基础概念</title><link href="http://localhost:4000/bigdata/2018/09/05/Flink%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/" rel="alternate" type="text/html" title="Flink基础概念" /><published>2018-09-05T00:00:00+08:00</published><updated>2018-09-05T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/09/05/Flink%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/09/05/Flink%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/">&lt;blockquote&gt;
   &lt;p&gt;项目说要做创新活动，所以需要把原来的流处理从Spark替换成Flink。嗯，学习Flink！本文所用flink版本为1.6。&lt;/p&gt;
 &lt;/blockquote&gt;
 
