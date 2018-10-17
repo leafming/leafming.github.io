@@ -1,0 +1,3205 @@
+
+<!doctype html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/assets/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/assets/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/assets/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Flink," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="iLeaf" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/assets/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="本文关于Flink的配置参数，结合Apache Flink 1.7 版本官方文档进行整理。">
+<meta name="keywords" content="Flink">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Flink配置参数(官网翻译转载)">
+<meta property="og:url" content="http://localhost:4000/bigdata/2018/10/17/Flink%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0/">
+<meta property="og:site_name" content="iLeaf">
+<meta property="og:description" content="本文关于Flink的配置参数，结合Apache Flink 1.7 版本官方文档进行整理。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/flink/2018-10-17-flink配置-slots_parallelism.png?raw=true">
+<meta property="og:updated_time" content="2018-10-17T00:00:00+08:00">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Flink配置参数(官网翻译转载)">
+<meta name="twitter:description" content="本文关于Flink的配置参数，结合Apache Flink 1.7 版本官方文档进行整理。">
+<meta name="twitter:image" content="https://github.com/leafming/bak/blob/master/images/flink/2018-10-17-flink配置-slots_parallelism.png?raw=true">
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":true},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://localhost:4000/"/>
+
+
+
+
+
+  <title>Flink配置参数(官网翻译转载) | iLeaf</title>
+  
+
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?d509d2d894059ebd8e784708e52dcdc7";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"> <div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">iLeaf</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Leaf's Blog</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+<div id="posts" class="posts-expand">
+  
+  
+
+  
+
+  
+  
+  
+
+  <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/bigdata/2018/10/17/Flink%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="叶子  ( ˘ ³˘)♥">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/assets/images/IMG_8739.GIF">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="iLeaf">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+          
+          
+            Flink配置参数(官网翻译转载)
+          
+        </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-10-17T00:00:00+08:00">
+                2018-10-17
+              </time>
+            
+
+            
+              <span class="post-meta-divider">|</span>
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-check-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">更新于</span>
+              
+              <time title="更新于" itemprop="dateModified" datetime="2018-10-17">
+                2018-10-17
+              </time>
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/BigData" itemprop="url" rel="index">
+                    <span itemprop="name">BigData</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+             <span id="/bigdata/2018/10/17/Flink%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0/" class="leancloud_visitors" data-flag-title="Flink配置参数(官网翻译转载)">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+            
+                <div class="post-description">
+                    本文关于Flink的配置参数，结合Apache Flink 1.7 版本官方文档进行整理。
+                </div>
+            
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+  <p>本文所用flink版本为V1.7-SNAPSHOT，官网翻译转载，转载地址：<a href="https://flink.lantingmeeting.com/ops/config.html#legacy">配置-https://flink.lantingmeeting.com/ops/config.html#legacy</a>。</p>
+</blockquote>
+
+<p><strong>对于单节点设置，Flink已准备好开箱即用，您无需更改默认配置即可开始使用。</strong><br />
+开箱即用的配置将使用您的默认Java安装.您可以手动设置环境变量<code class="highlighter-rouge">JAVA_HOME</code>或配置项<code class="highlighter-rouge">env.java.home</code>中<code class="highlighter-rouge">conf/flink-conf.yaml</code>，如果你想手动覆盖Java运行时使用。<br />
+此页面列出了设置性能良好（分布式）安装通常所需的最常用选项。此外，此处还列出了所有可用配置参数的完整列表。<br />
+所有配置都已完成<code class="highlighter-rouge">conf/flink-conf.yaml</code>，预计将是具有格式的<a href="http://www.yaml.org/spec/1.2/spec.html">YAML键值对</a>的扁平集合<code class="highlighter-rouge">key: value</code>。<br />
+系统和运行脚本在启动时解析配置。对配置文件的更改需要重新启动Flink JobManager和TaskManagers。<br />
+TaskManagers的配置文件可能不同，Flink不承担集群中的统一机器。</p>
+
+<h1 id="常见选项">常见选项</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>键</th>
+      <th>默认</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>jobmanager.heap.size</td>
+      <td>“1024m”</td>
+      <td>JobManager的JVM堆大小.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.heap.size</td>
+      <td>“1024m”</td>
+      <td>TaskManagers的JVM堆大小，它是系统的并行工作者.在YARN设置中，此值自动配置为TaskManager的YARN容器的大小，减去一定的容差值.</td>
+    </tr>
+    <tr>
+      <td>parallelism.default</td>
+      <td>1</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>taskmanager.numberOfTaskSlots</td>
+      <td>1</td>
+      <td>单个TaskManager可以运行的并行算子或用户函数实例的数量.如果此值大于1，则单个TaskManager将获取函数或 算子的多个实例.这样，TaskManager可以使用多个CPU内核，但同时，可用内存在不同的算子或函数实例之间划分.此值通常与TaskManager的计算机具有的物理CPU核心数成比例（例如，等于核心数，或核心数的一半）.</td>
+    </tr>
+    <tr>
+      <td>state.backend</td>
+      <td>(none)</td>
+      <td>状态后台用于存储和检查点状态.</td>
+    </tr>
+    <tr>
+      <td>state.checkpoints.dir</td>
+      <td>(none)</td>
+      <td>用于在Flink支持的文件系统中存储检查点的数据文件和元数据的默认目录.必须可以从所有参与的进程/节点（即所有TaskManagers和JobManagers）访问存储路径.</td>
+    </tr>
+    <tr>
+      <td>state.savepoints.dir</td>
+      <td>(none)</td>
+      <td>保存点的默认目录.由将后台写入文件系统的状态后台（MemoryStateBackend，FsStateBackend，RocksDBStateBackend）使用.</td>
+    </tr>
+    <tr>
+      <td>high-availability</td>
+      <td>“no / not”</td>
+      <td>定义用于群集执行的高可用性模式.要启用高可用性，请将此模式设置为“ZOOKEEPER”.</td>
+    </tr>
+    <tr>
+      <td>high-availability.storageDir</td>
+      <td>(none)</td>
+      <td>文件系统路径（URI）Flink在高可用性设置中持久保存元数据.</td>
+    </tr>
+    <tr>
+      <td>security.ssl.internal.enabled</td>
+      <td>false</td>
+      <td>打开SSL以进行内部网络通信.可选地，特定组件可以通过它们自己的设置（rpc，数据传输，REST等）覆盖它.</td>
+    </tr>
+    <tr>
+      <td>security.ssl.rest.enabled</td>
+      <td>false</td>
+      <td>通过REST端点打开SSL以进行外部通信.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h1 id="完整参考">完整参考</h1>
+<h2 id="hdfs">HDFS</h2>
+<p>注意:<strong>不推荐使用这些Keys，建议使用环境变量配置Hadoop路径<code class="highlighter-rouge">HADOOP_CONF_DIR</code></strong>。<br />
+这些参数配置Flink使用的默认HDFS。未指定HDFS配置的设置必须指定HDFS文件的完整路径（<code class="highlighter-rouge">hdfs://address:port/path/to/files</code>）文件也将使用默认HDFS参数（块大小，复制因子）编写。</p>
+<ul>
+  <li><code class="highlighter-rouge">fs.hdfs.hadoopconf</code>：Hadoop文件系统（HDFS）配置<strong>目录</strong>的绝对路径（可选值）。指定此值允许程序使用短URI引用HDFS文件（<code class="highlighter-rouge">hdfs:///path/to/files</code>不包括文件URI中NameNode的地址和端口）。如果没有此选项，则可以访问HDFS文件，但需要完全限定的URI <code class="highlighter-rouge">hdfs://address:port/path/to/files</code>。此选项还会导致文件编写者获取HDFS的块大小和复制因子的默认值。Flink将在指定目录中查找“core-site.xml”和“hdfs-site.xml”文件。</li>
+  <li><code class="highlighter-rouge">fs.hdfs.hdfsdefault</code>：Hadoop自己的配置文件“hdfs-default.xml”的绝对路径（DEFAULT：null）。</li>
+  <li><code class="highlighter-rouge">fs.hdfs.hdfssite</code>：Hadoop自己的配置文件“hdfs-site.xml”的绝对路径（DEFAULT：null）。</li>
+</ul>
+
+<h2 id="核心">核心</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>键</th>
+      <th>默认</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>classloader.parent-first-patterns.additional</td>
+      <td>(none)</td>
+      <td>一个（以分号分隔的）模式列表，指定应始终首先通过父ClassLoader解析哪些类.模式是一个简单的前缀，它根据完全限定的类名进行检查.这些模式附加到“classloader.parent-first-patterns.default”.</td>
+    </tr>
+    <tr>
+      <td>classloader.parent-first-patterns.default</td>
+      <td>“java .; scala .; org.apache.flink .; com.esotericsoftware.kryo; org.apache.hadoop .; javax.annotation .; org.slf4j; org.apache.log4j; org.apache.logging; org. apache.commons.logging; ch.qos.logback“</td>
+      <td>一个（以分号分隔的）模式列表，指定应始终首先通过父ClassLoader解析哪些类.模式是一个简单的前缀，它根据完全限定的类名进行检查.通常不应修改此设置.要添加其他模式，我们建议使用“classloader.parent-first-patterns.additional”.</td>
+    </tr>
+    <tr>
+      <td>classloader.resolve-order</td>
+      <td>“child-first”</td>
+      <td>从用户代码加载类时定义类解析策略，这意味着是首先检查用户代码jar（“child-first”）还是应用程序类路径（“parent-first”）.默认设置指示首先从用户代码jar加载类，这意味着用户代码jar可以包含和加载不同于Flink使用的（依赖）依赖项.</td>
+    </tr>
+    <tr>
+      <td>io.tmp.dirs</td>
+      <td>YARN上的’LOCAL_DIRS’.Mesos上的’_FLINK_TMP_DIR’.独立的System.getProperty（“java.io.tmpdir”）.</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>mode</td>
+      <td>“new”</td>
+      <td>切换到选择执行模式.可能的值为“new”和“legacy”.</td>
+    </tr>
+    <tr>
+      <td>parallelism.default</td>
+      <td>1</td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="jobmanager">JobManager</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>键</th>
+      <th>默认</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>jobmanager.archive.fs.dir</td>
+      <td>(none)</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>jobmanager.execution.attempts-history-size</td>
+      <td>16</td>
+      <td>历史记录中保存的最大执行尝试次数.</td>
+    </tr>
+    <tr>
+      <td>jobmanager.execution.failover-strategy</td>
+      <td>“full”</td>
+      <td>此选项指定作业计算如何从任务失败中恢复.可接受的值是：’full’：重新启动所有任务.’individual’：仅重新启动失败的任务.仅当所有任务都是独立组件时才应使用.’region’：重新启动可能受任务失败影响的所有任务.</td>
+    </tr>
+    <tr>
+      <td>jobmanager.heap.size</td>
+      <td>“1024m”</td>
+      <td>JobManager的JVM堆大小.</td>
+    </tr>
+    <tr>
+      <td>jobmanager.resourcemanager.<br />reconnect-interval</td>
+      <td>2000</td>
+      <td>此选项指定在与资源管理器的连接丢失时触发资源管理器重新连接的时间间隔.此选项仅供内部使用.</td>
+    </tr>
+    <tr>
+      <td>jobmanager.rpc.address</td>
+      <td>(none)</td>
+      <td>config参数定义要连接的网络地址以与JobManager进行通信.此值仅在具有静态名称或地址的单个JobManager存在的设置中解释（简单的独立设置或具有动态服务名称解析的容器设置）.当使用Leader选举服务（如ZooKeeper）从潜在的多个Slave JobManagers中选择和发现JobManagerLeader时，它不会在许多高可用性设置中使用.</td>
+    </tr>
+    <tr>
+      <td>jobmanager.rpc.port</td>
+      <td>6123</td>
+      <td>config参数定义要连接的网络端口以与JobManager进行通信.与jobmanager.rpc.address一样，此值仅在设置中解释，其中存在具有静态名称/地址和端口的单个JobManager（简单的独立设置或具有动态服务名称解析的容器设置）.当使用Leader选举服务（如ZooKeeper）从潜在的多个Slave JobManagers中选择和发现JobManagerLeader时，此配置选项不会用于许多高可用性设置.</td>
+    </tr>
+    <tr>
+      <td>jobstore.cache-size</td>
+      <td>52428800</td>
+      <td>作业存储缓存大小（以字节为单位），用于将已完成的作业保存在内存中.</td>
+    </tr>
+    <tr>
+      <td>jobstore.expiration-time</td>
+      <td>3600</td>
+      <td>完成作业到期并从作业库中清除的时间（以秒为单位）.</td>
+    </tr>
+    <tr>
+      <td>slot.idle.timeout</td>
+      <td>50000</td>
+      <td>Slot Pool中空闲槽的超时时间（以ms为单位）.</td>
+    </tr>
+    <tr>
+      <td>slot.request.timeout</td>
+      <td>300000</td>
+      <td>从Slot Pool请求插槽的超时（以ms为单位）.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="taskmanager">TaskManager</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>键</th>
+      <th>默认</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>task.cancellation.interval</td>
+      <td>30000</td>
+      <td>两次连续任务取消尝试之间的时间间隔（以ms为单位）.</td>
+    </tr>
+    <tr>
+      <td>task.cancellation.timeout</td>
+      <td>180000</td>
+      <td>超时（以ms为单位），在此之后任务取消超时并导致致命的TaskManager错误.值为0将禁用看门狗.</td>
+    </tr>
+    <tr>
+      <td>task.cancellation.timers.timeout</td>
+      <td>7500</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>task.checkpoint.alignment.max-size</td>
+      <td>-1</td>
+      <td>检查点对齐可以缓冲的最大字节数.如果检查点对齐缓冲超过配置的数据量，则中止检查点（跳过）.值-1表示没有限制.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.data.port</td>
+      <td>0</td>
+      <td>TaskManager的端口用于数据交换 算子操作.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.data.ssl.enabled</td>
+      <td>true</td>
+      <td>为taskmanager数据传输启用SSL支持.仅当内部SSL的全局标志（security.ssl.internal.enabled）设置为true时，此选项才适用</td>
+    </tr>
+    <tr>
+      <td>taskmanager.debug.memory.log</td>
+      <td>false</td>
+      <td>指示是否启动线程的标志，该线程重复记录JVM的内存使用情况.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.debug.memory.log-interval</td>
+      <td>5000</td>
+      <td>日志线程记录当前内存使用情况的时间间隔（以ms为单位）.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.exit-on-fatal-akka-error</td>
+      <td>false</td>
+      <td>是否应启动TaskManager的隔离监视器.如果隔离监视器检测到它已隔离另一个actor系统或者它已被另一个actor系统隔离，则会关闭该actor系统.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.heap.size</td>
+      <td>“1024m”</td>
+      <td>TaskManagers的JVM堆大小，它是系统的并行工作者.在YARN设置中，此值自动配置为TaskManager的YARN容器的大小，减去一定的容差值.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.host</td>
+      <td>(none)</td>
+      <td>TaskManager绑定到的网络接口的主机名.默认情况下，TaskManager搜索可以连接到JobManager和其他TaskManagers的网络接口.如果该策略由于某种原因失败，则此选项可用于定义主机名.由于不同的TaskManagers需要此选项的不同值，因此通常在其他非共享的特定于TaskManager的配置文件中指定.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.jvm-exit-on-oom</td>
+      <td>false</td>
+      <td>是否在任务线程抛出OutOfMemoryError时终止TaskManager.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.memory.fraction</td>
+      <td>0.7</td>
+      <td>TaskManager为排序，哈希表和中间结果的缓存预留的相对内存量（在减去网络缓冲区使用的内存量之后）.例如，值“0.8”表示TaskManager为内部数据缓冲区保存80％的内存，为TaskManager的堆留下20％的可用内存，用于由用户定义的函数创建的对象.仅当未设置taskmanager.memory.size时，才会评估此参数.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.memory.off-heap</td>
+      <td>false</td>
+      <td>内存分配方法（JVM堆或堆外），用于TaskManager的托管内存以及网络缓冲区.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.memory.preallocate</td>
+      <td>false</td>
+      <td>在TaskManager启动时是否应预先分配TaskManager托管内存.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.memory.segment-size</td>
+      <td>“32KB”</td>
+      <td>网络堆栈和内存管理器使用的内存缓冲区的大小.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.memory.size</td>
+      <td>“0”</td>
+      <td>TaskManager的内存管理器分配的内存量.如果未设置，将分配相对分数.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.network.detailed-metrics</td>
+      <td>false</td>
+      <td>布尔标志，用于启用/禁用有关入站/出站网络队列长度的更详细指标.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.network.memory.<br />buffers-per-channel</td>
+      <td>2</td>
+      <td>每个传出/传入通道（子分区/输入通道）使用的最大网络缓冲区数.在基于信用的流量控制模式下，这表示每个输入通道中有多少信用.它应配置至少2以获得良好的性能.1个缓冲区用于接收子分区中的飞行中数据，1个缓冲区用于并行序列化.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.network.memory.<br />floating-buffers-per-gate</td>
+      <td>8</td>
+      <td>每个输出/输入门（结果分区/输入门）使用的额外网络缓冲区数.在基于信用的流量控制模式中，这表示在所有输入通道之间共享多少浮动信用.浮动缓冲区基于积压（子分区中的实时输出缓冲区）反馈来分布，并且可以帮助减轻由子分区之间的不平衡数据分布引起的背压.如果节点之间的往返时间较长和/或群集中的机器数量较多，则应增加此值.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.network.memory.<br />fraction</td>
+      <td>0.1</td>
+      <td>用于网络缓冲区的JVM内存的分数.这决定了TaskManager可以同时拥有多少流数据交换通道以及通道缓冲的程度.如果作业被拒绝或者您收到系统没有足够缓冲区的警告，请增加此值或下面的最小/最大值.另请注意，“taskmanager.network.memory.min”和“taskmanager.network.memory.max”可能会覆盖此分数.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.network.memory.max</td>
+      <td>“1GB”</td>
+      <td>网络缓冲区的最大内存大小.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.network.memory.min</td>
+      <td>“64MB”</td>
+      <td>网络缓冲区的最小内存大小.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.network.request-backoff.initial</td>
+      <td>100</td>
+      <td>输入通道的分区请求的最小退避.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.network.request-backoff.max</td>
+      <td>10000</td>
+      <td>输入通道的分区请求的最大退避.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.numberOfTaskSlots</td>
+      <td>1</td>
+      <td>单个TaskManager可以运行的并行算子或用户函数实例的数量.如果此值大于1，则单个TaskManager将获取函数或 算子的多个实例.这样，TaskManager可以使用多个CPU内核，但同时，可用内存在不同的算子或函数实例之间划分.此值通常与TaskManager的计算机具有的物理CPU核心数成比例（例如，等于核心数，或核心数的一半）.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.registration.initial-backoff</td>
+      <td>“500ms”</td>
+      <td>两次连续注册尝试之间的初始注册退避.每次新注册尝试的退避加倍，直到达到最大注册退避.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.registration.max-backoff</td>
+      <td>“30s”</td>
+      <td>两次连续注册尝试之间的最大注册退避.最大注册退避需要时间单位指定符（ms / s / min / h / d）.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.registration.refused-backoff</td>
+      <td>“10s”</td>
+      <td>注册后的退避已被作业管理员拒绝，然后重试连接.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.registration.timeout</td>
+      <td>“5m”</td>
+      <td>定义TaskManager注册的超时.如果在未成功注册的情况下超过持续时间，则TaskManager将终止.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.rpc.port</td>
+      <td>“0”</td>
+      <td>TaskManager的IPC端口.接受端口列表（“50100,50101”），范围（“50100-50200”）或两者的组合.建议在同一台计算机上运行多个TaskManagers时设置一系列端口以避免冲突.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="分布式协调通过akka">分布式协调（通过Akka）</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>键</th>
+      <th>默认</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>akka.ask.timeout</td>
+      <td>“10s”</td>
+      <td>超时用于所有期货并阻止Akka通话.如果Flink由于超时而失败，那么您应该尝试增加此值.超时可能是由于机器速度慢或网络拥挤造成的.超时值需要时间单位指定符（ms / s / min / h / d）.</td>
+    </tr>
+    <tr>
+      <td>akka.client-socket-worker-pool.pool-size-factor</td>
+      <td>1.0</td>
+      <td>池大小因子用于使用以下公式确定线程池大小：ceil（可用处理器*因子）.然后，结果大小由pool-size-min和pool-size-max值限制.</td>
+    </tr>
+    <tr>
+      <td>akka.client-socket-worker-pool.pool-size-max</td>
+      <td>2</td>
+      <td>将基于因子的数量限制为的最大线程数.</td>
+    </tr>
+    <tr>
+      <td>akka.client-socket-worker-pool.pool-size-min</td>
+      <td>1</td>
+      <td>将基于因子的数量限制为的最小线程数.</td>
+    </tr>
+    <tr>
+      <td>akka.client.timeout</td>
+      <td>“60s”</td>
+      <td>客户端的所有阻塞调用超时.</td>
+    </tr>
+    <tr>
+      <td>akka.fork-join-executor.parallelism-factor</td>
+      <td>2.0</td>
+      <td>并行因子用于使用以下公式确定线程池大小：ceil（可用处理器*因子）.然后，得到的大小受parallelism-min和parallelism-max值的限制.</td>
+    </tr>
+    <tr>
+      <td>akka.fork-join-executor.parallelism-max</td>
+      <td>64</td>
+      <td>将基于因子的并行数量限制为的最大线程数.</td>
+    </tr>
+    <tr>
+      <td>akka.fork-join-executor.parallelism-min</td>
+      <td>8</td>
+      <td>将基于因子的并行数量限制为的最小线程数.</td>
+    </tr>
+    <tr>
+      <td>akka.framesize</td>
+      <td>“10485760b”</td>
+      <td>在JobManager和TaskManager之间发送的消息的最大大小.如果Flink由于消息超出此限制而失败，那么您应该增加它.邮件大小需要大小单位说明符.</td>
+    </tr>
+    <tr>
+      <td>akka.jvm-exit-on-fatal-error</td>
+      <td>true</td>
+      <td>退出JVM致命的Akka错误.</td>
+    </tr>
+    <tr>
+      <td>akka.log.lifecycle.events</td>
+      <td>false</td>
+      <td>打开Akka远程记录事件.在调试时将此值设置为“true”.</td>
+    </tr>
+    <tr>
+      <td>akka.lookup.timeout</td>
+      <td>“10s”</td>
+      <td>用于查找JobManager的超时.超时值必须包含时间单位说明符（ms / s / min / h / d）.</td>
+    </tr>
+    <tr>
+      <td>akka.retry-gate-closed-for</td>
+      <td>50</td>
+      <td>断开远程连接后，应关闭门的ms数.</td>
+    </tr>
+    <tr>
+      <td>akka.server-socket-worker-pool.pool-size-factor</td>
+      <td>1.0</td>
+      <td>池大小因子用于使用以下公式确定线程池大小：ceil（可用处理器*因子）.然后，结果大小由pool-size-min和pool-size-max值限制.</td>
+    </tr>
+    <tr>
+      <td>akka.server-socket-worker-pool.pool-size-max</td>
+      <td>2</td>
+      <td>将基于因子的数量限制为的最大线程数.</td>
+    </tr>
+    <tr>
+      <td>akka.server-socket-worker-pool.pool-size-min</td>
+      <td>1</td>
+      <td>将基于因子的数量限制为的最小线程数.</td>
+    </tr>
+    <tr>
+      <td>akka.ssl.enabled</td>
+      <td>true</td>
+      <td>为Akka的远程通信打开SSL.仅当全局ssl标志security.ssl.enabled设置为true时，这才适用.</td>
+    </tr>
+    <tr>
+      <td>akka.startup-timeout</td>
+      <td>(none)</td>
+      <td>超时之后，远程组件的启动被视为失败.</td>
+    </tr>
+    <tr>
+      <td>akka.tcp.timeout</td>
+      <td>“20s”</td>
+      <td>所有出站连接超时.如果由于网络速度较慢而导致连接到TaskManager时遇到问题，则应增加此值.</td>
+    </tr>
+    <tr>
+      <td>akka.throughput</td>
+      <td>15</td>
+      <td>在将线程返回到池之前批处理的消息数.较低的值表示公平的调度，而较高的值可以以不公平为代价来提高性能.</td>
+    </tr>
+    <tr>
+      <td>akka.transport.heartbeat.interval</td>
+      <td>“1000s”</td>
+      <td>Akka传输故障检测器的心跳间隔.由于Flink使用TCP，因此不需要检测器.因此，通过将间隔设置为非常高的值来禁用检测器.如果您需要传输故障检测器，请将间隔设置为某个合理的值.间隔值需要时间单位指定符（ms / s / min / h / d）.</td>
+    </tr>
+    <tr>
+      <td>akka.transport.heartbeat.pause</td>
+      <td>“6000s”</td>
+      <td>Akka的传输故障检测器可接受的心跳暂停.由于Flink使用TCP，因此不需要检测器.因此，通过将暂停设置为非常高的值来禁用检测器.如果您需要传输故障检测器，请将暂停设置为某个合理的值.暂停值需要时间单位指定符（ms / s / min / h / d）.</td>
+    </tr>
+    <tr>
+      <td>akka.transport.threshold</td>
+      <td>300.0</td>
+      <td>传输故障检测器的阈值.由于Flink使用TCP，因此检测器不是必需的，因此阈值被设置为高值.</td>
+    </tr>
+    <tr>
+      <td>akka.watch.heartbeat.interval</td>
+      <td>“10s”</td>
+      <td>Akka的DeathWatch机制检测死亡TaskManagers的心跳间隔.如果由于心跳消息丢失或延迟而导致TaskManagers被错误地标记为死亡，那么您应该减小此值或增加akka.watch.heartbeat.pause.可在<a href="http://doc.akka.io/docs/akka/snapshot/scala/remoting.html#failure-detector">此处</a>找到Akka的DeathWatch的详尽描述</td>
+    </tr>
+    <tr>
+      <td>akka.watch.heartbeat.pause</td>
+      <td>“60s”</td>
+      <td>Akka的DeathWatch机制可接受的心跳暂停.较低的值不允许心律不齐.如果由于心跳消息丢失或延迟而导致TaskManagers被错误地标记为死亡，那么您应该增加此值或Reduceakka.watch.heartbeat.interval.较高的值会增加检测死的TaskManager的时间.可在<a href="http://doc.akka.io/docs/akka/snapshot/scala/remoting.html#failure-detector">此处</a>找到Akka的DeathWatch的详尽描述</td>
+    </tr>
+    <tr>
+      <td>akka.watch.threshold</td>
+      <td>12</td>
+      <td>DeathWatch故障检测器的阈值.较低的值容易出现误报，而较高的值会增加检测死的TaskManager的时间.可在<a href="http://doc.akka.io/docs/akka/snapshot/scala/remoting.html#failure-detector">此处</a>找到Akka的DeathWatch的详尽描述</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="rest">REST</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>键</th>
+      <th>默认</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>rest.address</td>
+      <td>(none)</td>
+      <td>客户端应该用于连接到服务器的地址.</td>
+    </tr>
+    <tr>
+      <td>rest.await-leader-timeout</td>
+      <td>30000</td>
+      <td>客户端等待Leader地址的时间（以ms为单位），例如Dispatcher或WebMonitorEndpoint</td>
+    </tr>
+    <tr>
+      <td>rest.bind-address</td>
+      <td>(none)</td>
+      <td>服务器绑定自身的地址.</td>
+    </tr>
+    <tr>
+      <td>rest.client.max-content-length</td>
+      <td>104857600</td>
+      <td>客户端将处理的最大内容长度（以字节为单位）.</td>
+    </tr>
+    <tr>
+      <td>rest.connection-timeout</td>
+      <td>15000</td>
+      <td>客户端建立TCP连接的最长时间（以ms为单位）.</td>
+    </tr>
+    <tr>
+      <td>rest.port</td>
+      <td>8081</td>
+      <td>服务器侦听的端口/客户端连接到的端口.</td>
+    </tr>
+    <tr>
+      <td>rest.retry.delay</td>
+      <td>3000</td>
+      <td>客户端在重试之间等待的时间（以ms为单位）（另请参阅“rest.retry.max-attempts”）.</td>
+    </tr>
+    <tr>
+      <td>rest.retry.max-attempts</td>
+      <td>20</td>
+      <td>如果可重试 算子操作失败，客户端将尝试重试的次数.</td>
+    </tr>
+    <tr>
+      <td>rest.server.max-content-length</td>
+      <td>104857600</td>
+      <td>服务器将处理的最大内容长度（以字节为单位）.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="blob服务器">Blob服务器</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>键</th>
+      <th>默认</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>blob.fetch.backlog</td>
+      <td>1000</td>
+      <td>config参数定义JobManager上BLOB提取的积压.</td>
+    </tr>
+    <tr>
+      <td>blob.fetch.num-concurrent</td>
+      <td>50</td>
+      <td>config参数定义JobManager服务的最大并发BLOB提取数.</td>
+    </tr>
+    <tr>
+      <td>blob.fetch.retries</td>
+      <td>5</td>
+      <td>config参数定义失败的BLOB提取的退出次数.</td>
+    </tr>
+    <tr>
+      <td>blob.offload.minsize</td>
+      <td>1048576</td>
+      <td>要卸载到BlobServer的消息的最小大小.</td>
+    </tr>
+    <tr>
+      <td>blob.server.port</td>
+      <td>“0”</td>
+      <td>config参数定义blob服务的服务器端口.</td>
+    </tr>
+    <tr>
+      <td>blob.service.cleanup.interval</td>
+      <td>3600</td>
+      <td>TaskManager中blob缓存的清理间隔（以秒为单位）.</td>
+    </tr>
+    <tr>
+      <td>blob.service.ssl.enabled</td>
+      <td>true</td>
+      <td>用于覆盖blob服务传输的ssl支持的标志.</td>
+    </tr>
+    <tr>
+      <td>blob.storage.directory</td>
+      <td>(none)</td>
+      <td>config参数，用于定义blob服务器使用的存储目录.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="心跳管理器">心跳管理器</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>键</th>
+      <th>默认</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>heartbeat.interval</td>
+      <td>10000</td>
+      <td>从发送方请求心跳的时间间隔.</td>
+    </tr>
+    <tr>
+      <td>heartbeat.timeout</td>
+      <td>50000</td>
+      <td>为发送方和接收方双方请求和接收心跳的超时.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="ssl设置">SSL设置</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>键</th>
+      <th>默认</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>security.ssl.algorithms</td>
+      <td>“TLS_RSA_WITH_AES_128_CBC_SHA”</td>
+      <td>要支持的标准SSL算法的逗号分隔列表.<a href="http://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#ciphersuites">在这里</a>阅读更多</td>
+    </tr>
+    <tr>
+      <td>security.ssl.internal.enabled</td>
+      <td>false</td>
+      <td>打开SSL以进行内部网络通信.可选地，特定组件可以通过它们自己的设置（rpc，数据传输，REST等）覆盖它.</td>
+    </tr>
+    <tr>
+      <td>security.ssl.internal.key-password</td>
+      <td>(none)</td>
+      <td>解密Keys库中Flink内部端点（rpc，数据传输，blob服务器）Keys的密钥.</td>
+    </tr>
+    <tr>
+      <td>security.ssl.internal.keystore</td>
+      <td>(none)</td>
+      <td>带有SSLKeys和证书的JavaKeys库文件，用于Flink的内部端点（rpc，数据传输，blob服务器）.</td>
+    </tr>
+    <tr>
+      <td>security.ssl.internal.keystore-password</td>
+      <td>(none)</td>
+      <td>为Flink的内部端点（rpc，数据传输，blob服务器）解密Flink的Keys库文件的密钥.</td>
+    </tr>
+    <tr>
+      <td>security.ssl.internal.truststore</td>
+      <td>(none)</td>
+      <td>包含公共CA证书的信任库文件，用于验证Flink内部端点（rpc，数据传输，blob服务器）的对等方.</td>
+    </tr>
+    <tr>
+      <td>security.ssl.internal.truststore-password</td>
+      <td>(none)</td>
+      <td>用于解密Flink内部端点（rpc，数据传输，blob服务器）的信任库的密码.</td>
+    </tr>
+    <tr>
+      <td>security.ssl.key-password</td>
+      <td>(none)</td>
+      <td>解密Keys库中的服务器Keys的密钥.</td>
+    </tr>
+    <tr>
+      <td>security.ssl.keystore</td>
+      <td>(none)</td>
+      <td>flink端点用于其SSLKeys和证书的JavaKeys库文件.</td>
+    </tr>
+    <tr>
+      <td>security.ssl.keystore-password</td>
+      <td>(none)</td>
+      <td>解密Keys库文件的密钥.</td>
+    </tr>
+    <tr>
+      <td>security.ssl.protocol</td>
+      <td>“TLSv1.2”</td>
+      <td>ssl传输支持的SSL协议版本.请注意，它不支持以逗号分隔的列表.</td>
+    </tr>
+    <tr>
+      <td>security.ssl.rest.enabled</td>
+      <td>false</td>
+      <td>通过REST端点打开SSL以进行外部通信.</td>
+    </tr>
+    <tr>
+      <td>security.ssl.rest.key-password</td>
+      <td>(none)</td>
+      <td>解密Flink外部REST端点的Keys库中的Keys的密钥.</td>
+    </tr>
+    <tr>
+      <td>security.ssl.rest.keystore</td>
+      <td>(none)</td>
+      <td>带有SSLKeys和证书的JavaKeys库文件，用于Flink的外部REST端点.</td>
+    </tr>
+    <tr>
+      <td>security.ssl.rest.keystore-password</td>
+      <td>(none)</td>
+      <td>为Flink的外部REST端点解密Flink的Keys库文件的密钥.</td>
+    </tr>
+    <tr>
+      <td>security.ssl.rest.truststore</td>
+      <td>(none)</td>
+      <td>包含公共CA证书的信任库文件，用于验证Flink的外部REST端点的对等方.</td>
+    </tr>
+    <tr>
+      <td>security.ssl.rest.truststore-password</td>
+      <td>(none)</td>
+      <td>用于解密Flink外部REST端点的信任库的密码.</td>
+    </tr>
+    <tr>
+      <td>security.ssl.truststore</td>
+      <td>(none)</td>
+      <td>信任库文件，包含flink端点用于验证对等方证书的公共CA证书.</td>
+    </tr>
+    <tr>
+      <td>security.ssl.truststore-password</td>
+      <td>(none)</td>
+      <td>解密信任库的秘诀.</td>
+    </tr>
+    <tr>
+      <td>security.ssl.verify-hostname</td>
+      <td>true</td>
+      <td>标记以在ssl握手期间启用对等方的主机名验证.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="网络通讯通过netty">网络通讯（通过Netty）</h2>
+
+<p>这些参数允许高级调整.在大型群集上运行并发高吞吐量作业时，默认值就足够了.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>键</th>
+      <th>默认</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>taskmanager.network.netty.client.<br />connectTimeoutSec</td>
+      <td>120</td>
+      <td>Netty客户端连接超时.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.network.netty.client.<br />numThreads</td>
+      <td>-1</td>
+      <td>Netty客户端线程的数量.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.network.netty.num-arenas</td>
+      <td>-1</td>
+      <td>Netty竞技场的数量.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.network.netty.<br />sendReceiveBufferSize</td>
+      <td>0</td>
+      <td>Netty发送和接收缓冲区大小.这默认为系统缓冲区大小（cat / proc / sys / net / ipv4 / tcp_ [rw] mem），在现代Linux中为4 MiB.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.network.netty.server.<br />backlog</td>
+      <td>0</td>
+      <td>netty服务器连接积压.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.network.netty.server.<br />numThreads</td>
+      <td>-1</td>
+      <td>Netty服务器线程数.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.network.netty.<br />transport</td>
+      <td>“nio”</td>
+      <td>Netty传输类型，“nio”或“epoll”</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="web前端">Web前端</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>键</th>
+      <th>默认</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>web.access-control-allow-origin</td>
+      <td>“*”</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>web.address</td>
+      <td>(none)</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>web.backpressure.cleanup-interval</td>
+      <td>600000</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>web.backpressure.delay-between-samples</td>
+      <td>50</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>web.backpressure.num-samples</td>
+      <td>100</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>web.backpressure.refresh-interval</td>
+      <td>60000</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>web.checkpoints.history</td>
+      <td>10</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>web.history</td>
+      <td>5</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>web.log.path</td>
+      <td>(none)</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>web.refresh-interval</td>
+      <td>3000</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>web.ssl.enabled</td>
+      <td>true</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>web.submit.enable</td>
+      <td>true</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>web.timeout</td>
+      <td>10000</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>web.tmpdir</td>
+      <td>System.getProperty（ “java.io.tmpdir”）</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>web.upload.dir</td>
+      <td>(none)</td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="文件系统">文件系统</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>键</th>
+      <th>默认</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>fs.default-scheme</td>
+      <td>(none)</td>
+      <td>默认文件系统方案，用于未明确声明方案的路径.可能包含权限，例如，在HDFS NameNode的情况下为host：port.</td>
+    </tr>
+    <tr>
+      <td>fs.output.always-create-directory</td>
+      <td>false</td>
+      <td>以大于1的并行度运行的文件编写器为输出文件路径创建目录，并将不同的结果文件（每个并行编写器任务一个）放入该目录中.如果此选项设置为“true”，则并行度为1的编写器也将创建一个目录并将单个结果文件放入其中.如果该选项设置为“false”，则编写器将直接在输出路径上直接创建文件，而不创建包含目录.</td>
+    </tr>
+    <tr>
+      <td>fs.overwrite-files</td>
+      <td>false</td>
+      <td>指定默认情况下文件输出编写器是否应覆盖现有文件.设置为“true”以默认覆盖，否则设置为“false”.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="编译优化">编译/优化</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>键</th>
+      <th>默认</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>compiler.delimited-informat.max-line-samples</td>
+      <td>10</td>
+      <td>编译器为分隔输入采用的最大行样本数.样本用于估计记录数.可以使用输入格式的参数覆盖特定输入的此值.</td>
+    </tr>
+    <tr>
+      <td>compiler.delimited-informat.max-sample-len</td>
+      <td>2097152</td>
+      <td>编译器用于分隔输入的行样本的最大长度.如果单个样本的长度超过此值（可能是因为解析器配置错误），则取样将中止.可以使用输入格式的参数覆盖特定输入的此值.</td>
+    </tr>
+    <tr>
+      <td>compiler.delimited-informat.min-line-samples</td>
+      <td>2</td>
+      <td>编译器为分隔输入采用的最小行样本数.样本用于估计记录数.可以使用输入格式的参数覆盖特定输入的此值</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="运行时算法">运行时算法</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>键</th>
+      <th>默认</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>taskmanager.runtime.hashjoin-bloom-filters</td>
+      <td>false</td>
+      <td>用于在混合散列连接实现中激活/停用bloom过滤器的标志.如果散列连接需要溢出到磁盘（数据集大于保存的内存部分），这些布隆过滤器可以大大Reduce溢出记录的数量，但需要花费一些CPU周期.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.runtime.max-fan</td>
+      <td>128</td>
+      <td>外部合并的最大扇入连接和扇出用于溢出哈希表.限制每个 算子的文件句柄数，但如果设置得太小，可能会导致中间合并/分区.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.runtime.sort-spilling-threshold</td>
+      <td>0.8</td>
+      <td>当这部分内存预算已满时，排序 算子操作开始溢出.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="resource-manager">Resource Manager</h2>
+
+<p>本节中的配置键独立于使用的资源管理框架（YARN，Mesos，Standalone，…）</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>键</th>
+      <th>默认</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>containerized.heap-cutoff-min</td>
+      <td>600</td>
+      <td>作为安全边际，要在容器中删除的最小堆内存量.</td>
+    </tr>
+    <tr>
+      <td>containerized.heap-cutoff-ratio</td>
+      <td>0.25</td>
+      <td>要从容器中删除的堆空间百分比（YARN / Mesos），以补偿其他JVM内存使用情况.</td>
+    </tr>
+    <tr>
+      <td>local.number-resourcemanager</td>
+      <td>1</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>resourcemanager.job.timeout</td>
+      <td>“5m”</td>
+      <td>没有TaskManager作为Leader的工作超时.</td>
+    </tr>
+    <tr>
+      <td>resourcemanager.rpc.port</td>
+      <td>0</td>
+      <td>定义要连接的网络端口以与资源管理器进行通信.默认情况下，JobManager的端口，因为使用了相同的ActorSystem.无法使用此配置键定义端口范围.</td>
+    </tr>
+    <tr>
+      <td>resourcemanager.taskmanager-timeout</td>
+      <td>30000</td>
+      <td>释放空闲TaskManager的超时.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="yarn">YARN</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>键</th>
+      <th>默认</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>yarn.application-attempts</td>
+      <td>(none)</td>
+      <td>ApplicationMaster重启次数.请注意，整个Flink群集将重新启动，YARN客户端将断开连接.此外，JobManager地址将更改，您需要手动设置JM主机：port.建议将此选项保存为1.</td>
+    </tr>
+    <tr>
+      <td>yarn.application-master.port</td>
+      <td>“0”</td>
+      <td>使用此配置选项，用户可以为Application Master（和JobManager）RPC端口指定端口，一系列端口或端口列表.默认情况下，我们建议使用默认值（0）让 算子操作系统选择适当的端口.特别是当多个AM在同一物理主机上运行时，固定端口分配会阻止AM启动.例如，在具有限制性防火墙的环境中在YARN上运行Flink时，此选项允许指定一系列允许的端口.</td>
+    </tr>
+    <tr>
+      <td>yarn.appmaster.rpc.address</td>
+      <td>(none)</td>
+      <td>应用程序主RPC系统正在侦听的主机名或地址.</td>
+    </tr>
+    <tr>
+      <td>yarn.appmaster.rpc.port</td>
+      <td>-1</td>
+      <td>应用程序主RPC系统正在侦听的端口.</td>
+    </tr>
+    <tr>
+      <td>yarn.containers.vcores</td>
+      <td>-1</td>
+      <td>每个YARN容器的虚拟核心数（vcores）.默认情况下，vcores的数量设置为每个TaskManager的插槽数（如果已设置），或者设置为1，否则设置为1.为了使用此参数，您的群集必须启用CPU调度.您可以通过设置来完成此 算子操作<code class="highlighter-rouge">org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.FairScheduler</code>.</td>
+    </tr>
+    <tr>
+      <td>yarn.heartbeat-delay</td>
+      <td>5</td>
+      <td>使用ResourceManager的心跳之间的时间，以秒为单位.</td>
+    </tr>
+    <tr>
+      <td>yarn.maximum-failed-containers</td>
+      <td>(none)</td>
+      <td>系统在发生故障时将重新分配的最大容器数.</td>
+    </tr>
+    <tr>
+      <td>yarn.per-job-cluster.include-user-jar</td>
+      <td>“ORDER”</td>
+      <td>定义用户jar是否包含在每个作业集群的系统类路径中以及它们在路径中的位置.它们可以位于开头（“FIRST”），末尾（“LAST”），或者根据其名称（“ORDER”）定位.将此参数设置为“DISABLED”会导致jar包含在用户类路径中.</td>
+    </tr>
+    <tr>
+      <td>yarn.properties-file.location</td>
+      <td>(none)</td>
+      <td>将Flink作业提交给YARN时，JobManager的主机和可用处理槽的数量将写入属性文件，以便Flink客户端能够选择这些详细信息.此配置参数允许更改该文件的默认位置（例如，对于在用户之间共享Flink安装的环境）.</td>
+    </tr>
+    <tr>
+      <td>yarn.tags</td>
+      <td>(none)</td>
+      <td>要应用于Flink YARN应用程序的以逗号分隔的标记列表.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="mesos">Mesos</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>键</th>
+      <th>默认</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>mesos.failover-timeout</td>
+      <td>604800</td>
+      <td>Mesos调度程序的故障转移超时（以秒为单位），之后将自动关闭正在运行的任务.</td>
+    </tr>
+    <tr>
+      <td>mesos.initial-tasks</td>
+      <td>0</td>
+      <td>最初的工人在主人开始时提出来.除非Flink处于<a href="https://flink.lantingmeeting.com/ops/config.html#legacy">传统模式，</a>否则将忽略此选项.</td>
+    </tr>
+    <tr>
+      <td>mesos.master</td>
+      <td>(none)</td>
+      <td>Mesos主URL.该值应采用以下形式之一：主持人：portZK：//主机1：端口1，主机2：端口2，… /路径ZK：//用户名：密码@主机1：端口1，主机2：端口2，… /路径文件：///路径/到/文件</td>
+    </tr>
+    <tr>
+      <td>mesos.maximum-failed-tasks</td>
+      <td>-1</td>
+      <td>群集失败前失败的最大工作数.可以设置为-1以禁用此函数.除非Flink处于<a href="https://flink.lantingmeeting.com/ops/config.html#legacy">传统模式，</a>否则将忽略此选项.</td>
+    </tr>
+    <tr>
+      <td>mesos.resourcemanager.<br />artifactserver.port</td>
+      <td>0</td>
+      <td>config参数定义要使用的Mesos工件服务器端口.将端口设置为0将允许 算子操作系统选择可用端口.</td>
+    </tr>
+    <tr>
+      <td>mesos.resourcemanager.<br />artifactserver.ssl.enabled</td>
+      <td>true</td>
+      <td>为Flink工件服务器启用SSL.请注意，security.ssl.enabled也需要设置为true加密才能启用加密.</td>
+    </tr>
+    <tr>
+      <td>mesos.resourcemanager.<br />framework.name</td>
+      <td>“Flink”</td>
+      <td>Mesos框架名称</td>
+    </tr>
+    <tr>
+      <td>mesos.resourcemanager.<br />framework.principal</td>
+      <td>(none)</td>
+      <td>Mesos框架主体</td>
+    </tr>
+    <tr>
+      <td>mesos.resourcemanager.<br />framework.role</td>
+      <td>“*”</td>
+      <td>Mesos框架角色定义</td>
+    </tr>
+    <tr>
+      <td>mesos.resourcemanager.<br />framework.secret</td>
+      <td>(none)</td>
+      <td>Mesos框架密钥</td>
+    </tr>
+    <tr>
+      <td>mesos.resourcemanager.<br />framework.user</td>
+      <td>(none)</td>
+      <td>Mesos框架用户</td>
+    </tr>
+    <tr>
+      <td>mesos.resourcemanager.tasks.port-assignments</td>
+      <td>(none)</td>
+      <td>以逗号分隔的配置键列表，表示可配置端口.所有端口Keys将动态获取通过Mesos分配的端口.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="mesos-taskmanager">Mesos TaskManager</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>键</th>
+      <th>默认</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>mesos.constraints.hard.hostattribute</td>
+      <td>(none)</td>
+      <td>基于代理属性在Mesos上放置任务的约束.采用逗号分隔的键：值对列表，对应于目标介质代理公开的属性.示例：az：eu-west-1a，系列：t2</td>
+    </tr>
+    <tr>
+      <td>mesos.resourcemanager.tasks.<br />bootstrap-cmd</td>
+      <td>(none)</td>
+      <td>在TaskManager启动之前执行的命令.</td>
+    </tr>
+    <tr>
+      <td>mesos.resourcemanager.tasks.<br />container.docker.force-pull-image</td>
+      <td>false</td>
+      <td>指示docker containerizer强制拉动镜像，而不是重用缓存版本.</td>
+    </tr>
+    <tr>
+      <td>mesos.resourcemanager.tasks.<br />container.docker.parameters</td>
+      <td>(none)</td>
+      <td>使用docker容器时，要传递给docker run命令的自定义参数.逗号分隔的“key = value”对列表.“值”可能包含“=”.</td>
+    </tr>
+    <tr>
+      <td>mesos.resourcemanager.tasks.<br />container.image.name</td>
+      <td>(none)</td>
+      <td>用于容器的映像名称.</td>
+    </tr>
+    <tr>
+      <td>mesos.resourcemanager.tasks.<br />container.type</td>
+      <td>“mesos”</td>
+      <td>使用的集装箱类型：“mesos”或“docker”.</td>
+    </tr>
+    <tr>
+      <td>mesos.resourcemanager.tasks.<br />container.volumes</td>
+      <td>(none)</td>
+      <td>逗号分隔的[host_path：] container_path [：RO | RW]列表.这允许将额外的卷安装到容器中.</td>
+    </tr>
+    <tr>
+      <td>mesos.resourcemanager.tasks.cpus</td>
+      <td>0.0</td>
+      <td>要分配给Mesos工作者的CPU.</td>
+    </tr>
+    <tr>
+      <td>mesos.resourcemanager.tasks.gpus</td>
+      <td>0</td>
+      <td>要分配给Mesos工作者的GPU.</td>
+    </tr>
+    <tr>
+      <td>mesos.resourcemanager.tasks.hostname</td>
+      <td>(none)</td>
+      <td>用于定义TaskManager主机名的可选值.模式_TASK_由Mesos任务的实际ID替换.这可用于配置TaskManager以使用Mesos DNS（例如_TASK_.flink-service.mesos）进行名称查找.</td>
+    </tr>
+    <tr>
+      <td>mesos.resourcemanager.tasks.mem</td>
+      <td>1024</td>
+      <td>要以MB为单位分配给Mesos worker的内存.</td>
+    </tr>
+    <tr>
+      <td>mesos.resourcemanager.tasks.<br />taskmanager-cmd</td>
+      <td>“$FLINK_HOME/bin/mesos-taskmanager.sh”</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>mesos.resourcemanager.tasks.uris</td>
+      <td>(none)</td>
+      <td>以逗号分隔的自定义工件URI列表，这些URI将下载到Mesos工作者的沙箱中.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.numberOfTaskSlots</td>
+      <td>1</td>
+      <td>单个TaskManager可以运行的并行算子或用户函数实例的数量.如果此值大于1，则单个TaskManager将获取函数或 算子的多个实例.这样，TaskManager可以使用多个CPU内核，但同时，可用内存在不同的算子或函数实例之间划分.此值通常与TaskManager的计算机具有的物理CPU核心数成比例（例如，等于核心数，或核心数的一半）.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="高可用性ha">高可用性（HA）</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>键</th>
+      <th>默认</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>high-availability</td>
+      <td>“NONE”</td>
+      <td>定义用于群集执行的高可用性模式.要启用高可用性，请将此模式设置为“ZOOKEEPER”.</td>
+    </tr>
+    <tr>
+      <td>high-availability.cluster-id</td>
+      <td>“/default”</td>
+      <td>Flink集群的ID，用于将多个Flink集群彼此分开.需要为独立群集设置，但在YARN和Mesos中自动推断.</td>
+    </tr>
+    <tr>
+      <td>high-availability.job.delay</td>
+      <td>(none)</td>
+      <td>故障转移后JobManager之前的时间恢复当前作业.</td>
+    </tr>
+    <tr>
+      <td>high-availability.jobmanager.port</td>
+      <td>“0”</td>
+      <td>JobManager在高可用性模式下使用的可选端口（范围）.</td>
+    </tr>
+    <tr>
+      <td>high-availability.storageDir</td>
+      <td>(none)</td>
+      <td>文件系统路径（URI）Flink在高可用性设置中持久保存元数据.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="基于zookeeper的ha模式">基于ZooKeeper的HA模式</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>键</th>
+      <th>默认</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>high-availability.zookeeper.client.acl</td>
+      <td>“open”</td>
+      <td>定义要在ZK节点上配置的ACL（open | creator）.如果ZooKeeper服务器配置将“authProvider”属性映射为使用SASLAuthenticationProvider并且群集配置为以安全模式（Kerberos）运行，则可以将配置值设置为“creator”.</td>
+    </tr>
+    <tr>
+      <td>high-availability.zookeeper.client.<br />connection-timeout</td>
+      <td>15000</td>
+      <td>定义ZooKeeper的连接超时（以ms为单位）.</td>
+    </tr>
+    <tr>
+      <td>high-availability.zookeeper.client.max-retry-attempts</td>
+      <td>3</td>
+      <td>定义客户端放弃之前的连接重试次数.</td>
+    </tr>
+    <tr>
+      <td>high-availability.zookeeper.client.retry-wait</td>
+      <td>5000</td>
+      <td>定义以ms为单位的连续重试之间的暂停.</td>
+    </tr>
+    <tr>
+      <td>high-availability.zookeeper.client.session-timeout</td>
+      <td>60000</td>
+      <td>以ms为单位定义ZooKeeper会话的会话超时.</td>
+    </tr>
+    <tr>
+      <td>high-availability.zookeeper.path.<br />checkpoint-counter</td>
+      <td>“/checkpoint-counter”</td>
+      <td>ZooKeeper根路径（ZNode）用于检查点计数器.</td>
+    </tr>
+    <tr>
+      <td>high-availability.zookeeper.path.<br />checkpoints</td>
+      <td>“/checkpoints”</td>
+      <td>已完成检查点的ZooKeeper根路径（ZNode）.</td>
+    </tr>
+    <tr>
+      <td>high-availability.zookeeper.path.jobgraphs</td>
+      <td>“/jobgraphs”</td>
+      <td>作业图的ZooKeeper根路径（ZNode）</td>
+    </tr>
+    <tr>
+      <td>high-availability.zookeeper.path.latch</td>
+      <td>“/leaderlatch”</td>
+      <td>定义用于选择Leader的Leader锁存器的znode.</td>
+    </tr>
+    <tr>
+      <td>high-availability.zookeeper.path.leader</td>
+      <td>“/leader”</td>
+      <td>定义Leader的znode，其中包含Leader的URL和当前Leader会话ID.</td>
+    </tr>
+    <tr>
+      <td>high-availability.zookeeper.path.<br />mesos-workers</td>
+      <td>“/mesos-workers”</td>
+      <td>ZooKeeper根路径，用于保存Mesos工作者信息.</td>
+    </tr>
+    <tr>
+      <td>high-availability.zookeeper.path.root</td>
+      <td>“/flink”</td>
+      <td>Flink在ZooKeeper中存储其条目的根路径.</td>
+    </tr>
+    <tr>
+      <td>high-availability.zookeeper.path.<br />running-registry</td>
+      <td>“/running_job_registry/”</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>high-availability.zookeeper.quorum</td>
+      <td>（none）</td>
+      <td>使用ZooKeeper在高可用性模式下运行Flink时要使用的ZooKeeper quorum.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="zookeeper安全">ZooKeeper安全</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>键</th>
+      <th>默认</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>zookeeper.sasl.disable</td>
+      <td>false</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>zookeeper.sasl.login-context-name</td>
+      <td>“Client”</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>zookeeper.sasl.service-name</td>
+      <td>“zookeeper”</td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="基于kerberos的安全性">基于Kerberos的安全性</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>键</th>
+      <th>默认</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>security.kerberos.login.contexts</td>
+      <td>(none)</td>
+      <td>以逗号分隔的登录上下文列表，用于提供Kerberos凭据（例如，<code class="highlighter-rouge">Client，KafkaClient</code>使用凭证进行ZooKeeper身份验证和Kafka身份验证）</td>
+    </tr>
+    <tr>
+      <td>security.kerberos.login.keytab</td>
+      <td>(none)</td>
+      <td>包含用户凭据的KerberosKeys表文件的绝对路径.</td>
+    </tr>
+    <tr>
+      <td>security.kerberos.login.principal</td>
+      <td>(none)</td>
+      <td>与keytab关联的Kerberos主体名称.</td>
+    </tr>
+    <tr>
+      <td>security.kerberos.login.use-ticket-cache</td>
+      <td>true</td>
+      <td>指示是否从Kerberos票证缓存中读取.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="环境">环境</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>键</th>
+      <th>默认</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>env.hadoop.conf.dir</td>
+      <td>(none)</td>
+      <td>hadoop配置目录的路径.需要读取HDFS和/或YARN配置.您也可以通过环境变量进行设置.</td>
+    </tr>
+    <tr>
+      <td>env.java.opts</td>
+      <td>(none)</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>env.java.opts.jobmanager</td>
+      <td>(none)</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>env.java.opts.taskmanager</td>
+      <td>(none)</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>env.log.dir</td>
+      <td>(none)</td>
+      <td>定义保存Flink日志的目录.它必须是一条绝对的道路.（默认为Flink主页下的日志目录）</td>
+    </tr>
+    <tr>
+      <td>env.log.max</td>
+      <td>5</td>
+      <td>要保存的最大旧日志文件数.</td>
+    </tr>
+    <tr>
+      <td>env.ssh.opts</td>
+      <td>(none)</td>
+      <td>启动或停止JobManager，TaskManager和Zookeeper服务时，其他命令行选项传递给SSH客户端（start-cluster.sh，stop-cluster.sh，start-zookeeper-quorum.sh，stop-zookeeper-quorum.sh）.</td>
+    </tr>
+    <tr>
+      <td>env.yarn.conf.dir</td>
+      <td>(none)</td>
+      <td>YARN配置目录的路径.它需要在YARN上运行flink.您也可以通过环境变量进行设置.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="检查点">检查点</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>键</th>
+      <th>默认</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>state.backend</td>
+      <td>(none)</td>
+      <td>状态后台用于存储和检查点状态.</td>
+    </tr>
+    <tr>
+      <td>state.backend.async</td>
+      <td>true</td>
+      <td>选择状态后台是否应在可能和可配置的情况下使用异步SNAPSHOT方法.某些状态后台可能不支持异步SNAPSHOT，或者仅支持异步SNAPSHOT，并忽略此选项.</td>
+    </tr>
+    <tr>
+      <td>state.backend.fs.memory-threshold</td>
+      <td>1024</td>
+      <td>状态数据文件的最小大小.小于该值的所有状态块都内联存储在根检查点元数据文件中.</td>
+    </tr>
+    <tr>
+      <td>state.backend.incremental</td>
+      <td>false</td>
+      <td>如果可能，选择状态后台是否应创建增量检查点.对于增量检查点，仅存储来自先前检查点的差异，而不是完整的检查点状态.某些状态后台可能不支持增量检查点并忽略此选项.</td>
+    </tr>
+    <tr>
+      <td>state.backend.local-recovery</td>
+      <td>false</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>state.checkpoints.dir</td>
+      <td>(none)</td>
+      <td>用于在Flink支持的文件系统中存储检查点的数据文件和元数据的默认目录.必须可以从所有参与的进程/节点（即所有TaskManagers和JobManagers）访问存储路径.</td>
+    </tr>
+    <tr>
+      <td>state.checkpoints.num-retained</td>
+      <td>1</td>
+      <td>要保存的已完成检查点的最大数量.</td>
+    </tr>
+    <tr>
+      <td>state.savepoints.dir</td>
+      <td>(none)</td>
+      <td>保存点的默认目录.由将后台写入文件系统的状态后台（MemoryStateBackend，FsStateBackend，RocksDBStateBackend）使用.</td>
+    </tr>
+    <tr>
+      <td>taskmanager.state.local.root-dirs</td>
+      <td>(none)</td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="可查询状态">可查询状态</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>键</th>
+      <th>默认</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>query.client.network-threads</td>
+      <td>0</td>
+      <td>网络数（Netty的事件循环）可查询状态客户端的线程.</td>
+    </tr>
+    <tr>
+      <td>query.proxy.network-threads</td>
+      <td>0</td>
+      <td>网络数（Netty的事件循环）可查询状态代理的线程.</td>
+    </tr>
+    <tr>
+      <td>query.proxy.ports</td>
+      <td>“9069”</td>
+      <td>可查询状态代理的端口范围.指定范围可以是单个端口：“9123”，一系列端口：“50100-50200”，或范围和端口列表：“50100-50200,50300-50400,51234”.</td>
+    </tr>
+    <tr>
+      <td>query.proxy.query-threads</td>
+      <td>0</td>
+      <td>可查询状态代理的查询线程数.如果设置为0，则使用插槽数.</td>
+    </tr>
+    <tr>
+      <td>query.server.network-threads</td>
+      <td>0</td>
+      <td>网络数（Netty的事件循环）可查询状态服务器的线程.</td>
+    </tr>
+    <tr>
+      <td>query.server.ports</td>
+      <td>“9067”</td>
+      <td>可查询状态服务器的端口范围.指定范围可以是单个端口：“9123”，一系列端口：“50100-50200”，或范围和端口列表：“50100-50200,50300-50400,51234”.</td>
+    </tr>
+    <tr>
+      <td>query.server.query-threads</td>
+      <td>0</td>
+      <td>可查询状态服务器的查询线程数.如果设置为0，则使用插槽数.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="度量">度量</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>键</th>
+      <th>默认</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>metrics.latency.granularity</td>
+      <td>“operator”</td>
+      <td>定义延迟指标的粒度.可接受的值是：单一 - 跟踪延迟，无需区分源和子任务.operator - 跟踪延迟，同时区分源，但不区分子任务.子任务 - 在区分源和子任务时跟踪延迟.</td>
+    </tr>
+    <tr>
+      <td>metrics.latency.history-size</td>
+      <td>128</td>
+      <td>定义每个算子维护的测量延迟数.</td>
+    </tr>
+    <tr>
+      <td>metrics.latency.interval</td>
+      <td>0</td>
+      <td>定义从源发出延迟跟踪标记的间隔.如果设置为0或负值，则禁用延迟跟踪.启用此函数会显着影响群集的性能.</td>
+    </tr>
+    <tr>
+      <td>metrics.reporter.<name> .<parameter></parameter></name></td>
+      <td>(none)</td>
+      <td>为名为<name>的报告器配置参数<parameter>.</parameter></name></td>
+    </tr>
+    <tr>
+      <td>metrics.reporter.<name>.class</name></td>
+      <td>(none)</td>
+      <td>报告类用于为报告命名<name>.</name></td>
+    </tr>
+    <tr>
+      <td>metrics.reporter.<name>.interval</name></td>
+      <td>(none)</td>
+      <td>报告间隔用于报告名为<name>.</name></td>
+    </tr>
+    <tr>
+      <td>metrics.reporters</td>
+      <td>(none)</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>metrics.scope.delimiter</td>
+      <td>“”</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>metrics.scope.jm</td>
+      <td>“<host> .jobmanager”</host></td>
+      <td>定义应用于作用于JobManager的所有度量标准的范围格式字符串.</td>
+    </tr>
+    <tr>
+      <td>metrics.scope.jm.job</td>
+      <td>“<host> .jobmanager.<job_name>”</job_name></host></td>
+      <td>定义范围格式字符串，该字符串应用于作用于JobManager上作业的所有度量标准.</td>
+    </tr>
+    <tr>
+      <td>metrics.scope.operator</td>
+      <td>“<host> .taskmanager.<tm_id> <job_name> <operator_name> <subtask_index>”</subtask_index></operator_name></job_name></tm_id></host></td>
+      <td>定义应用于作用于 算子的所有度量标准的范围格式字符串.</td>
+    </tr>
+    <tr>
+      <td>metrics.scope.task</td>
+      <td>“<host> .taskmanager.<tm_id> <job_name> <task_name> <subtask_index>”</subtask_index></task_name></job_name></tm_id></host></td>
+      <td>定义应用于作用于任务的所有度量标准的范围格式字符串.</td>
+    </tr>
+    <tr>
+      <td>metrics.scope.tm</td>
+      <td>“<host> .taskmanager.<tm_id>”</tm_id></host></td>
+      <td>定义应用于作用于TaskManager的所有度量标准的范围格式字符串.</td>
+    </tr>
+    <tr>
+      <td>metrics.scope.tm.job</td>
+      <td>“<host> .taskmanager.<tm_id> <job_name>”</job_name></tm_id></host></td>
+      <td>定义范围格式字符串，该字符串应用于作用于TaskManager上作业的所有度量标准.</td>
+    </tr>
+    <tr>
+      <td>metrics.system-resource</td>
+      <td>false</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>metrics.system-resource-probing-interval</td>
+      <td>5000</td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="历史服务器">历史服务器</h2>
+
+<p>如果要通过HistoryServer的Web前端显示它们，则必须进行配置<code class="highlighter-rouge">jobmanager.archive.fs.dir</code>以存档已终止的作业并将其添加到受监视目录列表中<code class="highlighter-rouge">historyserver.archive.fs.dir</code>.</p>
+<ul>
+  <li><code class="highlighter-rouge">jobmanager.archive.fs.dir</code>：将有关已终止作业的信息上载到的目录.您必须将此目录添加到历史服务器的受监视目录列表中<code class="highlighter-rouge">historyserver.archive.fs.dir</code>.</li>
+</ul>
+
+<table>
+  <thead>
+    <tr>
+      <th>键</th>
+      <th>默认</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>historyserver.archive.fs.dir</td>
+      <td>(none)</td>
+      <td>以逗号分隔的目录列表，用于从中获取已归档的作业.历史服务器将监视这些目录以获取已存档的作业.您可以将JobManager配置为通过<code class="highlighter-rouge">jobmanager.archive.fs.dir</code>将作业存档到目录.</td>
+    </tr>
+    <tr>
+      <td>historyserver.archive.fs.refresh-interval</td>
+      <td>10000</td>
+      <td>刷新已归档作业目录的时间间隔（以ms为单位）.</td>
+    </tr>
+    <tr>
+      <td>historyserver.web.address</td>
+      <td>(none)</td>
+      <td>HistoryServer的Web界面的地址.</td>
+    </tr>
+    <tr>
+      <td>historyserver.web.port</td>
+      <td>8082</td>
+      <td>HistoryServers的Web界面的端口.</td>
+    </tr>
+    <tr>
+      <td>historyserver.web.refresh-interval</td>
+      <td>10000</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>historyserver.web.ssl.enabled</td>
+      <td>false</td>
+      <td>启用对HistoryServer Web前端的HTTP访问.仅当全局SSL标志security.ssl.enabled设置为true时，此选项才适用.</td>
+    </tr>
+    <tr>
+      <td>historyserver.web.tmpdir</td>
+      <td>(none)</td>
+      <td>此配置参数允许定义历史服务器Web界面使用的Flink Web目录.Web界面将其静态文件复制到目录中.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h1 id="留存">留存</h1>
+
+<ul>
+  <li><code class="highlighter-rouge">mode</code>：Flink的执行模式.可能的值是<code class="highlighter-rouge">legacy</code>和<code class="highlighter-rouge">new</code>.要启动旧组件，您必须指定<code class="highlighter-rouge">legacy</code>（DEFAULT：）<code class="highlighter-rouge">new</code>。</li>
+</ul>
+
+<h1 id="背景">背景</h1>
+<h2 id="配置网络缓冲区">配置网络缓冲区</h2>
+<p>如果您看到异常<code class="highlighter-rouge">java.io.IOException: Insufficient number of network buffers</code>，则需要调整用于网络缓冲区的内存量，以便程序在您的TaskManager上运行。<br />
+网络缓冲区是通信层的关键资源.它们用于在通过网络传输之前缓冲记录，并在将传入数据解析为记录并将其传递给应用程序之前缓冲传入数据.足够数量的网络缓冲区对于实现良好的吞吐量至关重要。<br />
+从Flink 1.3开始，你可以遵循“越多越好”的成语而不会对延迟造成任何惩罚（我们通过限制每个通道使用的实际缓冲区数量来防止每个传出和传入通道中的过度缓冲，即<em>缓冲膨胀</em>） 。<br />
+通常，将TaskManager配置为具有足够的缓冲区，以使您希望同时打开的每个逻辑网络连接都具有专用缓冲区。对于网络上的每个点对点数据交换存在逻辑网络连接，这通常发生在重新分区或广播步骤（混洗阶段）。在那些中，TaskManager中的每个并行任务必须能够与所有其他并行任务进行通信。<br />
+<strong>注意：</strong>从Flink 1.5开始，网络缓冲区将始终在堆外分配，即在JVM堆之外，而不管其值是多少<code class="highlighter-rouge">taskmanager.memory.off-heap</code>。这样，我们可以将这些缓冲区直接传递给底层网络堆栈层。</p>
+
+<h3 id="设置内存分数">设置内存分数</h3>
+<p>以前，手动设置网络缓冲区的数量，这成为一个非常容易出错的任务（见下文）。从Flink 1.3开始，可以使用以下配置参数定义用于网络缓冲区的一小部分内存：</p>
+<ul>
+  <li><code class="highlighter-rouge">taskmanager.network.memory.fraction</code>：用于网络缓冲区的JVM内存的分数（DEFAULT：0.1），</li>
+  <li><code class="highlighter-rouge">taskmanager.network.memory.min</code>：网络缓冲区的最小内存大小（默认值：64MB），</li>
+  <li><code class="highlighter-rouge">taskmanager.network.memory.max</code>：网络缓冲区的最大内存大小（默认值：1GB），</li>
+  <li><code class="highlighter-rouge">taskmanager.memory.segment-size</code>：内存管理器和网络堆栈使用的内存缓冲区大小（以字节为单位）（默认值：32KB）。</li>
+</ul>
+
+<h3 id="直接设置网络缓冲区的数量">直接设置网络缓冲区的数量</h3>
+<p><strong>注意：不建议使用</strong>这种配置网络缓冲区使用的内存量的方法。请考虑使用上述方法定义要使用的内存部分。<br />
+缓冲器的上一个TaskManager所要求数量为 <em>总度的平行度</em>（数的目标）* <em>节点内并行性</em>（源在一个TaskManager数）× <em>N</em> 与 <em>N</em> 是限定多少repartitioning-恒定/您希望同时处于活动状态的广播步骤。由于<em>节点内并行</em>性通常是核心数量，并且超过4个重新分区或广播频道很少并行活动，因此它经常归结为</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>#slots-per-TM^2 * #TMs * 4
+</code></pre>
+</div>
+<p>哪里<code class="highlighter-rouge">#slots per TM</code>是<a href="https://flink.lantingmeeting.com/ops/config.html#configuring-taskmanager-processing-slots">每个TaskManager插槽数量</a>和<code class="highlighter-rouge">#TMs</code>是TaskManager的总数。<br />
+例如，为了支持20个8插槽机器的集群，您应该使用大约5000个网络缓冲区来获得最佳吞吐量。<br />
+默认情况下，每个网络缓冲区的大小为32 KiBytes.在上面的示例中，系统因此将为网络缓冲区分配大约300 MiBytes。<br />
+可以使用以下参数配置网络缓冲区的数量和大小：</p>
+<ul>
+  <li><code class="highlighter-rouge">taskmanager.network.numberOfBuffers</code>，</li>
+  <li><code class="highlighter-rouge">taskmanager.memory.segment-size</code>。</li>
+</ul>
+
+<h2 id="配置临时i--o目录">配置临时I / O目录</h2>
+<p>虽然Flink的目标是尽可能多地处理主内存中的数据，但是需要处理的内存比内存更多的数据并不少见。Flink的运行时用于将临时数据写入磁盘以处理这些情况。<br />
+该<code class="highlighter-rouge">taskmanager.tmp.dirs</code>参数指定Flink写入临时文件的目录列表.目录的路径需要用’：’（冒号字符）分隔.Flink将同时向（从）每个配置的目录写入（或读取）一个临时文件.这样，临时I / O可以均匀地分布在多个独立的I / O设备（如硬盘）上，以提高性能.要利用快速I / O设备（例如，SSD，RAID，NAS），可以多次指定目录。<br />
+如果<code class="highlighter-rouge">taskmanager.tmp.dirs</code>未显式指定参数，Flink会将临时数据写入 算子操作系统的临时目录，例如Linux系统中的<em>/ tmp</em>。</p>
+
+<h2 id="配置taskmanager处理槽">配置TaskManager处理槽</h2>
+<p>Flink通过将程序拆分为子任务并将这些子任务调度到处理槽来并行执行程序。<br />
+每个Flink TaskManager都在集群中提供处理插槽.插槽数通常与<strong>每个</strong> TaskManager 的可用CPU核心数成比例.作为一般建议，可用的CPU核心数量是一个很好的默认值<code class="highlighter-rouge">taskmanager.numberOfTaskSlots</code>。<br />
+启动Flink应用程序时，用户可以提供用于该作业的默认插槽数.因此调用命令行值<code class="highlighter-rouge">-p</code>（用于并行）.此外，可以为整个应用程序和各个算子<a href="https://flink.lantingmeeting.com/dev/parallel.html">设置编程API中的插槽数</a>。<br />
+<img src="https://github.com/leafming/bak/blob/master/images/flink/2018-10-17-flink配置-slots_parallelism.png?raw=true" alt="2018-10-17-flink配置-slots_parallelism" /></p>
+
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～
+  <ul class="post-copyright">
+    <li class="post-copyright-author">
+      <strong>本文作者：</strong>
+      叶子  ( ˘ ³˘)♥
+    </li>
+    <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="http://localhost:4000/bigdata/2018/10/17/Flink%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0/" title="Flink配置参数(官网翻译转载)">Flink配置参数(官网翻译转载)</a>
+    </li>
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong>
+      本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/cn/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            
+            <a href="/tag/#/Flink" rel="tag"># Flink</a>
+          
+        </div>
+      
+
+      
+      
+      
+      
+      
+
+      
+      
+        <div class="post-nav" id="post-nav-id">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/bigdata/2018/10/09/Flink%E5%9F%BA%E7%A1%80%E8%BF%90%E8%A1%8C%E6%97%B6%E7%8E%AF%E5%A2%83/" rel="prev" title="Flink基础运行时环境">
+                Flink基础运行时环境 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+      
+
+      
+    </footer>
+  </article>
+
+  <div class="post-spread">
+    
+  </div>
+</div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="lv-container" data-id="city" data-uid="MTAyMC8zNTIzNi8xMTc3Mg=="></div>
+    
+  </div>
+
+
+        </div>
+        
+          
+
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        
+        
+        
+
+
+
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/assets/images/IMG_8739.GIF"
+               alt="叶子  ( ˘ ³˘)♥" />
+          <p class="site-author-name" itemprop="name">叶子  ( ˘ ³˘)♥</p>
+           
+              <p class="site-description motion-element" itemprop="description">Yesterday you said tomorrow.</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/">
+                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/">
+                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+        
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              
+              
+              <span class="links-of-author-item">
+                <a href="mailto:leafming@foxmail.com" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i>
+                  
+                  E-Mail
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+
+
+
+
+            
+              <div class="post-toc-content">
+    <ol class=nav>
+      <li class="nav-item nav-level-1"> <a class="nav-link" href="#常见选项"> <span class="nav-number">1</span> <span class="nav-text">常见选项</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#完整参考"> <span class="nav-number">2</span> <span class="nav-text">完整参考</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#hdfs"> <span class="nav-number">2.1</span> <span class="nav-text">HDFS</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#核心"> <span class="nav-number">2.2</span> <span class="nav-text">核心</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#jobmanager"> <span class="nav-number">2.3</span> <span class="nav-text">JobManager</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#taskmanager"> <span class="nav-number">2.4</span> <span class="nav-text">TaskManager</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#分布式协调通过akka"> <span class="nav-number">2.5</span> <span class="nav-text">分布式协调（通过Akka）</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#rest"> <span class="nav-number">2.6</span> <span class="nav-text">REST</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#blob服务器"> <span class="nav-number">2.7</span> <span class="nav-text">Blob服务器</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#心跳管理器"> <span class="nav-number">2.8</span> <span class="nav-text">心跳管理器</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#ssl设置"> <span class="nav-number">2.9</span> <span class="nav-text">SSL设置</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#网络通讯通过netty"> <span class="nav-number">2.10</span> <span class="nav-text">网络通讯（通过Netty）</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#web前端"> <span class="nav-number">2.11</span> <span class="nav-text">Web前端</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#文件系统"> <span class="nav-number">2.12</span> <span class="nav-text">文件系统</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#编译优化"> <span class="nav-number">2.13</span> <span class="nav-text">编译/优化</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#运行时算法"> <span class="nav-number">2.14</span> <span class="nav-text">运行时算法</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#resource-manager"> <span class="nav-number">2.15</span> <span class="nav-text">Resource Manager</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#yarn"> <span class="nav-number">2.16</span> <span class="nav-text">YARN</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#mesos"> <span class="nav-number">2.17</span> <span class="nav-text">Mesos</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#mesos-taskmanager"> <span class="nav-number">2.17.1</span> <span class="nav-text">Mesos TaskManager</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#高可用性ha"> <span class="nav-number">2.18</span> <span class="nav-text">高可用性（HA）</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#基于zookeeper的ha模式"> <span class="nav-number">2.18.1</span> <span class="nav-text">基于ZooKeeper的HA模式</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#zookeeper安全"> <span class="nav-number">2.19</span> <span class="nav-text">ZooKeeper安全</span> </a> <ol class="nav-child">
+    </ol>
+  </div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">叶子  ( ˘ ³˘)♥</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://jekyllrb.com">Jekyll</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/simpleyyt/jekyll-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+          <span id="scrollpercent"><span>0</span>%</span>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+   
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/assets/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/assets/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/assets/js/src/post-details.js?v=5.1.1"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+    
+      <script type="text/javascript">
+        (function(d, s) {
+          var j, e = d.getElementsByTagName(s)[0];
+          if (typeof LivereTower === 'function') { return; }
+          j = d.createElement(s);
+          j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+          j.async = true;
+          e.parentNode.insertBefore(j, e);
+        })(document, 'script');
+      </script>
+    
+
+  
+
+
+
+
+
+  
+
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("c82MFNFEU6p4iaz5Ik4L07e5-gzGzoHsz", "CSzcJkq7WGpn5bNMendMuKYf");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+  
+
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+</body>
+</html>
+
