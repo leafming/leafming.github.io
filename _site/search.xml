@@ -5,7 +5,7 @@
       <title>Flink配置参数(官网翻译转载)</title>
       <url>/bigdata/2018/10/17/Flink%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0/</url>
       <content type="text">
-  本文所用flink版本为V1.7-SNAPSHOT，官网翻译转载，转载地址：配置-https://flink.lantingmeeting.com/ops/config.html#legacy。
+  本文所用flink版本为V1.7-SNAPSHOT，官网翻译转载，转载地址：配置-https://flink.lantingmeeting.com/ops/config.html#legacy，官方文档原文Configuration。
 
 
 对于单节点设置，Flink已准备好开箱即用，您无需更改默认配置即可开始使用。
