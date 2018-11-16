@@ -469,7 +469,7 @@
 <p>使用Spark Streaming从Kafka中接收数据时，可以使用Spark提供的统一的接口来接收数据，但是写入数据的时候，并没有spark官方提供的写入接口，需要自己写使用底层的kafka方法，使用producer写入。<br />
 下面是原写入方式的程序示例:</p>
 <h2 id="第一部分spark-streaming主程序部分">第一部分：Spark Streaming主程序部分</h2>
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code>    <span class="n">writeDStrem</span><span class="o">.</span><span class="n">foreachRDD</span><span class="o">(</span><span class="n">rdd</span> <span class="k">=&gt;</span> <span class="o">{</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="n">writeDStrem</span><span class="o">.</span><span class="n">foreachRDD</span><span class="o">(</span><span class="n">rdd</span> <span class="k">=&gt;</span> <span class="o">{</span>
       <span class="k">if</span> <span class="o">(</span><span class="n">rdd</span><span class="o">.</span><span class="n">isEmpty</span><span class="o">)</span> <span class="o">{</span>
         <span class="n">logInfo</span><span class="o">(</span><span class="s">" No Data in this batchInterval --------"</span><span class="o">)</span>
       <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
@@ -481,15 +481,14 @@
         <span class="n">competeTime</span><span class="o">(</span><span class="n">start_time</span><span class="o">,</span> <span class="s">"Processed data write to KAFKA"</span><span class="o">)</span>
       <span class="o">}</span>
     <span class="o">})</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>在每个partation中调用ProcessData类中的writeAsPartitionToKafka方法来向kafka写入数据。</p>
 <blockquote>
   <p>特别说明：这里是通过调用ProcessData类中的方法，在ProcessData类中的方法中创建KafkaProducer来向kafka里写入的，如果直接写创建KafkaProducer，不能把将KafkaProducer的创建放在foreachPartition外边，因为KafkaProducer是不可序列化的（not serializable）。</p>
 </blockquote>
 
 <h2 id="第二部分主程序在rddforeachpartition中调用以下类中的方法把数据写入kafka中">第二部分：主程序在rdd.foreachPartition中调用以下类中的方法把数据写入kafka中</h2>
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code>    <span class="k">final</span> <span class="k">class</span> <span class="nc">ProcessData</span> <span class="k">extends</span> <span class="nc">Logging</span><span class="o">{</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="k">final</span> <span class="k">class</span> <span class="nc">ProcessData</span> <span class="k">extends</span> <span class="nc">Logging</span><span class="o">{</span>
       <span class="cm">/**
         * 数据发送
         * @param topic
@@ -536,8 +535,7 @@
         <span class="o">}</span>
       <span class="o">}</span>
     <span class="o">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>此类中主要2个方法，writeAsPartitionToKafka是用于处理数据，sendMessages用来创建KafkaProducer来向kafka生产消息。<br />
 writeAsPartitionToKafka方法为了“提高”写入效率，设置了一个cacheNum值，这个方法会将每个patation中的数据以cacheNum条和并成一条数据来向Kafka中写入，因此是cacheNum条数据以“\n”来分割合并成一条在Kafka里的消息，所以对下游数据处理也造成了麻烦。<br />
 并且使用此方式，相当于对于每个partation的每cacheNum条记录（即每次调用sendMessages方法，发送1条kafka消息）都需要创建KafkaProducer，然后再利用producer进行输出操作
@@ -546,7 +544,7 @@ writeAsPartitionToKafka方法为了“提高”写入效率，设置了一个cac
 <h1 id="新写入方式描述使用kafka连接池更改程序">新写入方式描述:使用Kafka连接池更改程序</h1>
 <h2 id="第一步包装kafkaproducer-创建kafka连接池">第一步：包装KafkaProducer-创建Kafka连接池</h2>
 <p>创建class KafkaPool 以及object KafkaPool，将KafkaProducer以lazy val的方式进行包装。</p>
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code>    <span class="k">import</span> <span class="nn">java.util.concurrent.Future</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="k">import</span> <span class="nn">java.util.concurrent.Future</span>
     <span class="k">import</span> <span class="nn">org.apache.kafka.clients.producer.</span><span class="o">{</span><span class="nc">KafkaProducer</span><span class="o">,</span> <span class="nc">ProducerRecord</span><span class="o">,</span> <span class="nc">RecordMetadata</span><span class="o">}</span>
     <span class="c1">//scala中，类名之后的括号中是构造函数的参数列表，() =&gt;是传值传参，KafkaProducer
 </span>    <span class="k">class</span> <span class="nc">KafkaPool</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">V</span><span class="o">](</span> <span class="n">createProducer</span><span class="k">:</span> <span class="o">()</span> <span class="o">=&gt;</span> <span class="nc">KafkaProducer</span><span class="o">[</span><span class="kt">K</span>,<span class="kt">V</span><span class="o">])</span>  <span class="k">extends</span> <span class="nc">Serializable</span><span class="o">{</span>
@@ -575,14 +573,13 @@ writeAsPartitionToKafka方法为了“提高”写入效率，设置了一个cac
       <span class="o">}</span>
       <span class="k">def</span> <span class="n">apply</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">V</span><span class="o">](</span><span class="n">config</span><span class="k">:</span> <span class="kt">java.util.Properties</span><span class="o">)</span><span class="k">:</span> <span class="kt">KafkaPool</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">V</span><span class="o">]</span> <span class="k">=</span> <span class="n">apply</span><span class="o">(</span><span class="n">config</span><span class="o">.</span><span class="n">toMap</span><span class="o">)</span>
     <span class="o">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <blockquote>
   <p>补充说明：<br />
 传值传参和传名的区别（()=&gt;和:=&gt;的区别）</p>
   <ul>
     <li>传值
-      <div class="language-scala highlighter-rouge"><pre class="highlight"><code>  <span class="k">def</span> <span class="n">test1</span><span class="o">(</span><span class="n">code</span><span class="k">:</span> <span class="o">()=&gt;</span><span class="nc">Unit</span><span class="o">){</span>
+      <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="k">def</span> <span class="n">test1</span><span class="o">(</span><span class="n">code</span><span class="k">:</span> <span class="o">()=&gt;</span><span class="nc">Unit</span><span class="o">){</span>
     <span class="n">println</span><span class="o">(</span><span class="s">"start"</span><span class="o">)</span>
     <span class="n">code</span><span class="o">()</span> <span class="c1">//要想调用传入的代码块，必须写成code()，否则不会调用。  
 </span>    <span class="n">println</span><span class="o">(</span><span class="s">"end"</span><span class="o">)</span>
@@ -591,8 +588,7 @@ writeAsPartitionToKafka方法为了“提高”写入效率，设置了一个cac
 </span>    <span class="n">println</span><span class="o">(</span><span class="s">"when evaluated"</span><span class="o">)</span> <span class="c1">//传入就打印
 </span>    <span class="o">()=&gt;{</span><span class="n">println</span><span class="o">(</span><span class="s">"bb"</span><span class="o">)}</span> <span class="c1">// 执行code()才打印
 </span>  <span class="o">}</span>
-</code></pre>
-      </div>
+</code></pre></div>      </div>
       <p>结果: <br />
 when evaluated <br />
 start<br />
@@ -600,7 +596,7 @@ bb<br />
 end</p>
     </li>
     <li>传名
-      <div class="language-scala highlighter-rouge"><pre class="highlight"><code>  <span class="k">def</span> <span class="n">test2</span><span class="o">(</span><span class="n">code</span> <span class="k">:</span> <span class="o">=&gt;</span> <span class="nc">Unit</span><span class="o">){</span>  
+      <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="k">def</span> <span class="n">test2</span><span class="o">(</span><span class="n">code</span> <span class="k">:</span> <span class="o">=&gt;</span> <span class="nc">Unit</span><span class="o">){</span>  
     <span class="n">println</span><span class="o">(</span><span class="s">"start"</span><span class="o">)</span>  
     <span class="n">code</span> <span class="c1">// 这行才会调用传入的代码块，写成code()亦可  
 </span>    <span class="n">println</span><span class="o">(</span><span class="s">"end"</span><span class="o">)</span>  
@@ -609,8 +605,7 @@ end</p>
 </span>    <span class="n">println</span><span class="o">(</span><span class="s">"when evaluated"</span><span class="o">)</span>  <span class="c1">//执行code的时候才调用
 </span>    <span class="n">println</span><span class="o">(</span><span class="s">"bb"</span><span class="o">)</span> <span class="c1">//执行code的时候才调用  
 </span>  <span class="o">}</span>
-</code></pre>
-      </div>
+</code></pre></div>      </div>
       <p>结果:<br />
 start<br />
 when evaluated<br />
@@ -624,7 +619,7 @@ end</p>
 <p>利用广播变量，给每一个executor自己的KafkaProducer，将KafkaProducer广播到每一个executor中。  <br />
 <strong>注意：这里暂留一个问题，此种方式只可以Spark Streaming程序不用checkpoint的时候使用，否则，如果程序中断而重启程序，广播变量无法从checkpoint中恢复，会出现 <code class="highlighter-rouge">“java.lang.ClassCastException:B cannot be cast to KafkaPool”</code> 的问题，具体解决方式见下篇文章(<a href="https://leafming.github.io/bigdata/2018/04/04/SparkStreaming程序中checkpoint与广播变量兼容处理/">SparkStreaming程序中checkpoint与广播变量兼容处理</a>)。现在先说明这种不用checkpoint的方式。</strong><br />
 在spark主程序中加入如下代码：</p>
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code>    <span class="c1">//利用广播变量的形式，将后端写入KafkaProducer广播到每一个executor 注意：这里写广播变量的话，与checkpoint一起用会有问题
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="c1">//利用广播变量的形式，将后端写入KafkaProducer广播到每一个executor 注意：这里写广播变量的话，与checkpoint一起用会有问题
 </span>    <span class="k">val</span> <span class="n">kafkaProducer</span><span class="k">:</span> <span class="kt">Broadcast</span><span class="o">[</span><span class="kt">KafkaPool</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">String</span><span class="o">]]</span> <span class="k">=</span> <span class="o">{</span>
       <span class="k">val</span> <span class="n">kafkaProducerConfig</span> <span class="k">=</span> <span class="o">{</span>
         <span class="k">val</span> <span class="n">props</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Properties</span><span class="o">()</span>
@@ -639,11 +634,10 @@ end</p>
       <span class="n">log</span><span class="o">.</span><span class="n">warn</span><span class="o">(</span><span class="s">"kafka producer init done!"</span><span class="o">)</span>
       <span class="n">ssc</span><span class="o">.</span><span class="n">sparkContext</span><span class="o">.</span><span class="n">broadcast</span><span class="o">(</span><span class="nc">KafkaPool</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">String</span><span class="o">](</span><span class="n">kafkaProducerConfig</span><span class="o">))</span>
     <span class="o">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <h2 id="第三步使用广播变量">第三步：使用广播变量</h2>
 <p>spark 主程序中，在每个executor中使用广播变量。</p>
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code>    <span class="n">writeDStrem</span><span class="o">.</span><span class="n">foreachRDD</span><span class="o">(</span><span class="n">rdd</span> <span class="k">=&gt;</span> <span class="o">{</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="n">writeDStrem</span><span class="o">.</span><span class="n">foreachRDD</span><span class="o">(</span><span class="n">rdd</span> <span class="k">=&gt;</span> <span class="o">{</span>
       <span class="k">if</span> <span class="o">(</span><span class="n">rdd</span><span class="o">.</span><span class="n">isEmpty</span><span class="o">)</span> <span class="o">{</span>
         <span class="n">logInfo</span><span class="o">(</span><span class="s">" No Data in this batchInterval --------"</span><span class="o">)</span>
       <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
@@ -654,8 +648,7 @@ end</p>
         <span class="n">competeTime</span><span class="o">(</span><span class="n">start_time</span><span class="o">,</span> <span class="s">"Processed data write to KAFKA"</span><span class="o">)</span>
       <span class="o">}</span>
     <span class="o">})</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>至此，更改完毕。</p>
 <h1 id="结果对比">结果对比</h1>
 <p>使用Kafka连接池更改程序之前以及之后的处理速度对比如下图所示，写入90W条数据由原来的17953ms变为了1966ms，效率大大提高。<br />

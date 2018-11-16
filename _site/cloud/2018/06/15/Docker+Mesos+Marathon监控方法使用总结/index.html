@@ -496,10 +496,9 @@
   <li>如果找不到docker配置文件，可以以下述方式查找：<br />
 找到docker.service文件：<br />
 systemctl show –property=FragmentPath docker
-    <div class="highlighter-rouge"><pre class="highlight"><code>---@---[~]$systemctl show --property=FragmentPath docker 
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>---@---[~]$systemctl show --property=FragmentPath docker 
 FragmentPath=/usr/lib/systemd/system/docker.service
-</code></pre>
-    </div>
+</code></pre></div>    </div>
     <p>找到docker.service文件并查看，发现docker文件位置：/etc/sysconfig/docker<br />
 <img src="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-11-dockerservice内容.png?raw=true" alt="DockerService内容" /></p>
   </li>
@@ -541,13 +540,12 @@ Docker官方提供Python和Go的SDK，可以直接使用。而在我们这里使
 <p>我们使用的是<a href="https://github.com/spotify/docker-client/blob/master/docs/user_manual.md">spotify/docker-client</a>，在github上有详细的使用说明，直接点击链接即可。所以就不详细介绍了，下面就直接列出来使用的几个方法记录一下。</p>
 <h3 id="引入jar包">引入jar包</h3>
 <p>我们使用的是spotify/docker-client，可以直接通过maven或者jar包的方式引入，maven如下：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>&lt;dependency&gt;
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;dependency&gt;
   &lt;groupId&gt;com.spotify&lt;/groupId&gt;
   &lt;artifactId&gt;docker-client&lt;/artifactId&gt;
   &lt;version&gt;LATEST-VERSION&lt;/version&gt;
 &lt;/dependency&gt;
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>针对Docker1.12.6，选择的是8.9.1版本。</p>
 
 <h3 id="开始使用">开始使用</h3>
@@ -558,25 +556,22 @@ Docker官方提供Python和Go的SDK，可以直接使用。而在我们这里使
 <p>在之前的操作，开启了Docker RPC端口之后，可以在其他机器上创建远程Docker连接。<br />
 而且我们也没有开启https，所以可以直接使用如下方式：<br />
 传入容器宿主机IP+端口构成的uri，建立和宿主机的连接。</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>// use the builder
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>// use the builder
 String dockerUri ="http://"+hostIp+":"+port;
 final DockerClient docker = DefaultDockerClient.builder().uri(URI.create(dockerUri)).build();
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>除了这种方式，还有其它几种方式创建docker连接，详细参考<a href="https://github.com/spotify/docker-client/blob/master/docs/user_manual.md#creating-a-docker-client">Creating a docker-client</a>。</p>
 <h5 id="关闭docker连接">关闭Docker连接</h5>
 <p>关闭连接直接通过创建的DockerClient docker连接对象，调用close方法即可。</p>
-<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="c1">// Close the docker client</span>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// Close the docker client</span>
 <span class="n">docker</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <h4 id="docker操作">Docker操作</h4>
 <h5 id="容器列表">容器列表</h5>
 <p>获取宿主机上的容器列表，方法如下：<br />
 这个方法能够列出宿主机上全部<strong>正在运行</strong>的容器的列表。</p>
-<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">List</span><span class="o">&lt;</span><span class="n">Container</span><span class="o">&gt;</span> <span class="n">containers</span> <span class="o">=</span> <span class="n">docker</span><span class="o">.</span><span class="na">listContainers</span><span class="o">(</span><span class="n">DockerClient</span><span class="o">.</span><span class="na">ListContainersParam</span><span class="o">.</span><span class="na">allContainers</span><span class="o">());</span>
-</code></pre>
-</div>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">List</span><span class="o">&lt;</span><span class="n">Container</span><span class="o">&gt;</span> <span class="n">containers</span> <span class="o">=</span> <span class="n">docker</span><span class="o">.</span><span class="na">listContainers</span><span class="o">(</span><span class="n">DockerClient</span><span class="o">.</span><span class="na">ListContainersParam</span><span class="o">.</span><span class="na">allContainers</span><span class="o">());</span>
+</code></pre></div></div>
 <p>通过这个方法，可以返回List<Container>，其中的Container对象，可以取到的容器的id、名称、镜像信息、网络信息、状态等内容。</Container></p>
 
 <p><img src="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-13-container属性.png?raw=true" alt="container属性" /></p>
@@ -587,9 +582,8 @@ final DockerClient docker = DefaultDockerClient.builder().uri(URI.create(dockerU
 
 <h5 id="容器详情">容器详情</h5>
 <p>上述获取容器列表的过程中取到的容器信息并不详细，如果想看容器的详细信息可使用inspect方法,需要传入的内容是容器的id，不过通过测试，不需要传入全部的完整id，部分。</p>
-<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">ContainerInfo</span> <span class="n">info</span> <span class="o">=</span> <span class="n">docker</span><span class="o">.</span><span class="na">inspectContainer</span><span class="o">(</span><span class="s">"containerID"</span><span class="o">);</span>
-</code></pre>
-</div>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ContainerInfo</span> <span class="n">info</span> <span class="o">=</span> <span class="n">docker</span><span class="o">.</span><span class="na">inspectContainer</span><span class="o">(</span><span class="s">"containerID"</span><span class="o">);</span>
+</code></pre></div></div>
 <p>通过这个方法可以获取到ContainerInfo对象，其中包括容器的详细信息，如下：<br />
 <img src="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-13-containerInfo属性.png?raw=true" alt="containerInfo" /></p>
 <h6 id="容器状态对象">容器状态对象</h6>
@@ -610,21 +604,18 @@ final DockerClient docker = DefaultDockerClient.builder().uri(URI.create(dockerU
 <p>上述操作均是获取容器的基本信息，如果获取容器内当时的进程信息，可以使用如下方法：<br />
 传入的ps_args为aux，和在容器内执行“ps aux”命令取到的数据一致，即“[USER, PID, %CPU, %MEM, VSZ, RSS, TTY, STAT, START, TIME, COMMAND]”等内容。<br />
 通过如下方法能取到TopResults对象，此对象内包括属性为process和titles，通过获取其中的process，可得到容器内的进程情况。</p>
-<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="c1">//例子</span>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">//例子</span>
 <span class="c1">//final TopResults topResults = docker.topContainer("containerID", "ps_args");</span>
 <span class="n">TopResults</span> <span class="n">topResults</span> <span class="o">=</span> <span class="n">docker</span><span class="o">.</span><span class="na">topContainer</span><span class="o">(</span><span class="s">"containerID"</span><span class="o">,</span> <span class="s">"aux"</span><span class="o">);</span>
 <span class="n">ImmutableList</span><span class="o">&lt;</span><span class="n">ImmutableList</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">processes</span> <span class="o">=</span> <span class="n">topResults</span><span class="o">.</span><span class="na">processes</span><span class="o">();</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <h5 id="容器资源使用情况">容器资源使用情况</h5>
 <p>在命令行中，我们可以通过docker stats来查看docker容器资源使用情况的信息，通过命令行能查询到如下内容：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>CONTAINER    CPU %    MEM USAGE / LIMIT    MEM %    NET I/O    BLOCK I/O
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>CONTAINER    CPU %    MEM USAGE / LIMIT    MEM %    NET I/O    BLOCK I/O
+</code></pre></div></div>
 <p>docker-client也提供了方法，来通过如下方式获取docker stats信息：</p>
-<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">ContainerStats</span> <span class="n">stats</span> <span class="o">=</span> <span class="n">docker</span><span class="o">.</span><span class="na">stats</span><span class="o">(</span><span class="s">"containerID"</span><span class="o">);</span>
-</code></pre>
-</div>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ContainerStats</span> <span class="n">stats</span> <span class="o">=</span> <span class="n">docker</span><span class="o">.</span><span class="na">stats</span><span class="o">(</span><span class="s">"containerID"</span><span class="o">);</span>
+</code></pre></div></div>
 <p>通过此方法，能够取到ContainerStats对象，其中包含内容如下：<br />
 <img src="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-13-ContainerStats.png?raw=true" alt="ContainerStats" /><br />
 但是，我们取到的数据并不能直接使用，而需要通过计算，来得到更加直观的数据，下面进行一下详细说明。<br />
@@ -638,20 +629,18 @@ final DockerClient docker = DefaultDockerClient.builder().uri(URI.create(dockerU
     </blockquote>
 
     <p>因此，可以得到docker stats计算Cpu Percent的算法如下：</p>
-    <div class="highlighter-rouge"><pre class="highlight"><code>cpu_delta = cpu_total_usage - pre_cpu_total_usage;
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cpu_delta = cpu_total_usage - pre_cpu_total_usage;
 system_delta = system_usage - pre_system_usage;
 CPU % = ((cpu_delta / system_delta) * length(per_cpu_usage_array) ) * 100.0
-</code></pre>
-    </div>
+</code></pre></div>    </div>
   </li>
   <li>代码实现<br />
 所以说，将上述内容中得到的公式所需数据与我们通过取到的数据相对应，通过已经得到的stats对象，用方法可以取到两个CpuStats对象：
-    <div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">CpuStats</span> <span class="n">cpuStats</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="na">cpuStats</span><span class="o">();</span>
+    <div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">CpuStats</span> <span class="n">cpuStats</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="na">cpuStats</span><span class="o">();</span>
 <span class="n">CpuStats</span> <span class="n">precpuStats</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="na">precpuStats</span><span class="o">();</span>
-</code></pre>
-    </div>
+</code></pre></div>    </div>
     <p>然后我们计算cpu利用率，就可以这样来计算：</p>
-    <div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">String</span> <span class="n">cpuPercent</span><span class="o">=</span><span class="s">"---"</span><span class="o">;</span>
+    <div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">String</span> <span class="n">cpuPercent</span><span class="o">=</span><span class="s">"---"</span><span class="o">;</span>
 <span class="k">if</span> <span class="o">(</span><span class="kc">null</span><span class="o">!=</span><span class="n">cpuStats</span><span class="o">&amp;&amp;</span><span class="kc">null</span><span class="o">!=</span><span class="n">precpuStats</span><span class="o">){</span>
  <span class="cm">/**
  	* 计算cpu利用率 %
@@ -668,8 +657,7 @@ CPU % = ((cpu_delta / system_delta) * length(per_cpu_usage_array) ) * 100.0
  	<span class="n">Integer</span> <span class="n">percpuUsageListSize</span> <span class="o">=</span> <span class="n">cpuStats</span><span class="o">.</span><span class="na">cpuUsage</span><span class="o">().</span><span class="na">percpuUsage</span><span class="o">().</span><span class="na">size</span><span class="o">();</span>
  	<span class="n">cpuPercent</span> <span class="o">=</span> <span class="o">((</span><span class="n">cpuDelta</span><span class="o">.</span><span class="na">floatValue</span><span class="o">()</span> <span class="o">/</span> <span class="n">systemDelta</span><span class="o">.</span><span class="na">floatValue</span><span class="o">())</span> <span class="o">*</span> <span class="n">percpuUsageListSize</span><span class="o">.</span><span class="na">floatValue</span><span class="o">())</span> <span class="o">*</span> <span class="mi">100</span><span class="o">+</span><span class="s">"%"</span><span class="o">;</span>
  <span class="o">}</span>
-</code></pre>
-    </div>
+</code></pre></div>    </div>
   </li>
 </ol>
 
@@ -682,19 +670,17 @@ CPU % = ((cpu_delta / system_delta) * length(per_cpu_usage_array) ) * 100.0
     </blockquote>
 
     <p>因此可以得到docker stats计算Memory数据的算法如下：</p>
-    <div class="highlighter-rouge"><pre class="highlight"><code>MEM USAGE = mem_usage
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>MEM USAGE = mem_usage
 MEM LIMIT = mem_limit
 MEM % = (mem_usage / mem_limit) * 100.0
-</code></pre>
-    </div>
+</code></pre></div>    </div>
   </li>
   <li>代码实现<br />
 通过已经得到的stats对象，用方法可以取到MemoryStats对象。
-    <div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">MemoryStats</span> <span class="n">memoryStats</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="na">memoryStats</span><span class="o">();</span>
-</code></pre>
-    </div>
+    <div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">MemoryStats</span> <span class="n">memoryStats</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="na">memoryStats</span><span class="o">();</span>
+</code></pre></div>    </div>
     <p>然后根据公式来计算memory利用率：</p>
-    <div class="language-java highlighter-rouge"><pre class="highlight"><code> <span class="n">String</span> <span class="n">memUsageFormat</span><span class="o">=</span><span class="s">"---"</span><span class="o">;</span>
+    <div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="n">String</span> <span class="n">memUsageFormat</span><span class="o">=</span><span class="s">"---"</span><span class="o">;</span>
  <span class="n">String</span> <span class="n">memLimitFormat</span><span class="o">=</span><span class="s">"---"</span><span class="o">;</span>
  <span class="n">String</span> <span class="n">memPercent</span><span class="o">=</span><span class="s">"---"</span><span class="o">;</span>
  <span class="k">if</span> <span class="o">(</span><span class="kc">null</span><span class="o">!=</span><span class="n">memoryStats</span><span class="o">){</span>
@@ -710,8 +696,7 @@ MEM % = (mem_usage / mem_limit) * 100.0
         <span class="n">memLimitFormat</span><span class="o">=</span><span class="n">Utils</span><span class="o">.</span><span class="na">getDynamicSizeUnit</span><span class="o">(</span><span class="n">memLimit</span><span class="o">);</span>
         <span class="n">memPercent</span><span class="o">=(</span><span class="n">memUsage</span><span class="o">.</span><span class="na">floatValue</span><span class="o">()/</span><span class="n">memLimit</span><span class="o">.</span><span class="na">floatValue</span><span class="o">())*</span><span class="mi">100</span><span class="o">+</span><span class="s">"%"</span><span class="o">;</span>
  <span class="o">}</span>
-</code></pre>
-    </div>
+</code></pre></div>    </div>
   </li>
 </ol>
 
@@ -724,18 +709,16 @@ MEM % = (mem_usage / mem_limit) * 100.0
     </blockquote>
 
     <p>因此我们可以得到network stats的计算算法如下：</p>
-    <div class="highlighter-rouge"><pre class="highlight"><code>NET I = rx_bytes
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>NET I = rx_bytes
 NET O = tx_bytes
-</code></pre>
-    </div>
+</code></pre></div>    </div>
   </li>
   <li>代码实现<br />
 通过已经得到的stats对象，可以取到 ImmutableMap&lt;String, NetworkStats&gt;。
-    <div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">ImmutableMap</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">NetworkStats</span><span class="o">&gt;</span> <span class="n">networks</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="na">networks</span><span class="o">();</span>
-</code></pre>
-    </div>
+    <div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ImmutableMap</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">NetworkStats</span><span class="o">&gt;</span> <span class="n">networks</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="na">networks</span><span class="o">();</span>
+</code></pre></div>    </div>
     <p>然后根据公式来计算network io：</p>
-    <div class="language-java highlighter-rouge"><pre class="highlight"><code> <span class="n">String</span> <span class="n">rxBytesSumFormat</span><span class="o">=</span><span class="s">"---"</span><span class="o">;</span>
+    <div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="n">String</span> <span class="n">rxBytesSumFormat</span><span class="o">=</span><span class="s">"---"</span><span class="o">;</span>
  <span class="n">String</span> <span class="n">txBytesSumFormat</span><span class="o">=</span><span class="s">"---"</span><span class="o">;</span>
  <span class="k">if</span> <span class="o">(</span><span class="kc">null</span><span class="o">!=</span><span class="n">networks</span><span class="o">){</span>
  	<span class="cm">/**
@@ -753,8 +736,7 @@ NET O = tx_bytes
         <span class="n">rxBytesSumFormat</span><span class="o">=</span><span class="n">Utils</span><span class="o">.</span><span class="na">getDynamicSizeUnit</span><span class="o">(</span><span class="n">rxBytesSum</span><span class="o">);</span>
         <span class="n">txBytesSumFormat</span><span class="o">=</span><span class="n">Utils</span><span class="o">.</span><span class="na">getDynamicSizeUnit</span><span class="o">(</span><span class="n">txBytesSum</span><span class="o">);</span>
  <span class="o">}</span>
-</code></pre>
-    </div>
+</code></pre></div>    </div>
   </li>
 </ol>
 
@@ -767,13 +749,12 @@ NET O = tx_bytes
     </blockquote>
 
     <p>因此，我们可以得到Blk IO计算算法如下：</p>
-    <div class="highlighter-rouge"><pre class="highlight"><code>BLOCK I = blk_read
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>BLOCK I = blk_read
 BLOCK O = blk_write
-</code></pre>
-    </div>
+</code></pre></div>    </div>
   </li>
   <li>代码实现
-    <div class="language-java highlighter-rouge"><pre class="highlight"><code> <span class="n">String</span> <span class="n">blkReadFormat</span><span class="o">=</span><span class="s">"---"</span><span class="o">;</span>
+    <div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="n">String</span> <span class="n">blkReadFormat</span><span class="o">=</span><span class="s">"---"</span><span class="o">;</span>
  <span class="n">String</span> <span class="n">blkWriteFormat</span><span class="o">=</span><span class="s">"---"</span><span class="o">;</span>
  <span class="k">if</span> <span class="o">(</span><span class="kc">null</span><span class="o">!=</span><span class="n">blockIoStats</span><span class="o">){</span>
  	<span class="cm">/**
@@ -797,25 +778,22 @@ BLOCK O = blk_write
         <span class="n">blkReadFormat</span><span class="o">=</span><span class="n">Utils</span><span class="o">.</span><span class="na">getDynamicSizeUnit</span><span class="o">(</span><span class="n">blkRead</span><span class="o">);</span>
         <span class="n">blkWriteFormat</span><span class="o">=</span><span class="n">Utils</span><span class="o">.</span><span class="na">getDynamicSizeUnit</span><span class="o">(</span><span class="n">blkWrite</span><span class="o">);</span>
  <span class="o">}</span>
-</code></pre>
-    </div>
+</code></pre></div>    </div>
   </li>
 </ol>
 
 <h6 id="获取时间">获取时间</h6>
 <p>至此，以上将docker stats所需要的数据均计算出来了，之后我们只需获取下当前的采集时间即可。</p>
-<div class="language-java highlighter-rouge"><pre class="highlight"><code> <span class="n">Date</span> <span class="n">read</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="na">read</span><span class="o">();</span>
-</code></pre>
-</div>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="n">Date</span> <span class="n">read</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="na">read</span><span class="o">();</span>
+</code></pre></div></div>
 
 <h5 id="容器其他">容器其他</h5>
 <p>上面说的基本上是关于docker容器监控所用的方法，剩下的都是直接操作容器的工具，先不写出来了，有需要的可以直接参考官方说明<a href="https://github.com/spotify/docker-client/blob/master/docs/user_manual.md#creating-a-docker-client">spotify/docker-client</a>。</p>
 
 <h4 id="容器宿主机监控">容器宿主机监控</h4>
 <p>以上说明了容器的基础监控，我们在应用中，如果需要监控容器所在宿主机的情况，也可以使用下述方法：</p>
-<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">Info</span> <span class="n">info</span> <span class="o">=</span> <span class="n">docker</span><span class="o">.</span><span class="na">info</span><span class="o">();</span>
-</code></pre>
-</div>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Info</span> <span class="n">info</span> <span class="o">=</span> <span class="n">docker</span><span class="o">.</span><span class="na">info</span><span class="o">();</span>
+</code></pre></div></div>
 <p>获取到了Info对象，通过此对象可以取到宿主机上运行的容器状态、资源情况等，具体可获取到的如下。<br />
 <img src="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-14-dockerhostInfo.png?raw=true" alt="Info" /></p>
 
@@ -839,42 +817,36 @@ Docker仓库实际上提供两方面的功能，一个是镜像管理，一个�
 下面简单说明下仓库搭建过程，也可以直接参考官方部署<a href="https://docs.docker.com/registry/deploying/">“Deploy a registry server”</a>。</p>
 <ol>
   <li>官方提供了registry镜像，我们直接下载：
-    <div class="highlighter-rouge"><pre class="highlight"><code>docker pull registry
-</code></pre>
-    </div>
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker pull registry
+</code></pre></div>    </div>
   </li>
   <li>默认情况下，会将仓库存放于容器内,这样的话如果容器被删除，则存放于容器中的镜像也会丢失，所以我们需要指定一个本地目录挂载到容器内的存放镜像的目录下。所以，我们以如下命令来启动一个docker容器：
-    <div class="highlighter-rouge"><pre class="highlight"><code>docker run --privileged=true -d -v /datacenter02/registry:/var/lib/registry -p 5000:5000 --restart=always --name registry registry
-</code></pre>
-    </div>
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker run --privileged=true -d -v /datacenter02/registry:/var/lib/registry -p 5000:5000 --restart=always --name registry registry
+</code></pre></div>    </div>
   </li>
   <li>查看启动的容器
-    <div class="highlighter-rouge"><pre class="highlight"><code>---@---[~]#docker ps -a
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>---@---[~]#docker ps -a
 CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                    NAMES
 458a9e2301a6        registry            "/entrypoint.sh /etc/"   7 months ago        Up 7 months         0.0.0.0:5000-&gt;5000/tcp   registry
-</code></pre>
-    </div>
+</code></pre></div>    </div>
   </li>
   <li>测试使用<br />
 创建一个小的镜像，然后测试push
-    <div class="highlighter-rouge"><pre class="highlight"><code>docker push 132.-.-.-:5000/busybox（这里的ip没写全，用-代替了，自己写的时候写全）
-</code></pre>
-    </div>
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker push 132.-.-.-:5000/busybox（这里的ip没写全，用-代替了，自己写的时候写全）
+</code></pre></div>    </div>
     <p>可以看到push失败，报关于https的错误类似如下。</p>
-    <div class="highlighter-rouge"><pre class="highlight"><code>Error response from daemon: invalid registry endpoint https://132.-.-.-:5000/v1/: Get https://132.-.-.-:5000/v1/_ping: http: server gave HTTP response to HTTPS client. If this private registry supports only HTTP or HTTPS with an unknown CA certificate, please add `--insecure-registry 132.-.-.-:5000` to the daemon's arguments. In the case of HTTPS, if you have access to the registry's CA certificate, no need for the flag; simply place the CA certificate at /etc/docker/certs.d/132.-.-.-:5000/ca.crt
-</code></pre>
-    </div>
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Error response from daemon: invalid registry endpoint https://132.-.-.-:5000/v1/: Get https://132.-.-.-:5000/v1/_ping: http: server gave HTTP response to HTTPS client. If this private registry supports only HTTP or HTTPS with an unknown CA certificate, please add `--insecure-registry 132.-.-.-:5000` to the daemon's arguments. In the case of HTTPS, if you have access to the registry's CA certificate, no need for the flag; simply place the CA certificate at /etc/docker/certs.d/132.-.-.-:5000/ca.crt
+</code></pre></div>    </div>
   </li>
   <li>配置http访问<br />
 因为Docker从1.3.X之后，与docker registry交互默认使用的是https，然而此处搭建的私有仓库只提供http服务，所以当与私有仓库交互时就会报上面的错误。为了解决这个问题需要在启动docker server时增加启动参数为默认使用http访问。<br />
 我们需要修改docker配置文件，在docker配置文件中增加“–insecure-registry 132.-.-.-:5000”，其中IP为了不泄露用-代替了，自己写的时候需要写全：
-    <div class="highlighter-rouge"><pre class="highlight"><code># If you have a registry secured with https but do not have proper certs
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code># If you have a registry secured with https but do not have proper certs
 # distributed, you can tell docker to not look for full authorization by
 # adding the registry to the INSECURE_REGISTRY line and uncommenting it.
 # INSECURE_REGISTRY='--insecure-registry'
 INSECURE_REGISTRY='--insecure-registry 132.-.-.-:5000'
-</code></pre>
-    </div>
+</code></pre></div>    </div>
     <p>之后重启docker服务。<br />
 之后再次测试，可以发现没有报错啦，push成功。</p>
   </li>
@@ -882,10 +854,9 @@ INSECURE_REGISTRY='--insecure-registry 132.-.-.-:5000'
 有文章说，查询私有仓库中的所有镜像，使用docker search命令，但是我这里经过尝试，发现会报错：“Error response from daemon: Unexpected status code 404”。<br />
 后来发现，docker search是v1版本的API，我们现在的是v2版本，所以不能使用。<br />
 如果需要查询，则也是直接curl使用v2版本的API：
-    <div class="highlighter-rouge"><pre class="highlight"><code>---@---[~]#curl 132.90.130.13:5000/v2/_catalog
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>---@---[~]#curl 132.90.130.13:5000/v2/_catalog
 {"repositories":["alluxio","basic","go","go1.10","go_zhzj","hdfs_datanode","hello-mine","hiveonspark","hiveonspark-gx","hivespark","jdk","jtwspark1.6.3","kafka","ninecon","nm","rm1","rm2","spark-2.3.0","spark2","spark2.2.1","spark2.2.1-gx","spark2.2.1-jtw","spark2.2.1-rx-demo","sparkdemo","sparkrx1.6.3","sparkrx2.2.1","tensorflow"]}
-</code></pre>
-    </div>
+</code></pre></div>    </div>
     <p>详细的将在下面说明。</p>
   </li>
 </ol>
@@ -896,11 +867,10 @@ INSECURE_REGISTRY='--insecure-registry 132.-.-.-:5000'
 <h3 id="镜像列表">镜像列表</h3>
 <p>我们使用下述方式来获取仓库里面的镜像列表，获取也是请求之后来获取一个包含信息（仓库、镜像名称）的json串，官方给出的request和response例子如下：<br />
 request:</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>GET /v2/_catalog
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GET /v2/_catalog
+</code></pre></div></div>
 <p>response:</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>200 OK
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>200 OK
 Content-Type: application/json
 
 {
@@ -909,18 +879,16 @@ Content-Type: application/json
     ...
   ]
 }
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>我这里直接使用json工具，获取到我们仓库中的镜像列表：<br />
 <img src="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-14-仓库镜像列表.png?raw=true" alt="镜像列表" /></p>
 <h3 id="镜像tags">镜像tags</h3>
 <p>但是，对于一个镜像来说，有不同的tags来标明它的版本，所以单单靠上述方法获取镜像的名称还是不够的，还需获取到tags。官方也给出了相关的例子：<br />
 request:</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>GET /v2/&lt;name&gt;/tags/list
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GET /v2/&lt;name&gt;/tags/list
+</code></pre></div></div>
 <p>response:</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>200 OK
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>200 OK
 Content-Type: application/json
 
 {
@@ -930,8 +898,7 @@ Content-Type: application/json
         ...
     ]
 }
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>之后，我也使用json工具，获取了仓库中“spark2.2.1”的tags信息如下：<br />
 <img src="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-14-镜像tags获取.png?raw=true" alt="镜像tags获取" /></p>
 
@@ -939,7 +906,7 @@ Content-Type: application/json
 
 <h3 id="代码实现">代码实现</h3>
 <p>而在后台程序里，直接使用了最原始的httpclient写了restful工具类，直接获取镜像名称和相关tags信息，后来封装成一个对象放到list中返回直接使用，也可以直接使用restful的相关框架就比较方便了，就不详细说明了。</p>
-<div class="language-java highlighter-rouge"><pre class="highlight"><code>  <span class="cm">/**
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="cm">/**
      * 获取镜像服务器内的镜像列表
      * http://..../v2/_catalog
      * @throws IOException
@@ -1012,8 +979,7 @@ Content-Type: application/json
         <span class="o">}</span>
         <span class="k">return</span> <span class="n">imagesDetailsList</span><span class="o">;</span>
     <span class="o">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>至此，完成了镜像仓库列表获取的全部工具类。</p>
 
 <p>以上也将Docker监控的总结暂时告一段落，下面进行Mesos的说明。</p>
@@ -1022,12 +988,11 @@ Content-Type: application/json
 <p>对于Mesos管理，官方提供2中方式：HTTP Endpoints和Operator HTTP API。</p>
 <h2 id="http-endpoints">HTTP Endpoints</h2>
 <p>对于Mesos master和Mesos agent均可以直接使用HTTP Endpoints，而且使用方式很简单，如下：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>http://ip:port/endpoint
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>http://ip:port/endpoint
 如：
 http://masterIp:5050/metrics/snapshot
 http://slaveIp:5050/metrics/snapshot
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>具体使用可以参考官方网站说明：<a href="http://mesos.apache.org/documentation/latest/endpoints/#http-endpoints">HTTP Endpoints</a>。<br />
 通过观察，发现mesos原生监控页面中，是使用的这种方式，直接在前台进行调用的此api，所以，如果端口没开，当终端访问页面的时候，会无法获取数据。<br />
 下面就是从前台控制台看到的获取的内容，会调用定时获取snapshot和state2个内容。<br />
@@ -1041,7 +1006,7 @@ http://slaveIp:5050/metrics/snapshot
 <p>对于mesos的api，我这里只使用了master的GET_METRICS方法，目的是想自己做一个监控，能监控到mesos中的全部的资源使用情况，如下图mesos原生监控页面里面所示：<br />
 <img src="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-15-mesos原生监控页面资源情况.png?raw=true" alt="2018-06-15-mesos原生监控页面资源情况" /><br />
 所以，为了获取这些内容，可以直接选择官方的master的<a href="http://mesos.apache.org/documentation/latest/operator-http-api/#get_metrics">GET_METRICS</a>方法，官方给出的请求例子如下：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>GET_METRICS HTTP Request (JSON):
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GET_METRICS HTTP Request (JSON):
 
 POST /api/v1  HTTP/1.1
 
@@ -1057,14 +1022,13 @@ Accept: application/json
     }
   }
 }
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>然后我们可以直接使用工具进行获取测试：<br />
 <img src="https://github.com/leafming/bak/blob/master/images/cloud/2018-06-15-mesosRestfulPost工具截图.png?raw=true" alt="2018-06-15-mesosRestfulPost工具截图" /><br />
 通过post方式发送对应json到“http://masterIP:5050/api/v1”即可取到了相应json格式的监控数据。<br />
 而在程序中，也是用了最原始的方法直接使用的httpclient写的restful工具类，通过提交post请求后，获取到对应的响应内容，也可以直接使用restful的框架会比较方便，其他的具体就不详细说了，直接贴下代码：<br />
 不过这里因为取到的json不是全部使用了，所以json解析是对应取到的数据提取自己有用的东西，使用了最笨的方法，求别嫌弃(,,• . •̀,) 。</p>
-<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="cm">/**
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/**
      * 生成mesos的访问连接
      * @param hostIp
      * @return
@@ -1168,8 +1132,7 @@ Accept: application/json
         <span class="o">}</span>
         <span class="k">return</span> <span class="n">masterMesosMetrics</span><span class="o">;</span>
     <span class="o">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>至此，关于mesos的监控就这么多了，都是直接使用的httpApi官网都列明白了就不复制过来了，再贴一遍官网连接，有需要的直接去查吧：<a href="http://mesos.apache.org/documentation/latest/endpoints/#http-endpoints">HTTP Endpoints</a>和<a href="http://mesos.apache.org/documentation/latest/operator-http-api/#operator-http-api">Operator HTTP API</a>。</p>
 
 <h1 id="marathon管理">Marathon管理</h1>
@@ -1177,16 +1140,15 @@ Accept: application/json
 <h2 id="marathon-client">Marathon-client</h2>
 <p>对于marathon-client，也是对于restful api的一种封装，官方也给出的详细的使用说明:<a href="https://github.com/mesosphere/marathon-client">marathon-client</a>。<br />
 我们使用的marathon版本是Marathon1.4.5，所以来说，可以使用下列依赖：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>&lt;dependency&gt;
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;dependency&gt;
   &lt;groupId&gt;com.mesosphere&lt;/groupId&gt;
   &lt;artifactId&gt;marathon-client&lt;/artifactId&gt;
   &lt;version&gt;0.6.0&lt;/version&gt;
 &lt;/dependency&gt;
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>导入依赖之后，我们就可以直接使用了。<br />
 首先，使用<strong>MarathonClient.getInstance()</strong>创建Marathon实例对象，之后就可以直接使用其对应的各种方法了，在这里就不和docker-client似的详细说明了，因为这里没有参与过多就不贴详细使用代码啦，官方使用说明挺好的（<a href="https://github.com/mesosphere/marathon-client">marathon-client</a>），所以直接放上来一个小例子来参考吧(IP全用-.-.-.-代替了)。</p>
-<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span> <span class="n">args</span><span class="o">[])</span> <span class="kd">throws</span> <span class="n">Exception</span><span class="o">{</span>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span> <span class="n">args</span><span class="o">[])</span> <span class="kd">throws</span> <span class="n">Exception</span><span class="o">{</span>
         <span class="n">String</span> <span class="n">endpoint</span> <span class="o">=</span> <span class="s">"http://-.-.-.-:8080"</span><span class="o">;</span>
         <span class="n">Marathon</span> <span class="n">marathon</span> <span class="o">=</span> <span class="n">MarathonClient</span><span class="o">.</span><span class="na">getInstance</span><span class="o">(</span><span class="n">endpoint</span><span class="o">);</span>
 
@@ -1256,8 +1218,7 @@ Accept: application/json
         <span class="n">app</span><span class="o">.</span><span class="na">setHealthChecks</span><span class="o">(</span><span class="n">healthChecks</span><span class="o">);</span>
         <span class="n">marathon</span><span class="o">.</span><span class="na">createApp</span><span class="o">(</span><span class="n">app</span><span class="o">);</span>
     <span class="o">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h2 id="marathon-restful-api">Marathon restful api</h2>
 <p>另外一种管理marathon的方式就是直接使用其<a href="http://mesosphere.github.io/marathon/api-console/index.html">Marathon REST API</a>。<br />

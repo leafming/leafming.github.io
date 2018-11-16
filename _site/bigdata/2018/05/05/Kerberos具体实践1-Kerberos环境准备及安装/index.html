@@ -561,26 +561,23 @@ JDK版本：jdk1.8.0<br />
 <h3 id="1添加主机名解析到etchosts文件或配置dns">(1)添加主机名解析到/etc/hosts文件或配置DNS</h3>
 <p>在Kerberos中，Principal中需各主机的FQDN名，所以集群中需要有DNS。<br />
 但在本次测试中，未进行DNS配置，直接使用配置hosts进行测试。</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>[root@node1 ~]# cat /etc/hosts
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[root@node1 ~]# cat /etc/hosts
 ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
 10.211.55.10 node1
 10.211.55.11 node2
 10.211.55.12 node3
-</code></pre>
-</div>
+</code></pre></div></div>
 <p><strong>注意：hostname 请使用小写，要不然在集成 kerberos 时会出现一些错误。</strong></p>
 <h3 id="2配置ntp">(2)配置NTP</h3>
 <p>Kerberos集群对时间同步敏感度较高，默认时间相差超过5分钟就会出现问题，所以最好是在集群中增加NTP服务器。不过我的集群机器比较少，先跳过NTP吧。</p>
 <h3 id="3安装kerberos">(3)安装Kerberos</h3>
 <p>Kerberos有不同的实现，如MIT KDC、Microsoft Active Directory等。我这里采用的是MIT KDC。<br />
 在 KDC (这里是 node1 ) 上安装包 krb5、krb5-server 和 krb5-client：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ yum install krb5-server krb5-libs krb5-workstation  -y 
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ yum install krb5-server krb5-libs krb5-workstation  -y 
+</code></pre></div></div>
 <p>在其他节点（node1、node2、node3）安装 krb5-devel、krb5-workstation：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ yum install krb5-libs krb5-workstation  -y
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ yum install krb5-libs krb5-workstation  -y
+</code></pre></div></div>
 <h3 id="4修改配置文件">(4).修改配置文件</h3>
 <p>kdc 服务器涉及到三个配置文件：<br />
 /etc/krb5.conf<br />
@@ -589,7 +586,7 @@ JDK版本：jdk1.8.0<br />
 <h4 id="akrb5conf配置">a).krb5.conf配置</h4>
 <p>/etc/krb5.conf:包含Kerberos的配置信息。例如，KDC的位置，Kerberos的admin的realms 等。需要所有使用的Kerberos的机器上的配置文件都同步。这里仅列举需要的基本配置。详细参考<a href="http://web.mit.edu/kerberos/krb5-latest/doc/admin/conf_files/krb5_conf.html">krb5.conf</a></p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>[root@node1 etc]# cat krb5.conf
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[root@node1 etc]# cat krb5.conf
 # Configuration snippets may be placed in this directory as well
 includedir /etc/krb5.conf.d/
 [logging] #[logging]：表示 server 端的日志的打印位置
@@ -620,8 +617,7 @@ HADOOP.COM = {
 #[domain_realm] 
 #.hadoop.com = HADOOP.COM
 #hadoop.com = HADOOP.COM
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>总结：</p>
 <ul>
   <li>这个文件可以用include和includedir引入其他文件或文件夹，但必须是绝对路径</li>
@@ -637,7 +633,7 @@ HADOOP.COM = {
 
 <h4 id="bkdcconf配置">b).kdc.conf配置</h4>
 <p>/var/kerberos/krb5kdc/kdc.conf:包括KDC的配置信息。默认放在 /usr/local/var/krb5kdc。或者通过覆盖KRB5_KDC_PROFILE环境变量修改配置文件位置。详细参考<a href="http://web.mit.edu/kerberos/krb5-latest/doc/admin/conf_files/kdc_conf.html">kdc.conf</a>。</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>[root@node1 ~]# cat /var/kerberos/krb5kdc/kdc.conf
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[root@node1 ~]# cat /var/kerberos/krb5kdc/kdc.conf
 [kdcdefaults]
  kdc_ports = 88
  kdc_tcp_ports = 88
@@ -657,8 +653,7 @@ HADOOP.COM = {
   default_principal_flags = +renewable, +forwardable
   supported_enctypes = des3-hmac-sha1:normal arcfour-hmac:normal camellia256-cts:normal camellia128-cts:normal des-hmac-sha1:normal des-cbc-md5:normal des-cbc-crc:normal #支持的校验方式.注意把aes256-cts去掉
  }
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>总结：</p>
 <ul>
   <li>HADOOP.COM： 是设定的 realms。名字随意。Kerberos可以支持多个。</li>
@@ -676,32 +671,29 @@ HADOOP.COM = {
 
 <h4 id="ckadm5acl配置">c).kadm5.acl配置</h4>
 <p>为了能够不直接访问KDC控制台而从Kerberos数据库添加和删除主体，请对Kerberos管理服务器指示允许哪些主体执行哪些操作。通过编辑文件 /var/kerberos/krb5kdc/kadm5.acl完成此操作。ACL（访问控制列表）允许您精确指定特权。</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>[root@node1 ~]# cat /var/kerberos/krb5kdc/kadm5.acl
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[root@node1 ~]# cat /var/kerberos/krb5kdc/kadm5.acl
 */admin@HADOOP.COM	*
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h3 id="5同步配置文件">(5)同步配置文件</h3>
 <p>将 kdc 中的 /etc/krb5.conf 拷贝到集群中其他服务器即可。</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ scp /etc/krb5.conf node2:/etc/krb5.conf
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ scp /etc/krb5.conf node2:/etc/krb5.conf
 $ scp /etc/krb5.conf node3:/etc/krb5.conf
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>请确认集群如果关闭了 selinux。</p>
 
 <h3 id="6创建数据库">(6)创建数据库</h3>
 <p>在node1上运行初始化数据库命令。其中 -r 指定对应 realm。<br />
 该命令会在 /var/kerberos/krb5kdc/ 目录下创建 principal 数据库。<br />
 如果遇到数据库已经存在的提示，可以把/var/kerberos/krb5kdc/目录下的principal的相关文件都删除掉。默认的数据库名字都是 principal。可以使用 -d 指定数据库名字。</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ kdb5_util create -r JAVACHEN.COM -s
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ kdb5_util create -r JAVACHEN.COM -s
+</code></pre></div></div>
 <blockquote>
   <p>补充小技巧-（未测试，其他帖子看到的）：出现Loading random data的时候另开个终端执行点消耗CPU的命令如cat /dev/sda &gt; /dev/urandom 可以加快随机数采集。</p>
 </blockquote>
 
 <p>操作结果小例子：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>[root@node1 etc]# kdb5_util create -r HADOOP.COM -s
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[root@node1 etc]# kdb5_util create -r HADOOP.COM -s
 Loading random data
 Initializing database '/var/kerberos/krb5kdc/principal' for realm 'HADOOP.COM',
 master key name 'K/M@HADOOP.COM'
@@ -709,17 +701,15 @@ You will be prompted for the database Master Password.    #在此处输入的是
 It is important that you NOT FORGET this password.
 Enter KDC database master key:
 Re-enter KDC database master key to verify:
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h3 id="7启动服务">(7)启动服务</h3>
 <p>在node1节点上运行：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>[root@node1 etc]# service krb5kdc start
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[root@node1 etc]# service krb5kdc start
 Redirecting to /bin/systemctl start krb5kdc.service
 [root@node1 etc]# service kadmin start
 Redirecting to /bin/systemctl start kadmin.service
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>至此kerberos，搭建完毕。</p>
 
 <h2 id="kerberos基本环境创建及简单命令测试">Kerberos基本环境创建及简单命令测试</h2>
@@ -731,73 +721,64 @@ Redirecting to /bin/systemctl start kadmin.service
 </ul>
 
 <p>在node1上创建远程管理的管理员，系统会提示输入密码，密码不能为空，且需妥善保存。：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>#手动输入两次密码，这里密码为 root
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>#手动输入两次密码，这里密码为 root
 $ kadmin.local -q "addprinc root/admin"
 # 也可以不用手动输入密码，通过echo将密码引入
 $ echo -e "root\nroot" | kadmin.local -q "addprinc root/admin"
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>建议：<br />
 最好把username设为root，会提示输入密码，可以输入一个密码。<br />
 创建第一个principal，必须在KDC自身的终端上进行，而且需要以root登录，这样才可以执行kadmin.local命令。</p>
 
 <p>操作结果小例子：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>[root@node1 etc]# kadmin.local -q "addprinc root/admin"
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[root@node1 etc]# kadmin.local -q "addprinc root/admin"
 Authenticating as principal root/admin@HADOOP.COM with password.
 WARNING: no policy specified for root/admin@HADOOP.COM; defaulting to no policy
 Enter password for principal "root/admin@HADOOP.COM":
 Re-enter password for principal "root/admin@HADOOP.COM":
 Principal "root/admin@HADOOP.COM" created.
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h3 id="2添加更多主体-创建host主体并将自己的host主题添加到自己密钥表文件">(2)添加更多主体-创建host主体并将自己的host主题添加到自己密钥表文件</h3>
 <h4 id="a基于kerberos-的应用程序例如-kprop将使用主机主体将变更传播到从kdc服务器也可以通过该主体提供对使用应用程序如ssh的kdc服务器的安全远程访问">a).基于Kerberos 的应用程序(例如 kprop)将使用主机主体将变更传播到从KDC服务器。也可以通过该主体提供对使用应用程序(如ssh)的KDC服务器的安全远程访问。</h4>
 <p>请注意，当主体实例为主机名时，无论名称服务中的域名是大写还是小写，都必须以小写字母指定FQDN。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>kadmin: addprinc -randkey host/node1
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kadmin: addprinc -randkey host/node1
 Principal "host/node1@HADOOP.COM" created. 
 kadmin:
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>或用命令（创建了node1、node2、node3的host主体）：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>kadmin.local -q "addprinc -randkey host/node1@HADOOP.COM"
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kadmin.local -q "addprinc -randkey host/node1@HADOOP.COM"
 kadmin.local -q "addprinc -randkey host/node2@HADOOP.COM"
 kadmin.local -q "addprinc -randkey host/node3@HADOOP.COM"
-</code></pre>
-</div>
+</code></pre></div></div>
 <h4 id="b将kdc服务器的host主体添加到kdc服务器的密钥表文件">b).将KDC服务器的host主体添加到KDC服务器的密钥表文件。</h4>
 <p>通过将主机主体添加到密钥表文件，允许应用服务器(如sshd)自动使用该主体。<br />
 <strong>注意：将自己的host主体添加到自己的密钥表文件。</strong></p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>#在node1上执行
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>#在node1上执行
 kadmin: ktadd host/node1
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h3 id="3kerberos简单命令测试">(3)Kerberos简单命令测试</h3>
 <p>输入kadmin或者kadmin.local命令进入kerberos的shell(登录到管理员账户:如果在本机上，可以通过kadmin.local直接登录。其它机器的，先使用kinit进行验证)，如下：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>1、其他机器上先使用kinit进行验证：
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1、其他机器上先使用kinit进行验证：
 echo root@1234|kinit root/admin  
 2、之后再使用kadmin或者kadmin.local命令进入kerberos的shell
-</code></pre>
-</div>
+</code></pre></div></div>
 <h4 id="aprincipals操作">a).principals操作</h4>
 <p>查看principals</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ kadmin: list_principals
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ kadmin: list_principals
+</code></pre></div></div>
 <p>添加一个新的 principal</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ kadmin:  addprinc user1  
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ kadmin:  addprinc user1  
+</code></pre></div></div>
 <p>删除 principal</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ kadmin:  delprinc user1  
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ kadmin:  delprinc user1  
 $ kadmin: exit
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>也可以直接通过下面的命令来执行：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>#提示需要输入密码
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>#提示需要输入密码
 $ kadmin -p root/admin -q "list_principals"
 $ kadmin -p root/admin -q "addprinc user2"
 $ kadmin -p root/admin -q "delprinc user2"
@@ -806,16 +787,14 @@ $ kadmin -p root/admin -q "delprinc user2"
 $ kadmin.local -q "list_principals"
 $ kadmin.local -q "addprinc user2"
 $ kadmin.local -q "delprinc user2"
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h4 id="bticket操作创建一个测试用户test密码设置为test">b).ticket操作:创建一个测试用户test，密码设置为test</h4>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ echo -e "test\ntest" | kadmin.local -q "addprinc test"
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ echo -e "test\ntest" | kadmin.local -q "addprinc test"
+</code></pre></div></div>
 <p>获取 test 用户的 ticket：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>#通过用户名和密码进行登录
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>#通过用户名和密码进行登录
 [root@node2 ~]# kinit test
 Password for test@HADOOP.COM:
 [root@node2 ~]# klist  -e
@@ -824,20 +803,18 @@ Default principal: test@HADOOP.COM
 Valid starting       Expires              Service principal
 09/06/2017 16:06:57  09/07/2017 16:06:57  krbtgt/HADOOP.COM@HADOOP.COM
 	renew until 09/13/2017 16:06:57, Etype (skey, tkt): des3-cbc-sha1, des3-cbc-sha1
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>销毁该 test 用户的 ticket:</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>[root@node2 ~]# kdestroy
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[root@node2 ~]# kdestroy
 Other credential caches present, use -A to destroy all
 [root@node2 ~]# kdestroy -A
 [root@node2 ~]# klist  -e
 klist: Credentials cache keyring 'persistent:0:krb_ccache_CGo77JQ' not found
 [root@node2 ~]# klist
 klist: Credentials cache keyring 'persistent:0:krb_ccache_CGo77JQ' not found
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>更新 ticket:</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ kinit root/admin
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ kinit root/admin
   Password for root/admin@HADOOP.COM:
 $  klist
   Ticket cache: FILE:/tmp/krb5cc_0
@@ -856,11 +833,10 @@ $ klist
     renew until 11/17/14 15:33:57
   Kerberos 4 ticket cache: /tmp/tkt0
   klist: You have no tickets cached
-</code></pre>
-</div>
+</code></pre></div></div>
 <h4 id="c-抽取密钥到在本地keytab文件">c). 抽取密钥到在本地keytab文件</h4>
 <p>抽取密钥并将其储存在本地keytab文件/etc/krb5.keytab中。这个文件由超级用户拥有，所以您必须是root用户才能在kadmin shell 中执行以下命令:</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ kadmin.local -q "ktadd kadmin/admin"
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ kadmin.local -q "ktadd kadmin/admin"
 $ klist -k /etc/krb5.keytab
   Keytab name: FILE:/etc/krb5.keytab
   KVNO Principal
@@ -871,8 +847,7 @@ $ klist -k /etc/krb5.keytab
      3 kadmin/admin@LASHOU-INC.COM
      3 kadmin/admin@LASHOU-INC.COM
    -----------------
-</code></pre>
-</div>
+</code></pre></div></div>
 <hr />
 <p>至此，本篇内容完成。以上为Kerberos单KDC版搭建过程，下篇文章进行HDFS和Kerberos整合操作的整理。</p>
 

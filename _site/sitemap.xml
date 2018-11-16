@@ -86,8 +86,4 @@
 <url>
 <loc>http://localhost:4000/page2/</loc>
 </url>
-<url>
-<loc>http://localhost:4000/404.html</loc>
-<lastmod>2018-03-12T02:06:26+08:00</lastmod>
-</url>
 </urlset>

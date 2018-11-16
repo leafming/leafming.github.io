@@ -513,7 +513,7 @@
 <img src="https://github.com/leafming/bak/blob/master/images/flink/2018-10-09-FlinkChains原理.png?raw=true" alt="2018-10-09-FlinkChains原理" /><br />
 如上图所示，Flink内部是通过OperatorChain这个类来将多个operator链在一起形成一个新的operator。OperatorChain形成的框框就像一个黑盒，Flink 无需知道黑盒中有多少个ChainOperator、数据在chain内部是怎么流动的，只需要将input数据交给 HeadOperator 就可以了，这就使得OperatorChain在行为上与普通的operator无差别，上面的OperaotrChain就可以看做是一个入度为1，出度为2的operator。所以在实现中，对外可见的只有HeadOperator，以及与外部连通的实线输出，这些输出对应了JobGraph中的JobEdge，在底层通过RecordWriterOutput来实现。另外，框中的虚线是operator chain内部的数据流，这个流内的数据不会经过序列化/反序列化、网络传输，而是直接将消息对象传递给下游的 ChainOperator 处理，这是性能提升的关键点，在底层是通过 ChainingOutput 实现的，源码如下方所示：<br />
 注：HeadOperator和ChainOperator并不是具体的数据结构，前者指代chain中的第一个operator，后者指代chain中其余的operator，它们实际上都是StreamOperator。
-    <div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">private</span> <span class="n">static</span> <span class="k">class</span> <span class="nc">ChainingOutput</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="n">implements</span> <span class="nc">Output</span><span class="o">&lt;</span><span class="nc">StreamRecord</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;&gt;</span> <span class="o">{</span>
+    <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">private</span> <span class="n">static</span> <span class="k">class</span> <span class="nc">ChainingOutput</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="n">implements</span> <span class="nc">Output</span><span class="o">&lt;</span><span class="nc">StreamRecord</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;&gt;</span> <span class="o">{</span>
  <span class="c1">// 注册的下游operator
 </span> <span class="k">protected</span> <span class="k">final</span> <span class="nc">OneInputStreamOperator</span><span class="o">&lt;</span><span class="n">T</span><span class="o">,</span> <span class="o">?&gt;</span> <span class="n">operator</span><span class="o">;</span>
  <span class="n">public</span> <span class="nc">ChainingOutput</span><span class="o">(</span><span class="nc">OneInputStreamOperator</span><span class="o">&lt;</span><span class="n">T</span><span class="o">,</span> <span class="o">?&gt;</span> <span class="n">operator</span><span class="o">)</span> <span class="o">{</span>
@@ -533,8 +533,7 @@
  <span class="o">}</span>
  <span class="o">...</span>
 <span class="o">}</span>
-</code></pre>
-    </div>
+</code></pre></div>    </div>
   </li>
 </ol>
 

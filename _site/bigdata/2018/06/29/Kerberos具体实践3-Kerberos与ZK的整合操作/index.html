@@ -472,34 +472,30 @@
 <p>补充：<br />
 若有创建需要（如需要使用zookeeper用户启动zk服务），可再继续再次参考下述操作（其实同hdfs的操作）。<br />
 在node1节点，即KDC server节点上执行下面命令，在KCD server上（这里是 node1）创建zookeeper principal：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>kadmin.local -q "addprinc -randkey zookeeper/node1@HADOOP.COM"   
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kadmin.local -q "addprinc -randkey zookeeper/node1@HADOOP.COM"   
 kadmin.local -q "addprinc -randkey zookeeper/node2@HADOOP.COM"  
 kadmin.local -q "addprinc -randkey zookeeper/node3@HADOOP.COM"
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>执行如下命令，在当前目录中创建keytab，名为zookeeper.keytab：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>kadmin.local -q "xst  -k zookeeper.keytab  zookeeper/node1@HADOOP.COM "
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kadmin.local -q "xst  -k zookeeper.keytab  zookeeper/node1@HADOOP.COM "
 kadmin.local -q "xst  -k zookeeper.keytab  zookeeper/node2@HADOOP.COM "
 kadmin.local -q "xst  -k zookeeper.keytab  zookeeper/node3@HADOOP.COM "
-</code></pre>
-</div>
+</code></pre></div></div>
 <h3 id="部署keytabzookeeper-server">部署Keytab（zookeeper-server）</h3>
 <p>拷贝node1上生成的keytab(新创建的就是zookeeper.keytab)文件到其他节点的某一目录上（如/opt/zookeeper/conf，为了在zk配置文件种找到keytab），并为其设置属主和权限400（如chown zookeeper:hadoop zookeeper.keytab ;chmod 400 *.keytab），同HDFS配置过程中的操作。<br />
 此次测试中，启动zk和启动hdfs的用户都是hadoop，并且在进行hdfs配置kerberos的过程中，已经将hdfs.keytab复制到其他节点的/opt/hadoop_krb5/conf/hdfs.keytab目录下了，并且也设置了权限所以此次我不再进行操作。</p>
 <h3 id="修改zookeeper配置文件zookeeper-server">修改zookeeper配置文件（zookeeper-server）</h3>
 <p>在node1节点上修改/opt/zookeeper-3.4.8/conf/（zookeeper安装目录下的conf）zoo.cfg文件，添加下面内容：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>authProvider.1=org.apache.zookeeper.server.auth.SASLAuthenticationProvider
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>authProvider.1=org.apache.zookeeper.server.auth.SASLAuthenticationProvider
 jaasLoginRenew=3600000
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>将修改的上面文件同步到其他节点：node2、node3：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ scp /opt/zookeeper-3.4.8/conf/zoo.cfg node2:/opt/zookeeper-3.4.8/conf/zoo.cfg
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ scp /opt/zookeeper-3.4.8/conf/zoo.cfg node2:/opt/zookeeper-3.4.8/conf/zoo.cfg
 $ scp /opt/zookeeper-3.4.8/conf/zoo.cfg node3:/opt/zookeeper-3.4.8/conf/zoo.cfg
-</code></pre>
-</div>
+</code></pre></div></div>
 <h3 id="创建jaas文件zookeeper-server">创建jaas文件（zookeeper-server）</h3>
 <p>在node1的配置文件目录/opt/zookeeper-3.4.8/conf/（zookeeper安装目录下的conf）创建 jaas.conf文件，内容如下：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>Server {
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Server {
   com.sun.security.auth.module.Krb5LoginModule required
   useKeyTab=true
   keyTab="/opt/hadoop_krb5/conf/hdfs.keytab"【上述操作创建出的keytab，因为本次操作中zk用hadoop用户启动的，和hdfs一样，则没用重新生产keytab，和hdfs的用一个】
@@ -507,19 +503,16 @@ $ scp /opt/zookeeper-3.4.8/conf/zoo.cfg node3:/opt/zookeeper-3.4.8/conf/zoo.cfg
   useTicketCache=false【这里有踩过的一个小坑：如果krb5.conf 去掉了default_ccache_name = KEYRING:persistent:%{uid}，则一定用false，要不然zk起不来】
   principal="hadoop/node1@HADOOP.COM";
 };
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>其中，keytab填写真实的keytab的绝对路径，principal填写对应的认证的用户和机器名称。需要在 node2和node3节点也创建该文件，注意每个节点的principal有所不同。</p>
 <h3 id="创建javaenv文件zookeeper-server">创建java.env文件（zookeeper-server）</h3>
 <p>在node1的配置文件目录/opt/zookeeper-3.4.8/conf/（zookeeper安装目录下的conf）创建 java.env文件，内容如下：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>export JVMFLAGS="-Djava.security.auth.login.config=/opt/zookeeper-3.4.8/conf/jaas.conf"
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>export JVMFLAGS="-Djava.security.auth.login.config=/opt/zookeeper-3.4.8/conf/jaas.conf"
+</code></pre></div></div>
 <p>并将该文件同步到其他节点：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ scp /opt/zookeeper-3.4.8/conf/java.env node2:/opt/zookeeper-3.4.8/conf/java.env
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ scp /opt/zookeeper-3.4.8/conf/java.env node2:/opt/zookeeper-3.4.8/conf/java.env
 $ scp /opt/zookeeper-3.4.8/conf/java.env node3:/opt/zookeeper-3.4.8/conf/java.env
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>以上Zookeeper-server配置完毕。</p>
 <h3 id="重新启动zookeeper">重新启动zookeeper</h3>
 <p>启动方式和平常无异，如成功使用安全方式启动，日志中看到如下日志：<br />
@@ -528,7 +521,7 @@ $ scp /opt/zookeeper-3.4.8/conf/java.env node3:/opt/zookeeper-3.4.8/conf/java.en
 <h2 id="zookeeper-client配置未测试">Zookeeper Client配置（未测试）</h2>
 <h3 id="创建认证规则生成keytab">创建认证规则生成keytab</h3>
 <p>在node1节点，即KDC server节点上执行下面命令：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ cd /var/kerberos/krb5kdc/
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ cd /var/kerberos/krb5kdc/
 kadmin.local -q "addprinc -randkey zkcli/node1@HADOOP.COM "
 kadmin.local -q "addprinc -randkey zkcli/node2@HADOOP.COM"
 kadmin.local -q "addprinc -randkey zkcli/node3@HADOOP.COM"
@@ -536,23 +529,20 @@ kadmin.local -q "addprinc -randkey zkcli/node3@HADOOP.COM"
 kadmin.local -q "xst  -k zkcli.keytab  zkcli/node1@HADOOP.COM"
 kadmin.local -q "xst  -k zkcli.keytab  zkcli/node2@HADOOP.COM "
 kadmin.local -q "xst  -k zkcli.keytab  zkcli/node3@HADOOP.COM "
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>拷贝 zkcli.keytab文件到其他节点的zk配置目录：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ scp zkcli.keytab node1:/etc/zookeeper/conf
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ scp zkcli.keytab node1:/etc/zookeeper/conf
 $ scp zkcli.keytab node2:/etc/zookeeper/conf
 $ scp zkcli.keytab node3:/etc/zookeeper/conf
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>并设置属主和权限，分别在node1、node2、node3 上执行：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ ssh node1 "cd /etc/zookeeper/conf/;chown zookeeper:hadoop zkcli.keytab ;chmod 400 *.keytab"
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ ssh node1 "cd /etc/zookeeper/conf/;chown zookeeper:hadoop zkcli.keytab ;chmod 400 *.keytab"
 $ ssh node2 "cd /etc/zookeeper/conf/;chown zookeeper:hadoop zkcli.keytab ;chmod 400 *.keytab"
 $ ssh node3 "cd /etc/zookeeper/conf/;chown zookeeper:hadoop zkcli.keytab ;chmod 400 *.keytab"
-</code></pre>
-</div>
+</code></pre></div></div>
 <h3 id="创建jaas配置文件">创建jaas配置文件</h3>
 <p>在node1的zk配置文件目录创建 client-jaas.conf 文件，内容如下：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>Client {
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Client {
   com.sun.security.auth.module.Krb5LoginModule required
   useKeyTab=true
   keyTab="/etc/zookeeper/conf/zkcli.keytab"
@@ -560,43 +550,36 @@ $ ssh node3 "cd /etc/zookeeper/conf/;chown zookeeper:hadoop zkcli.keytab ;chmod 
   useTicketCache=false
   principal="zkcli@HADOOP.COM";
 };
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>同步到其他client节点：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ scp client-jaas.conf node2:/etc/zookeeper/conf
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ scp client-jaas.conf node2:/etc/zookeeper/conf
 $ scp client-jaas.conf node3:/etc/zookeeper/conf
-</code></pre>
-</div>
+</code></pre></div></div>
 <h3 id="创建javaenv文件">创建java.env文件</h3>
 <p>然后，在zk安装目录conf目录创建或者修改java.env，内容如下：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>export CLIENT_JVMFLAGS="-Djava.security.auth.login.config=/etc/zookeeper/conf/client-jaas.conf"
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>export CLIENT_JVMFLAGS="-Djava.security.auth.login.config=/etc/zookeeper/conf/client-jaas.conf"
+</code></pre></div></div>
 <blockquote>
   <p>如果，zookeeper-client 和 zookeeper-server 安装在同一个节点上，则 java.env 中的 java.security.auth.login.config 参数会被覆盖，这一点从 zookeeper-client 命令启动日志可以看出来。</p>
 </blockquote>
 
 <p>并将该文件同步到其他节点：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ scp /etc/zookeeper/conf/java.env node2:/etc/zookeeper/conf/java.env
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ scp /etc/zookeeper/conf/java.env node2:/etc/zookeeper/conf/java.env
 $ scp /etc/zookeeper/conf/java.env node3:/etc/zookeeper/conf/java.env
-</code></pre>
-</div>
+</code></pre></div></div>
 <h3 id="启动并验证">启动并验证</h3>
 <p>启动客户端：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ zookeeper-client -server node1:2181
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ zookeeper-client -server node1:2181
+</code></pre></div></div>
 <p>创建一个znode 节点：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>k: node1:2181(CONNECTED) 0] create /znode1 sasl:zkcli@HADOOP.COM:cdwra
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>k: node1:2181(CONNECTED) 0] create /znode1 sasl:zkcli@HADOOP.COM:cdwra
     Created /znode1
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>验证该节点是否创建以及其 ACL：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>[zk: node1:2181(CONNECTED) 1] getAcl /znode1
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[zk: node1:2181(CONNECTED) 1] getAcl /znode1
     'world,'anyone
     : cdrwa
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>以上为ZK整合Kerberos操作部分。</p>
 
 <hr />

@@ -471,18 +471,17 @@
 
 <h1 id="最基础直接方式-直接使用saveastextfile">最基础直接方式-直接使用saveAsTextFile</h1>
 <p>对于将数据直接存入HDFS或本地文件等，spark提供了现成的算子：<strong>saveAsTextFile</strong>。</p>
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="n">saveAsTextFile</span><span class="o">(</span><span class="n">path</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="n">saveAsTextFile</span><span class="o">(</span><span class="n">path</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span>
 <span class="k">def</span> <span class="n">saveAsTextFile</span><span class="o">(</span><span class="n">path</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">codec</span><span class="k">:</span> <span class="kt">Class</span><span class="o">[</span><span class="k">_</span> <span class="k">&lt;:</span> <span class="kt">CompressionCodec</span><span class="o">])</span><span class="k">:</span> <span class="kt">Unit</span>
 <span class="n">saveAsTextFile用于将RDD以文本文件的格式存储到文件系统中</span><span class="err">。</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>不过，直接使用saveAsTextFile有很多需要注意的问题。首先，<strong>saveAsTextFile要求保存的目录之前是没有的，否则会报错。</strong>所以，最好程序中保存前先判断一下目录是否存在。<strong>下面的代码的例子先没有判断目录是否存在，需要自己调整</strong>。<br />
 下面我们说一下直接使用saveAsTextFile可能遇到的问题：</p>
 <ol>
   <li>文件内容会被覆盖掉<br />
 对于初学spark的时候，第一次使用saveAsTextFile，可能会遇到文件内容会被覆盖掉的问题。<br />
 在第一次使用的时候，可能会想要这么写的：
-    <div class="language-scala highlighter-rouge"><pre class="highlight"><code>     <span class="n">saveDstream</span><span class="o">.</span><span class="n">foreachRDD</span><span class="o">(</span><span class="n">rdd</span> <span class="k">=&gt;</span> <span class="o">{</span>
+    <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code>     <span class="n">saveDstream</span><span class="o">.</span><span class="n">foreachRDD</span><span class="o">(</span><span class="n">rdd</span> <span class="k">=&gt;</span> <span class="o">{</span>
        <span class="c1">//EmptyRDD是没有分区的，所以调用partitions.isEmpty是true，所以这样可以避免写空文件
 </span>       <span class="k">if</span> <span class="o">(</span><span class="n">rdd</span><span class="o">.</span><span class="n">partitions</span><span class="o">.</span><span class="n">isEmpty</span><span class="o">)</span> <span class="o">{</span>
          <span class="n">logInfo</span><span class="o">(</span><span class="s">" No Data in this batchInterval --------"</span><span class="o">)</span>
@@ -492,11 +491,10 @@
          <span class="n">competeTime</span><span class="o">(</span><span class="n">start_time</span><span class="o">,</span> <span class="s">"Processed data write to hdfs"</span><span class="o">)</span>
        <span class="o">}</span>
      <span class="o">})</span>
-</code></pre>
-    </div>
+</code></pre></div>    </div>
     <p>而一旦实际测试之后，你会发现savepath目录里的文件每次都会被覆盖掉，只保存着最后一次saveAsTextFIle的内容。<br />
 这是因为foreachRDD中使用saveAsTextFile默认保存的文件名就是part-0000_ … part-0000n，每一个rdd都是这样，所以在Spark Streaming程序中，后面的批次数据过来在同一路径下后面的文件可能会覆盖前面的，因此会出现文件内容会被覆盖掉。所以来说，为了避免这个问题，可以在保存的时候在文件夹后面加上时间戳来解决。</p>
-    <div class="language-scala highlighter-rouge"><pre class="highlight"><code>     <span class="n">saveDstream</span><span class="o">.</span><span class="n">foreachRDD</span><span class="o">(</span><span class="n">rdd</span> <span class="k">=&gt;</span> <span class="o">{</span>
+    <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code>     <span class="n">saveDstream</span><span class="o">.</span><span class="n">foreachRDD</span><span class="o">(</span><span class="n">rdd</span> <span class="k">=&gt;</span> <span class="o">{</span>
        <span class="c1">//EmptyRDD是没有分区的，所以调用partitions.isEmpty是true，所以这样可以避免写空文件
 </span>       <span class="k">if</span> <span class="o">(</span><span class="n">rdd</span><span class="o">.</span><span class="n">partitions</span><span class="o">.</span><span class="n">isEmpty</span><span class="o">)</span> <span class="o">{</span>
          <span class="n">logInfo</span><span class="o">(</span><span class="s">" No Data in this batchInterval --------"</span><span class="o">)</span>
@@ -508,10 +506,9 @@
          <span class="n">competeTime</span><span class="o">(</span><span class="n">start_time</span><span class="o">,</span> <span class="s">"Processed data write to hdfs"</span><span class="o">)</span>
        <span class="o">}</span>
      <span class="o">})</span>
-</code></pre>
-    </div>
+</code></pre></div>    </div>
     <p>即：rdd.saveAsTextFile(“hdfs://cdh5hdfs/savepath/”+date+”/”+start_time)，这样写之后，保存的路径会根据当前时间来生成，假设运行到此段程序的时间是“2018-06-30 18:30:20”，那么文件存储的目录就会是“hdfs://cdh5hdfs/savepath/2018-06-30/1530354620”，如下显示：</p>
-    <div class="highlighter-rouge"><pre class="highlight"><code>dcos@d8pccdsj3[~]$hadoop fs -ls /savepath/2018-06-30/1530354620
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos@d8pccdsj3[~]$hadoop fs -ls /savepath/2018-06-30/1530354620
 Found 8 items
 -rw-r--r--   3 test cgroup          0 2018-06-30 18:30 /savepath/2018-06-30/1530354620/_SUCCESS
 -rw-r--r--   3 test cgroup 2201736217 2018-06-30 18:30 /savepath/2018-06-30/1530354620/part-00000
@@ -521,25 +518,22 @@ Found 8 items
 -rw-r--r--   3 test cgroup 2202310836 2018-06-30 18:30 /savepath/2018-06-30/1530354620/part-00004
 -rw-r--r--   3 test cgroup 2202639458 2018-06-30 18:30 /savepath/2018-06-30/1530354620/part-00005
 -rw-r--r--   3 test cgroup 2201906597 2018-06-30 18:30 /savepath/2018-06-30/1530354620/part-00006
-</code></pre>
-    </div>
+</code></pre></div>    </div>
     <p>这样暂且解决了文件内容会被覆盖掉的问题。不过，这种情况下，我们会发现以日期命名的文件夹2018-06-30下，会根据每个批次生成一个时间戳命名的目录，并且目录下文件名称名称为part-0000n，所以说只是解决了这个还不够，此种方式还有其他需要注意的问题。</p>
   </li>
   <li>保存文件过多<br />
 使用saveAsTextFile经过以上操作之后，不会再出现文件覆盖的问题。但是，当实际运行后会发现，在sparkStreming程序中使用这种方式，会根据每个批次生成一个时间戳命名的目录，目录太多；并且在目录下会有很多很多文件，名称为part-00000 … part-0000n,这样如果文件太小并且过多，就会浪费hdfs的block空间，需要尽可能把文件大小调整到和block大小差不多为好。<br />
 之所以产生了这么多文件，这是因为在spark运行的时候，spark一般会按照执行task的多少生成多少个文件，spark把数据分成了很多个partation，每个partation对应一个task，一个partation的数据由task来执行保存动作，这样的话，在调用saveAsTextFile的时候，会把每个partation的数据保存为一个part-0000n文件。<br />
 所以，为了把文件保存为一个或较少文件，可以使用coalesce或repartition算子。如果生成一个文件，可以在RDD上调用coalesce(1,true).saveAsTextFile()，意味着做完计算之后将数据汇集到一个分区，然后再执行保存的动作，显然，一个分区，Spark自然只起一个task来执行保存的动作，也就只有一个文件产生了。又或者，可以调用repartition(1)，它其实是coalesce的一个包装，默认第二个参数为true。即：
-    <div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="n">rdd</span><span class="o">.</span><span class="n">coalesce</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span><span class="kc">true</span><span class="o">).</span><span class="n">saveAsTextFile</span><span class="o">(</span><span class="s">"hdfs://cdh5hdfs/savepath/"</span><span class="o">+</span><span class="n">date</span><span class="o">+</span><span class="s">"/"</span><span class="o">+</span><span class="n">start_time</span><span class="o">)</span>
+    <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">rdd</span><span class="o">.</span><span class="n">coalesce</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span><span class="kc">true</span><span class="o">).</span><span class="n">saveAsTextFile</span><span class="o">(</span><span class="s">"hdfs://cdh5hdfs/savepath/"</span><span class="o">+</span><span class="n">date</span><span class="o">+</span><span class="s">"/"</span><span class="o">+</span><span class="n">start_time</span><span class="o">)</span>
 <span class="c1">//或
 //rdd.repartition(1).saveAsTextFile("hdfs://cdh5hdfs/savepath/"+date+"/"+start_time)
-</span></code></pre>
-    </div>
+</span></code></pre></div>    </div>
     <p>不过这样写，在数据过多的时候有很大的隐患：一般情况下，Spark面对的是大量的数据，并且是并行执行的，在数据过多的时候，如果强行要求最后只有一个分区，必然导致大量的磁盘IO和网络IO产生，并且最终操作的节点的内存也会承受很大考验，可能会出现单节点内存不足的问题或者效率及其低下。因此，有人提出，可以采用HDFS磁盘合并操作，即HDFS的getmerge操作。</p>
-    <div class="highlighter-rouge"><pre class="highlight"><code>//hadoop fs -getmerge 源路径 目的路径 
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>//hadoop fs -getmerge 源路径 目的路径 
 hadoop fs -getmerge /hdfs/output   /hdfs2/output.txt
 //或者cat &gt;操作
-</code></pre>
-    </div>
+</code></pre></div>    </div>
   </li>
   <li>不能自定义名称，目录层级太多<br />
 经过以上操作之后，就能把数据写到hdfs中，并且文件数量不会过多了。但是经过以上测试，我们会发现有个问题，为了防止文件内容被覆盖我们使用了时间戳，这样的话相当于生成的是一个不同的目录，在sparkStreming程序中使用这种方式，会根据每个批次生成一个时间戳命名的目录，目录太多；并且在那个目录里面，仍然是part-0000n命名的文件，不能自定义名称。因此，我们就思考能不能从文件名称入手，自定义文件名称而不是目录名称呢？</li>
@@ -548,25 +542,22 @@ hadoop fs -getmerge /hdfs/output   /hdfs2/output.txt
 <h1 id="直接使用hdfs-api-append方法测试非生产">直接使用HDFS API-append方法（测试，非生产）</h1>
 <p>为了实现自定义文件名称、减少目录层级、追加写文件的需要，有文章提示说可以直接调用HDFS的api-append。但是实际上，有资料表明，hadoop的版本1.0.4以后，API中已经有了追加写入的功能，但不建议在生产环境中使用，不过我们也可以测试下。<br />
 如果需要使用此方法，需要修改配置文件，开启此功能，把dfs.support.appen的参数设置为true，不然客户端写入的时候会报错：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>Exception in thread "main" org.apache.hadoop.ipc.RemoteException: java.io.IOException: Append to hdfs not supported. Please refer to dfs.support.append configuration parameter.
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Exception in thread "main" org.apache.hadoop.ipc.RemoteException: java.io.IOException: Append to hdfs not supported. Please refer to dfs.support.append configuration parameter.
+</code></pre></div></div>
 <p>修改namenode节点上的hdfs-site.xml：</p>
-<div class="language-xml highlighter-rouge"><pre class="highlight"><code>  <span class="nt">&lt;property&gt;</span>  
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="nt">&lt;property&gt;</span>  
        <span class="nt">&lt;name&gt;</span>dfs.support.append<span class="nt">&lt;/name&gt;</span>  
        <span class="nt">&lt;value&gt;</span>true<span class="nt">&lt;/value&gt;</span>  
   <span class="nt">&lt;/property&gt;</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>或者，可以直接在程序里面代码设置：</p>
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">private</span> <span class="k">val</span> <span class="n">conf</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Configuration</span><span class="o">()</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">private</span> <span class="k">val</span> <span class="n">conf</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Configuration</span><span class="o">()</span>
 <span class="n">conf</span><span class="o">.</span><span class="n">setBoolean</span><span class="o">(</span><span class="s">"dfs.support.append"</span><span class="o">,</span> <span class="kc">true</span><span class="o">)</span>
 <span class="c1">//后续直接使用其创建fs如：
 //var fs=FileSystem.get(uri, conf)
-</span></code></pre>
-</div>
+</span></code></pre></div></div>
 <p>并且需要注意的是，如果使用append追加写入文件，如果文件不存在，需求先创建。那么如果出现了这样的问题，你可能会直接像如下代码那么写（注意是错误的）：</p>
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code>    <span class="k">val</span> <span class="n">path</span><span class="k">=new</span> <span class="nc">Path</span><span class="o">(</span><span class="n">strpath</span><span class="o">)</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="k">val</span> <span class="n">path</span><span class="k">=new</span> <span class="nc">Path</span><span class="o">(</span><span class="n">strpath</span><span class="o">)</span>
     <span class="k">val</span> <span class="n">uri</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">URI</span><span class="o">(</span><span class="n">strpath</span><span class="o">)</span>
     <span class="k">var</span> <span class="n">fs</span><span class="k">=</span><span class="nc">FileSystem</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="n">uri</span><span class="o">,</span> <span class="n">conf</span><span class="o">)</span>
     <span class="k">if</span> <span class="o">(!</span><span class="n">fs</span><span class="o">.</span><span class="n">exists</span><span class="o">(</span><span class="n">path</span><span class="o">))</span> <span class="o">{</span>
@@ -574,14 +565,12 @@ hadoop fs -getmerge /hdfs/output   /hdfs2/output.txt
     <span class="o">}</span>
     <span class="k">val</span> <span class="n">out</span> <span class="k">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">append</span><span class="o">(</span><span class="n">path</span><span class="o">)</span>
     <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="o">(</span><span class="n">record_sum1</span><span class="o">.</span><span class="n">getBytes</span><span class="o">())</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>这样的话，会报如下错误：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>Exception in thread "main" org.apache.hadoop.ipc.RemoteException: org.apache.hadoop.hdfs.protocol.AlreadyBeingCreatedException: failed to create file /hdfs/testfile/file for DFSClient_-14565853217 on client 132.90.130.101 because current leaseholder is trying to recreate file.
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Exception in thread "main" org.apache.hadoop.ipc.RemoteException: org.apache.hadoop.hdfs.protocol.AlreadyBeingCreatedException: failed to create file /hdfs/testfile/file for DFSClient_-14565853217 on client 132.90.130.101 because current leaseholder is trying to recreate file.
+</code></pre></div></div>
 <p>通过搜索发现可能和fs句柄有关，因此解决的时候，可以创建完文件之后，关闭流fs，再次获得一次新的fs：</p>
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code>    <span class="k">val</span> <span class="n">path</span><span class="k">=new</span> <span class="nc">Path</span><span class="o">(</span><span class="n">strpath</span><span class="o">)</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="k">val</span> <span class="n">path</span><span class="k">=new</span> <span class="nc">Path</span><span class="o">(</span><span class="n">strpath</span><span class="o">)</span>
     <span class="k">val</span> <span class="n">uri</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">URI</span><span class="o">(</span><span class="n">strpath</span><span class="o">)</span>
     <span class="k">var</span> <span class="n">fs</span><span class="k">=</span><span class="nc">FileSystem</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="n">uri</span><span class="o">,</span> <span class="n">conf</span><span class="o">)</span>
     <span class="k">if</span> <span class="o">(!</span><span class="n">fs</span><span class="o">.</span><span class="n">exists</span><span class="o">(</span><span class="n">path</span><span class="o">))</span> <span class="o">{</span>
@@ -591,15 +580,14 @@ hadoop fs -getmerge /hdfs/output   /hdfs2/output.txt
     <span class="o">}</span>
     <span class="k">val</span> <span class="n">out</span> <span class="k">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">append</span><span class="o">(</span><span class="n">path</span><span class="o">)</span>
     <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="o">(</span><span class="n">record_sum1</span><span class="o">.</span><span class="n">getBytes</span><span class="o">())</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <blockquote>
   <p>参考<a href="https://www.cnblogs.com/byrhuangqiang/p/3926663.html">Hadoop HDFS文件常用操作及注意事项（更新）遇到的问题2</a>，<a href="https://blog.csdn.net/liu0bing/article/details/78951415">HDFS写入异常:追加文件第
 一次抛异常</a>。</p>
 </blockquote>
 
 <p>因此整体的写入HDFS的方法，我们这么写（假设这里测试数据的Iterator[(String,String)]元组，需要写入第二个字段），在spark调用的时候，每cache条写入一次：</p>
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code>  <span class="k">def</span> <span class="n">writeToHDFS</span><span class="o">(</span><span class="n">strpath</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span><span class="n">iter</span><span class="k">:</span> <span class="kt">Iterator</span><span class="o">[(</span><span class="kt">String</span>,<span class="kt">String</span><span class="o">)],</span> <span class="n">cache</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span><span class="k">:</span> <span class="kt">Try</span><span class="o">[</span><span class="kt">Unit</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Try</span> <span class="o">{</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="k">def</span> <span class="n">writeToHDFS</span><span class="o">(</span><span class="n">strpath</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span><span class="n">iter</span><span class="k">:</span> <span class="kt">Iterator</span><span class="o">[(</span><span class="kt">String</span>,<span class="kt">String</span><span class="o">)],</span> <span class="n">cache</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span><span class="k">:</span> <span class="kt">Try</span><span class="o">[</span><span class="kt">Unit</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Try</span> <span class="o">{</span>
     <span class="k">var</span> <span class="n">record_sum1</span><span class="o">=</span><span class="s">""</span>   <span class="c1">//初始化空串
 </span>    <span class="k">var</span> <span class="n">count_sum1</span><span class="k">=</span><span class="mi">0</span>     <span class="c1">//计数器
 </span>    <span class="k">var</span> <span class="n">record</span><span class="o">=</span><span class="s">""</span>
@@ -629,10 +617,9 @@ hadoop fs -getmerge /hdfs/output   /hdfs2/output.txt
     <span class="n">out</span><span class="o">.</span><span class="n">close</span><span class="o">()</span>
     <span class="n">fs</span><span class="o">.</span><span class="n">close</span><span class="o">()</span>
   <span class="o">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>在spark程序里面可以直接rdd处这样使用：</p>
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code>      <span class="k">if</span> <span class="o">(!</span><span class="n">rdd</span><span class="o">.</span><span class="n">isEmpty</span><span class="o">()){</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code>      <span class="k">if</span> <span class="o">(!</span><span class="n">rdd</span><span class="o">.</span><span class="n">isEmpty</span><span class="o">()){</span>
       <span class="c1">//注意这里， 因为不需要返回值，所以用foreachPartition直接落地存储了最好。foreachPartition是collect算子，mapPartitions是transofmation。
 </span>        <span class="k">val</span> <span class="n">start_time</span> <span class="k">=</span> <span class="nc">System</span><span class="o">.</span><span class="n">currentTimeMillis</span><span class="o">()</span>
         <span class="k">val</span> <span class="n">curDay</span><span class="k">=new</span> <span class="nc">Date</span><span class="o">(</span><span class="n">start_time</span><span class="o">)</span>
@@ -648,19 +635,17 @@ hadoop fs -getmerge /hdfs/output   /hdfs2/output.txt
 </span>       <span class="c1">//   str.iterator
 </span>       <span class="c1">// }).collect()
 </span>      <span class="o">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>这样的话，目录层次就变成了“hdfs://cdh5hdfs/savepath/当前日期/时间戳文件”内容即直接追加写入了以时间戳命名的文件中，减少了目录层级，并且能够自定义文件名称了。
 但是使用此种方法，相当于一个partation建立一次HDFS连接，执行起来会特别慢，是否可以考虑向Kafka似的弄个连接池的方式提高效率，但是我没有这样实验，毕竟append被说是测试版本，不建议用于生产。</p>
 <h1 id="需求更改">需求更改</h1>
 <p>上面的操作均是是对数据没有任何区分，直接将数据写入文件中。但是，后来我们的需要因为业务需要而有所更改。<br />
 我们处理的数据也是从上游接收过来的，每条数据中都有记录此条数据生成的时间，但是我们实际收到的时间可能较生成有所延迟，所以不仅仅要求需要自定义存储的文件名，而且要根据数据内容（数据内容的生成时间字段），来决定将数据写入到哪个文件夹的哪个文件内。<br />
 比如如数据格式如下所示：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>0|18610000000|460010000000000|2018|07|28|16-21-35|41003|22002|35004007800300|0000|||||0|||2018-07-28 16:21:35
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>0|18610000000|460010000000000|2018|07|28|16-21-35|41003|22002|35004007800300|0000|||||0|||2018-07-28 16:21:35
+</code></pre></div></div>
 <p>因此，我们根据需求，生成的目录格式需要是：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>dcos@d8pccdsj3[~]$hadoop fs -ls /savepath/2018-07-28
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos@d8pccdsj3[~]$hadoop fs -ls /savepath/2018-07-28
 Found 11 items
 drwxr-xr-x   - user1 cgroup          0 2018-07-28 10:42 /savepath/2018-07-28/00
 drwxr-xr-x   - user1 cgroup          0 2018-07-28 09:48 /savepath/2018-07-28/01
@@ -677,14 +662,13 @@ drwxr-xr-x   - user1 cgroup          0 2018-07-28 11:42 /savepath/2018-07-28/10
 drwxr-xr-x   - user1 cgroup          0 2018-07-28 16:40 /savepath/2018-07-28/16
 ...
 drwxr-xr-x   - user1 cgroup          0 2018-07-29 00:30 /savepath/2018-07-28/23
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>即目录要求为/savepath/日期/小时/文件名，文件名需要辨识当前此文件的写入时间（即系统时间），而目录名称的日期和小时需要根据数据里面的业务时间决定，即上述示例数据的第18个字段，那么上面那条数据就需要放在/savepath/2018-07-28/16目录下的某个文件内（如16-16-06-00）。<br />
 所以来说，根据这个需求，我们是不能直接使用saveAsTextFile的，因为文件名称需要自定义；而也尝试直接用append的时候有很大的麻烦，需要根据每条数据内容来决定放入某个目录和文件，并且数据可能延迟比如说现在10点，能零零散散收到几条3点的数据，所以来说在使用append的时候把每条数据的提取日期等信息处理成了三元组的形式来在writeToHDFS方法里面提取时间决定目录和文件名称，但是使用起来还是很复杂并且处理和写入时间太长，影响实时性，并且append还是测试方法不适合投入生产。因此，最终再寻找了下面的最终方法。</p>
 <h1 id="最终方法-saveashadoopfile自定义的rddmultipletextoutputformat">最终方法-saveAsHadoopFile+自定义的RDDMultipleTextOutputFormat</h1>
 <h2 id="分析">分析</h2>
 <p>为了解决上述需求，我需要另寻找解决办法。我们还是从spark本身的算子入手，可以先看一下saveAsTextFile的源码：</p>
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="cm">/**
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/**
    * Save this RDD as a text file, using string representations of elements.
    */</span>
   <span class="k">def</span> <span class="n">saveAsTextFile</span><span class="o">(</span><span class="n">path</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="n">withScope</span> <span class="o">{</span>
@@ -719,8 +703,7 @@ drwxr-xr-x   - user1 cgroup          0 2018-07-29 00:30 /savepath/2018-07-28/23
     <span class="nc">RDD</span><span class="o">.</span><span class="n">rddToPairRDDFunctions</span><span class="o">(</span><span class="n">r</span><span class="o">)(</span><span class="n">nullWritableClassTag</span><span class="o">,</span> <span class="n">textClassTag</span><span class="o">,</span> <span class="kc">null</span><span class="o">)</span>
       <span class="o">.</span><span class="n">saveAsHadoopFile</span><span class="o">[</span><span class="kt">TextOutputFormat</span><span class="o">[</span><span class="kt">NullWritable</span>, <span class="kt">Text</span><span class="o">]](</span><span class="n">path</span><span class="o">,</span> <span class="n">codec</span><span class="o">)</span>
   <span class="o">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>可以发现，saveAsTextFile函数是依赖于saveAsHadoopFile函数，由于saveAsHadoopFile函数接受PairRDD，所以在saveAsTextFile函数中利用rddToPairRDDFunctions函数转化为(NullWritable,Text)类型的RDD，然后通过saveAsHadoopFile函数实现相应的写操作。</p>
 <blockquote>
   <p>参考：<a href="https://www.jianshu.com/p/4d4a7fdaca5c">【SparkJavaAPI】Action(6)—saveAsTextFile、saveAsObjectFile</a>。</p>
@@ -745,7 +728,7 @@ drwxr-xr-x   - user1 cgroup          0 2018-07-29 00:30 /savepath/2018-07-28/23
 
 <h3 id="saveashadoopfile算子">saveAsHadoopFile算子</h3>
 <p>首先看看一下<strong>saveAsHadoopFile</strong>算子的官方说明：</p>
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code> <span class="cm">/**
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="cm">/**
    * Output the RDD to any Hadoop-supported file system, using a Hadoop `OutputFormat` class supporting the key and value types K and V in this RDD.
    */</span>
 <span class="k">def</span> <span class="n">saveAsHadoopFile</span><span class="o">[</span><span class="kt">F</span> <span class="k">&lt;:</span> <span class="kt">OutputFormat</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">V</span><span class="o">]](</span><span class="n">path</span><span class="k">:</span> <span class="kt">String</span><span class="o">)(</span><span class="k">implicit</span> <span class="n">fm</span><span class="k">:</span> <span class="kt">ClassTag</span><span class="o">[</span><span class="kt">F</span><span class="o">])</span><span class="k">:</span> <span class="kt">Unit</span> 
@@ -774,8 +757,7 @@ drwxr-xr-x   - user1 cgroup          0 2018-07-29 00:30 /savepath/2018-07-28/23
       <span class="n">outputFormatClass</span><span class="k">:</span> <span class="kt">Class</span><span class="o">[</span><span class="k">_</span> <span class="k">&lt;:</span> <span class="kt">OutputFormat</span><span class="o">[</span><span class="k">_</span>, <span class="k">_</span><span class="o">]],</span>
       <span class="n">conf</span><span class="k">:</span> <span class="kt">JobConf</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">JobConf</span><span class="o">(</span><span class="n">self</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">hadoopConfiguration</span><span class="o">),</span>
       <span class="n">codec</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">Class</span><span class="o">[</span><span class="k">_</span> <span class="k">&lt;:</span> <span class="kt">CompressionCodec</span><span class="o">]]</span> <span class="k">=</span> <span class="nc">None</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>这里我们要使用的算子是:<br />
 <strong>def saveAsHadoopFile(path: String,keyClass: Class[<em>],valueClass: Class[</em>],outputFormatClass: Class[_ &lt;: OutputFormat[<em>, _]],conf: JobConf = new JobConf(self.context.hadoopConfiguration),codec: Option[Class[</em> &lt;: CompressionCodec]] = None): Unit</strong><br />
 这个算子里需要传入的参数依次是：文件路径、key类型、value类型、outputFormat方式。<br />
@@ -783,7 +765,7 @@ drwxr-xr-x   - user1 cgroup          0 2018-07-29 00:30 /savepath/2018-07-28/23
 
 <h3 id="multipleoutputformat分析">MultipleOutputFormat分析</h3>
 <p>下面我们先看一下MultipleOutputFormat的源码：</p>
-<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="cm">/**
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/**
  * This abstract class extends the FileOutputFormat, allowing to write the
  * output data to different output files. There are three basic use cases for
  * this class. 
@@ -961,15 +943,14 @@ drwxr-xr-x   - user1 cgroup          0 2018-07-29 00:30 /savepath/2018-07-28/23
   <span class="kd">abstract</span> <span class="kd">protected</span> <span class="n">RecordWriter</span><span class="o">&lt;</span><span class="n">K</span><span class="o">,</span> <span class="n">V</span><span class="o">&gt;</span> <span class="nf">getBaseRecordWriter</span><span class="o">(</span><span class="n">FileSystem</span> <span class="n">fs</span><span class="o">,</span>
       <span class="n">JobConf</span> <span class="n">job</span><span class="o">,</span> <span class="n">String</span> <span class="n">name</span><span class="o">,</span> <span class="n">Progressable</span> <span class="n">arg3</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">IOException</span><span class="o">;</span>
 <span class="o">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>在源码的最开始，我们看到对于MultipleOutputFormat&lt;K, V&gt;的描述，它可以将相似的记录输出到相同的数据集。我们可以看出，在写每条记录之前，MultipleOutputFormat将调用generateFileNameForKeyValue方法来确定需要写入的文件名。<br />
 通过下图源码我们可以看出，在getRecordWriter中，对于文件名称的生成会先调用generateLeafFileName方法，而其只是传入了“name”来生成文件的leaf名称（图中标号1的myName），而此部分传入的name即默认的每个part生成的文件名称（如part-0000，关于这个name的值，也可以继续向父类FileOutputFormat或MultipleOutputs类继续挖掘，找出来为何这个默认值，或者参考后续的关于spark这里的源码说明文档，这里就不说明了）；而之后生成的myName会传入generateFileNameForKeyValue的方法，这个方法接受3个参数，可以根据k、v以及传入的name再次生成一个KeyBasePath即文件名称（图中标号2），之后获取到的KeyBasePath再作为参数传入getInputFileBasedOutputFileName方法生成finalPath。可以看到在默认情况下，我们看到generateLeafFileName方法和generateFileNameForKeyValue的方法均是直接<strong>“return name”</strong>，因此默认情况下得到name==myName==KeyBasePath，文件的名称即为part-0000。<br />
 <img src="https://github.com/leafming/bak/blob/master/images/spark/2018-07-26-SparkStreaming写入数据到HDFS-Outputformat方法说明.png?raw=true" alt="MultipleOutputFormat-文件名称生成" /><br />
 所以，为了根据内容来确定写入的文件名称，generateLeafFileName只与name有关（后续写个示例中测试一下generateLeafFileName），而generateFileNameForKeyValue与内容key、value、name均有关，所以我们就直接在自己的类中重写generateFileNameForKeyValue方法即可。<br />
 不过，我们需要写入的是文本，所以通常情况下，我们可以直接继承MultipleTextOutputFormat类，来完成实现generateFileNameForKeyValue方法以返回每个输出键/值对的文件名。MultipleTextOutputFormat也是继承的MultipleOutputFormat类，可以在官方文档的说明的<a href="http://hadoop.apache.org/docs/current/api/org/apache/hadoop/mapred/lib/MultipleTextOutputFormat.html">MultipleTextOutputFormat</a>也可以看到类的继承关系。<br />
 MultipleTextOutputFormat的官方描述如下：</p>
-<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="cm">/**
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/**
  * This class extends the MultipleOutputFormat, allowing to write the output
  * data to different output files in Text output format.
  */</span>
@@ -987,14 +968,13 @@ MultipleTextOutputFormat的官方描述如下：</p>
     <span class="k">return</span> <span class="n">theTextOutputFormat</span><span class="o">.</span><span class="na">getRecordWriter</span><span class="o">(</span><span class="n">fs</span><span class="o">,</span> <span class="n">job</span><span class="o">,</span> <span class="n">name</span><span class="o">,</span> <span class="n">arg3</span><span class="o">);</span>
   <span class="o">}</span>
 <span class="o">}</span>  
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>它默认能够将以text的格式将数据输出到不同的目录中，我们需要输出的也是文本，只不过是写入目录需要自定义一下，所以我们只需要继承MultipleTextOutputFormat来自定义一个类即可。</p>
 <h3 id="测试generateleaffilename补充可略过">测试generateLeafFileName（补充，可略过）</h3>
 <p>上面我们说了MultipleOutputFormat中有两个决定文件名称的方法，generateLeafFileName和generateFileNameForKeyValue，我们在正式代码前，先直接写入文件系统测试下generateLeafFileName，可略过。</p>
 <ol>
   <li>自定义一个OutputFormat名称为TestMultipleTextOutputFormat。
-    <div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">package</span> <span class="nn">com.ileaf.test</span>
+    <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">package</span> <span class="nn">com.ileaf.test</span>
 <span class="k">import</span> <span class="nn">java.text.SimpleDateFormat</span>
 <span class="k">import</span> <span class="nn">java.util.Date</span>
 <span class="k">import</span> <span class="nn">org.apache.hadoop.mapred.lib.MultipleTextOutputFormat</span>
@@ -1010,11 +990,10 @@ MultipleTextOutputFormat的官方描述如下：</p>
  <span class="n">filename</span>
   <span class="o">}</span>
 <span class="o">}</span>
-</code></pre>
-    </div>
+</code></pre></div>    </div>
   </li>
   <li>spark程序中测试使用
-    <div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">org.apache.spark.</span><span class="o">{</span><span class="nc">SparkConf</span><span class="o">,</span> <span class="nc">SparkContext</span><span class="o">}</span>
+    <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">org.apache.spark.</span><span class="o">{</span><span class="nc">SparkConf</span><span class="o">,</span> <span class="nc">SparkContext</span><span class="o">}</span>
 <span class="k">import</span> <span class="nn">org.apache.spark.rdd.RDD</span>
 <span class="k">object</span> <span class="nc">TestSparkSave</span> <span class="o">{</span>
   <span class="k">def</span> <span class="n">main</span><span class="o">(</span><span class="n">args</span><span class="k">:</span> <span class="kt">Array</span><span class="o">[</span><span class="kt">String</span><span class="o">])</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="o">{</span>
@@ -1028,13 +1007,12 @@ MultipleTextOutputFormat的官方描述如下：</p>
  <span class="n">rdd1</span><span class="o">.</span><span class="n">rapartation</span><span class="o">(</span><span class="mi">2</span><span class="o">).</span><span class="n">saveAsHadoopFile</span><span class="o">(</span><span class="s">"/Users/yeziming/test/saveDir"</span><span class="o">,</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">String</span><span class="o">],</span> <span class="n">classOf</span><span class="o">[</span><span class="kt">String</span><span class="o">],</span><span class="n">classOf</span><span class="o">[</span><span class="kt">RDDMultipleTextOutputFormat</span><span class="o">])</span>
   <span class="o">}</span>
 <span class="o">}</span>
-</code></pre>
-    </div>
+</code></pre></div>    </div>
   </li>
 </ol>
 
 <p>然后我们运行一下程序，可以看到生成的文件(日期有点问题。。不管了)：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>yezm:saveDir yeziming$ ls
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>yezm:saveDir yeziming$ ls
 2018-24-28    _SUCCESS
 yezm:saveDir yeziming$ cd 2018-24-28/
 yezm:2018-24-28 yeziming$ ls -l
@@ -1047,8 +1025,7 @@ yezm:2018-24-28 yeziming$ cat 11-24-44_part-00000
 yezm:2018-24-28 yeziming$ cat 11-24-44_part-00001
 0|18610000001|460010000000001|2018|07|21|15-21-35|41000|22000|35004007800301|0000|||||0|||2018-07-21 15:21:35
 0|18610000003|460010000000003|2018|07|21|17-21-35|41001|22002|35004007800303|0000|||||0|||2018-07-21 17:21:35
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>可以看到，我们文件名称的拼接使用的是“val filename=dirName+”/”+fileName+”_“+name”，因此是时间+name的方式传入的，所以可以看出，name的值果然是part-0000n，后面的数字为partation的标号，所以我们在使用的过程中，也可以留下来默认的name的值的标号来区分不同的partation。</p>
 <h3 id="正式代码编写">正式代码编写</h3>
 <p>下面，我们开始根据业务的正式的代码编写，经过了以上分析，写起来也很简单。(业务需求见上述4需求更改部分)</p>
@@ -1056,7 +1033,7 @@ yezm:2018-24-28 yeziming$ cat 11-24-44_part-00001
   <li>SparkStreaming程序中使用saveAsHadoopFile<br />
 我们在SparkStreaming程序中，使用saveAsHadoopFile算子。由于之前的数据是rdd，而saveAsHadoopFile需要的是pairRDD，因此，我们使用map将数据转换一下，数据内容作为key，空串“”作为value，这里需要与后续我们自定义的RDDMultipleTextOutputFormat生成文件名称的时候相对应。<br />
 后续我们自定义的RDDMultipleTextOutputFormat，与文件基础路径、key格式、value格式一同传入saveAsHadoopFile算子中。
-    <div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="c1">//...部分内容
+    <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">//...部分内容
 </span> <span class="k">val</span> <span class="n">saveDstream</span><span class="k">:</span> <span class="kt">DStream</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span><span class="n">writeDStrem</span><span class="o">.</span><span class="n">repartition</span><span class="o">(</span><span class="n">numHdfsFile_Repartition</span><span class="o">)</span>
  <span class="c1">//保存处理后的数据到hdfs
 </span> <span class="n">saveDstream</span><span class="o">.</span><span class="n">foreachRDD</span><span class="o">(</span><span class="n">rdd</span> <span class="k">=&gt;</span> <span class="o">{</span>
@@ -1073,12 +1050,11 @@ yezm:2018-24-28 yeziming$ cat 11-24-44_part-00001
    <span class="o">}</span>
  <span class="o">})</span><span class="c1">//foreachRDD
 //...
-</span></code></pre>
-    </div>
+</span></code></pre></div>    </div>
   </li>
   <li>自定义RDDMultipleTextOutputFormat继承MultipleTextOutputFormat[Any, Any]<br />
 因为我们这里继承的是MultipleTextOutputFormat，已经帮我把getRecordWriter重写好了，所以我们就很方便简单的重写一个generateFileNameForKeyValue，来根据数据内容划分文件目录就好了。
-    <div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">java.text.SimpleDateFormat</span>
+    <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">java.text.SimpleDateFormat</span>
 <span class="k">import</span> <span class="nn">java.util.Date</span>
 <span class="k">import</span> <span class="nn">org.apache.hadoop.mapred.lib.MultipleTextOutputFormat</span>
 <span class="k">class</span> <span class="nc">RDDMultipleTextOutputFormat</span>  <span class="k">extends</span> <span class="nc">MultipleTextOutputFormat</span><span class="o">[</span><span class="kt">Any</span>, <span class="kt">Any</span><span class="o">]{</span>
@@ -1099,14 +1075,13 @@ yezm:2018-24-28 yeziming$ cat 11-24-44_part-00001
 </span> <span class="n">service_date</span>
   <span class="o">}</span>
 <span class="o">}</span>
-</code></pre>
-    </div>
+</code></pre></div>    </div>
     <p>在generateFileNameForKeyValue方法中，我们根据上面用map转换的“rdd.map(x=&gt;(x,””))”，则key为数据内容。所以对key进行切分，取第18个字段的日期来作为目录生成的依据。并且我们截取默认name的后两位，来作为partation编号，所以我们最后生成的文件路径名为“文件基础路径（即上述saveAsHadoopFile中传入的hdfsPath）/业务年月日/业务小时/文件写入时间_part编号”。</p>
   </li>
 </ol>
 
 <p>所以，最终显示样式可如下：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>//这次就是数据有延迟，12:12才写入12点目录中
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>//这次就是数据有延迟，12:12才写入12点目录中
 dcos@d8pccdsj3[~]$hadoop fs -ls /encrypt_data/4g_info_c60/2018-07-28/12
 Found 40 items
 -rw-r--r--   3 user1 cgroup    6541003 2018-07-28 12:12 /encrypt_data/4g_info_c60/2018-07-28/12/12-12-05-00
@@ -1129,24 +1104,22 @@ Found 40 items
 -rw-r--r--   3 user1 cgroup   73355198 2018-07-28 12:13 /encrypt_data/4g_info_c60/2018-07-28/12/12-13-03-02
 -rw-r--r--   3 user1 cgroup   73337561 2018-07-28 12:13 /encrypt_data/4g_info_c60/2018-07-28/12/12-13-03-03
 -rw-r--r--   3 user1 cgroup   73320851 2018-07-28 12:13 /encrypt_data/4g_info_c60/2018-07-28/12/12-13-03-04
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>大功告成！</p>
 
 <h1 id="补充-需求2实现-validateoutputspecs参数-2018-09-03">补充-需求2实现-validateOutputSpecs参数-2018-09-03</h1>
 <h2 id="需求描述">需求描述</h2>
 <p>数据从很多接口接入，每条数据的第一个字段标明接口来源，需使用spark streaming程序，实时根据将数据根据不同的接口标注，写入到HDFS对应的目录的对应文件之中。<br />
 数据样式：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>60,2018-08-14 10:16:50.062211990,2018-08-14 10:17:28.652398109,0,6......
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>60,2018-08-14 10:16:50.062211990,2018-08-14 10:17:28.652398109,0,6......
 61,2018-08-14 10:16:47.095155954,2018-08-14 10:17:21.435997962,0,52......
 62,2018-08-14 10:17:05.457761049,2018-08-14 10:17:28.077723979,0,6......
 ...
-</code></pre>
-</div>
+</code></pre></div></div>
 <h2 id="解决">解决</h2>
 <p>此需求跟上述问题解决方案一摸一样，也是重写自己的RDDMultipleTextOutputFormat即可。代码示例如下:</p>
 <h3 id="重写的rddmultipletextoutputformat">重写的RDDMultipleTextOutputFormat</h3>
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">java.text.SimpleDateFormat</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">java.text.SimpleDateFormat</span>
 <span class="k">import</span> <span class="nn">java.util.Date</span>
 <span class="k">import</span> <span class="nn">org.apache.hadoop.mapred.lib.MultipleTextOutputFormat</span>
 
@@ -1168,10 +1141,9 @@ Found 40 items
     <span class="n">filePath</span>
   <span class="o">}</span>
 <span class="o">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <h3 id="本机测试调用">本机测试调用</h3>
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">org.apache.spark.</span><span class="o">{</span><span class="nc">SparkConf</span><span class="o">,</span> <span class="nc">SparkContext</span><span class="o">}</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">org.apache.spark.</span><span class="o">{</span><span class="nc">SparkConf</span><span class="o">,</span> <span class="nc">SparkContext</span><span class="o">}</span>
 <span class="k">import</span> <span class="nn">org.apache.spark.rdd.RDD</span>
 <span class="cm">/**
   * Create by Liv on 2018/8/31.
@@ -1196,26 +1168,23 @@ Found 40 items
     <span class="n">pairRdd</span><span class="o">.</span><span class="n">repartition</span><span class="o">(</span><span class="mi">2</span><span class="o">).</span><span class="n">saveAsHadoopFile</span><span class="o">(</span><span class="s">"/Users/yeziming/test/xxdata"</span><span class="o">+</span><span class="s">"/"</span><span class="o">,</span><span class="n">classOf</span><span class="o">[</span><span class="kt">String</span><span class="o">],</span><span class="n">classOf</span><span class="o">[</span><span class="kt">String</span><span class="o">],</span><span class="n">classOf</span><span class="o">[</span><span class="kt">RDDMultipleTextOutputFormat</span><span class="o">])</span>
   <span class="o">}</span>
 <span class="o">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>为了测试RDDMultipleTextOutputFormat的文件目录格式写的是否正确，所以在本机使用sparkcore写spark程序测试了一下，但是在测试的过程中，在最初的时候，没有设置spark.hadoop.validateOutputSpecs，因此每次执行一次之后，如果不删除原来的目录，则会报错如下：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>Exception in thread "main" org.apache.hadoop.mapred.FileAlreadyExistsException: Output directory file:/Users/yeziming/test/xxdata already exists
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Exception in thread "main" org.apache.hadoop.mapred.FileAlreadyExistsException: Output directory file:/Users/yeziming/test/xxdata already exists
 	at org.apache.hadoop.mapred.FileOutputFormat.checkOutputSpecs(FileOutputFormat.java:132)
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>是因为在spark中也是用的hadoop那一套，所以原来mr中保存文件的时候，其中的org.apache.hadoop.mapred.FileOutputFormat.checkOutputSpecs方法会检查输出目录是否合法，如果没有指定，则抛出InvalidJobConfException，文件已经存在则抛出FileAlreadyExistsException。<br />
 因此，因为再次执行，目录是存在的，所以会报出FileAlreadyExistsException的错误。<br />
 可是之前直接通过spark streaming程序的时候，并没有出现这个错误。查询这个错误怎么解决的时候，大部分都说自己删除目录即可。后来通过查询spark的参数设置，发现了“spark.hadoop.validateOutputSpecs”这个参数。其说明如下：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>spark.hadoop.validateOutputSpecs
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>spark.hadoop.validateOutputSpecs
 默认是true。若设置为true，saveAsHadoopFile会验证输出目录是否存在。虽然设为false可以忽略文件存在的异常，但建议使用 Hadoop文件系统的API手动删除输出目录。当通过Spark Streaming的StreamingContext时本参数会被忽略，因为当进行checkpoint恢复时会重写已经存在的文件。  
 If set to true, validates the output specification (e.g. checking if the output directory already exists) used in saveAsHadoopFile and other variants. This can be disabled to silence exceptions due to pre-existing output directories. We recommend that users do not disable this except if trying to achieve compatibility with previous versions of Spark. Simply use Hadoop's FileSystem API to delete output directories by hand. This setting is ignored for jobs generated through Spark Streaming's StreamingContext, since data may need to be rewritten to pre-existing output directories during checkpoint recovery.
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>所以，我们再用spark streaming程序的时候，不会出现这个问题。<br />
 因此，如果后续使用spark core程序的时候，如果出现了此问题，想要覆盖目录，则可设置此参数。<br />
 注意：文件名称不同，文件是不会覆盖的。<br />
 通过设置了这个参数之后，再次运行我上面写的程序，目录下的文件如下：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>yezm:20180903 yeziming$ ls
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>yezm:20180903 yeziming$ ls
 xx-xxxxx-events-60-20180903132300.txt
 xx-xxxxx-events-60-20180903132301.txt
 xx-xxxxx-events-60-20180903132400.txt
@@ -1229,8 +1198,7 @@ xx-xxxxx-events-61-20180903132401.txt
 xx-xxxxx-events-61-20180903134300.txt
 xx-xxxxx-events-61-20180903134301.txt
 ...
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>即，我的输出文件是以分钟命名的，所以在不同的分钟运行多次，会在那个目录里面生成多个文件，并不会将文件覆盖。<br />
 但是，一般情况下，是建议不设置这个参数的，因为需要将hdfs中的旧文件删除的话。<br />
 具体spark中删除HDFS目录，有个文章中写了但是没有测试，可以参考<a href="https://blog.csdn.net/zhouyan8603/article/details/51658950">spark删除hdfs文件</a>。</p>

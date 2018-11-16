@@ -478,7 +478,7 @@
 <p>在Spark Streaming中，目前为止累加器和广播变量确实是无法从checkpoint恢复的。但是如果在程序中既使用到checkpoint又使用了累加器和广播变量的话，最好对累加器和广播变量做懒实例化操作，这样可以使累加器和广播变量在driver失败重启时能够重新实例化。<br />
 解决方法其实就在spark官方的项目的examples中，访问请戳: <a href="https://github.com/apache/spark/blob/master/examples/src/main/scala/org/apache/spark/examples/streaming/RecoverableNetworkWordCount.scala">RecoverableNetworkWordCount</a> ，它是广播变量和累加器与checkpoint兼容的一个例子。下面我就把代码摘出来记录一下。</p>
 <h3 id="第一步用单例模式来获取或生成广播变量和累加器">第一步：用单例模式来获取或生成广播变量和累加器</h3>
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="cm">/**
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/**
  * Use this singleton to get or register a Broadcast variable.
  * 单例模式获取广播变量wordBlacklist
  */</span>
@@ -513,11 +513,10 @@
     <span class="n">instance</span>
   <span class="o">}</span>
 <span class="o">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <h3 id="第二步在spark主程序中使用">第二步：在Spark主程序中使用</h3>
 <p>在主程序的driver端位置使用，懒实例化操作，这样可以使累加器和广播变量在driver失败重启时能够重新实例化。</p>
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">object</span> <span class="nc">RecoverableNetworkWordCount</span> <span class="o">{</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">object</span> <span class="nc">RecoverableNetworkWordCount</span> <span class="o">{</span>
   <span class="c1">// 这个是用来生成StreamingContext对象的用户自定义的方法
 </span>  <span class="k">def</span> <span class="n">createContext</span><span class="o">(</span><span class="n">ip</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">port</span><span class="k">:</span> <span class="kt">Int</span><span class="o">,</span> <span class="n">outputPath</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">checkpointDirectory</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span>
     <span class="k">:</span> <span class="kt">StreamingContext</span> <span class="o">=</span> <span class="o">{</span>
@@ -582,13 +581,12 @@
     <span class="n">ssc</span><span class="o">.</span><span class="n">awaitTermination</span><span class="o">()</span>
   <span class="o">}</span>
 <span class="o">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <h1 id="解决-sparkstreamingkafkapool程序修改兼容checkpoint和广播变量kafkapool">解决-SparkStreaming+kafkaPool程序修改(兼容checkpoint和广播变量kafkaPool)</h1>
 <p>上述内容即如何将checkpoint与广播变量或累加器兼容的例子，下面则结合上述例子，对上文(<a href="https://leafming.github.io/bigdata/2018/04/02/SparkStreaming写数据到Kafka-Kafka连接池的使用/">SparkStreaming写数据到Kafka</a>)的程序做修改来解决“java.lang.ClassCastException:B cannot be cast to KafkaPool”的问题。</p>
 <h2 id="第一步包装kafkaproducer-创建kafka连接池不变">第一步：包装KafkaProducer-创建Kafka连接池（不变）</h2>
 <p>对于上文(<a href="https://leafming.github.io/bigdata/2018/04/02/SparkStreaming写数据到Kafka-Kafka连接池的使用/">SparkStreaming写数据到Kafka</a>)中的程序，第一步保持不变，创建class KafkaPool 以及object KafkaPool，将KafkaProducer以lazy val的方式进行包装。</p>
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">java.util.concurrent.Future</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">java.util.concurrent.Future</span>
 <span class="k">import</span> <span class="nn">org.apache.kafka.clients.producer.</span><span class="o">{</span><span class="nc">KafkaProducer</span><span class="o">,</span> <span class="nc">ProducerRecord</span><span class="o">,</span> <span class="nc">RecordMetadata</span><span class="o">}</span>
 <span class="c1">//scala中，类名之后的括号中是构造函数的参数列表，() =&gt;是传值传参，KafkaProducer
 </span><span class="k">class</span> <span class="nc">KafkaPool</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">V</span><span class="o">](</span> <span class="n">createProducer</span><span class="k">:</span> <span class="o">()</span> <span class="o">=&gt;</span> <span class="nc">KafkaProducer</span><span class="o">[</span><span class="kt">K</span>,<span class="kt">V</span><span class="o">])</span>  <span class="k">extends</span> <span class="nc">Serializable</span><span class="o">{</span>
@@ -616,11 +614,10 @@
   <span class="o">}</span>
   <span class="k">def</span> <span class="n">apply</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">V</span><span class="o">](</span><span class="n">config</span><span class="k">:</span> <span class="kt">java.util.Properties</span><span class="o">)</span><span class="k">:</span> <span class="kt">KafkaPool</span><span class="o">[</span><span class="kt">K</span>, <span class="kt">V</span><span class="o">]</span> <span class="k">=</span> <span class="n">apply</span><span class="o">(</span><span class="n">config</span><span class="o">.</span><span class="n">toMap</span><span class="o">)</span>
 <span class="o">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <h2 id="第二步对广播变量懒实例化操作使用单例模式来获取广播变量kafkapool">第二步：对广播变量懒实例化操作，使用单例模式来获取广播变量KafkaPool</h2>
 <p>这里较上文(<a href="https://leafming.github.io/bigdata/2018/04/02/SparkStreaming写数据到Kafka-Kafka连接池的使用/">SparkStreaming写数据到Kafka</a>)第一种方式中的直接下发广播变量有所区别，而是创建来一个GetKafkaPoolBroadcast的getKafkaPool方法，用于在主程序中driver端调用此方法时再获取或生成广播变量。</p>
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">java.util.Properties</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">java.util.Properties</span>
 <span class="k">import</span> <span class="nn">org.apache.spark.SparkContext</span>
 <span class="k">import</span> <span class="nn">org.apache.spark.internal.Logging</span>
 <span class="k">import</span> <span class="nn">org.apache.spark.broadcast.Broadcast</span>
@@ -649,11 +646,10 @@
     <span class="n">kafkapool</span>
   <span class="o">}</span>
 <span class="o">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <h2 id="第三步在主程序中使用getkafkapoolbroadcast的getkafkapool获取或生成广播变量">第三步：在主程序中使用GetKafkaPoolBroadcast的getKafkaPool获取或生成广播变量</h2>
 <p>在主程序中，driver端的位置调用此方法，这样可以使广播变量在driver失败重启时能够重新示例化。</p>
-<div class="language-scala highlighter-rouge"><pre class="highlight"><code>    <span class="c1">//保存处理后的数据到kafka
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="c1">//保存处理后的数据到kafka
 </span>    <span class="n">writeDStrem</span><span class="o">.</span><span class="n">foreachRDD</span><span class="o">(</span><span class="n">rdd</span> <span class="k">=&gt;</span> <span class="o">{</span>
       <span class="c1">// driver端运行，涉及操作：广播变量的初始化和更新
 </span>      <span class="k">if</span> <span class="o">(</span><span class="n">rdd</span><span class="o">.</span><span class="n">isEmpty</span><span class="o">)</span> <span class="o">{</span>
@@ -668,8 +664,7 @@
         <span class="n">competeTime</span><span class="o">(</span><span class="n">start_time</span><span class="o">,</span> <span class="s">"Processed data write to KAFKA"</span><span class="o">)</span>
       <span class="o">}</span>
     <span class="o">})</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>这样，就不会再尝试从checkpoint中恢复广播变量，而可以避免“java.lang.ClassCastException:B cannot be cast to KafkaPool”这个问题啦。</p>
 
 <hr />

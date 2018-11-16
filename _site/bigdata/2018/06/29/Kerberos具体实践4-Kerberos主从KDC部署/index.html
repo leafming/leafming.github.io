@@ -482,24 +482,21 @@ root/admin         - admin principal</p>
 每个kdc都要有host key在kerberos数据库中。这些keys用于双向认证的时候，从主kdc向从属KDC传播数据库转储文件。<br />
 如果需要将从KDC和主KDC交换的话，要使从KDC服务器正常工作，它必须有主机主体。<br />
 注：当主体实例名为主机名时，无论名称服务中的域名是大写还是小写，都必须以小写字母指定FQDN。
-    <div class="highlighter-rouge"><pre class="highlight"><code>kadmin：addprinc -randkey host/node2
-</code></pre>
-    </div>
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kadmin：addprinc -randkey host/node2
+</code></pre></div>    </div>
   </li>
   <li>在主KDC服务器上，创建kiprop主体。<br />
 kiprop主体用于授权来自主KDC服务器的更新。
-    <div class="highlighter-rouge"><pre class="highlight"><code>kadmin：addprinc -randkey kiprop/node1
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kadmin：addprinc -randkey kiprop/node1
 kadmin：addprinc -randkey kiprop/node2
-</code></pre>
-    </div>
+</code></pre></div>    </div>
   </li>
 </ol>
 
 <h2 id="在node2上安装kerberos-server">在node2上安装Kerberos-server</h2>
 <p>node2:</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ yum install krb5-server -y 
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ yum install krb5-server -y 
+</code></pre></div></div>
 
 <h2 id="修改配置文件">修改配置文件</h2>
 <p>kdc 服务器涉及到三个配置文件：<br />
@@ -508,7 +505,7 @@ kadmin：addprinc -randkey kiprop/node2
 /var/kerberos/krb5kdc/kadm5.acl</p>
 <h3 id="krb5conf配置-node1">krb5.conf配置-node1</h3>
 <p>在主KDC服务器（node1）上编辑krb5.conf文件，基本和单节点KDC配置类似，仅在[realms]部分加入slave kdc信息，并且设置admin_server为主kdc即可，如下：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>#node1上操作krb5.conf，之后再拷贝到其他机器
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>#node1上操作krb5.conf，之后再拷贝到其他机器
 [realms]
 HADOOP.COM = {
   kdc = node1
@@ -516,10 +513,9 @@ HADOOP.COM = {
   admin_server = node1
   default_domain = HADOOP.COM
  }
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>配置文件整体示例：</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>[logging]
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[logging]
  default = FILE:/var/log/krb5libs.log
  kdc = FILE:/var/log/krb5kdc.log
  admin_server = FILE:/var/log/kadmind.log
@@ -549,35 +545,31 @@ HADOOP.COM = {
 # hadoop.com = HADOOP.COM
 # # if the domain name and realm name are equivalent,
 # # this entry is not needed
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h3 id="kdcconf配置-node1">kdc.conf配置-node1</h3>
 <p>在主KDC服务器（node1）上编辑kdc.conf文件，realms部分添加用于增量传播和选择主KDC服务器将在日志中保留的更新数的行。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>[realms]
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[realms]
 HADOOP.COM={
     ...
   iprop_enable = true
   iprop_master_ulogsize = 1000
     ...
 }
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h3 id="kadm5acl配置-node1">kadm5.acl配置-node1</h3>
 <p>在主KDC服务器上，向kadm5.acl添加kiprop项。<br />
 通过此项，主KDC服务器可以接受对kdc2服务器的kerberos数据库增量传播请求。</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>[root@node1 ~]# cat /var/kerberos/krb5kdc/kadm5.acl
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[root@node1 ~]# cat /var/kerberos/krb5kdc/kadm5.acl
 root/admin@HADOOP.COM    *
 kiprop/node2@HADOOP.COM p
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h3 id="在kdc服务器上重启kadmin以使用kadm5acl文件中新的内容">在KDC服务器上，重启kadmin以使用kadm5.acl文件中新的内容</h3>
-<div class="highlighter-rouge"><pre class="highlight"><code>[root@node1 etc]# service kadmin restart
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[root@node1 etc]# service kadmin restart
+</code></pre></div></div>
 <h3 id="将主kdc服务器上以下文件复制到所有从kdc上">将主KDC服务器上以下文件复制到所有从KDC上</h3>
 <p>主KDC和从KDC间的数据库扩展，传播的是master的数据库内容的拷贝，而不是配置文件、stash文件或kadm5 ACL文件。
 需要在所有的从 KDC 服务器上执行该步骤，因为主 KDC 服务器已经更新了每个 KDC 服务器需要的信息。
@@ -589,23 +581,21 @@ kiprop/node2@HADOOP.COM p
   <li>master key stash file</li>
 </ul>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ scp /etc/krb5.conf node2:/etc/krb5.conf
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ scp /etc/krb5.conf node2:/etc/krb5.conf
 $ scp /var/kerberos/krb5kdc/kdc.conf node2:/var/kerberos/krb5kdc/kdc.conf
 $ scp /var/kerberos/krb5kdc/.k5.HADOOP.COM node2:/var/kerberos/krb5kdc/.k5.HADOOP.COM
 #此步骤有人说可以在新的从 KDC 服务器上，使用kdb5_util创建一个存储文件。（需测试）
 $ scp /var/kerberos/krb5kdc/kadm5.acl node2:/var/kerberos/krb5kdc/kadm5.acl
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h2 id="从主服务器其他配置操作">从、主服务器其他配置操作</h2>
 <h3 id="在所有的从kdc服务器上将主kdc服务器和每个从kdc服务器的项添加到数据库传播配置文件kpropdacl中">在所有的从KDC服务器上，将主KDC服务器和每个从KDC服务器的项添加到数据库传播配置文件kpropd.acl中</h3>
 <p>在master KDC和slave KDCs之间传输数据库是通过kpropd daemon来实现，因此需要明确的定义允许在slave机器的新数据库上提供kerberos dump更新的主体。<br />
 在所有从KDC服务器上，在KDC state文件夹中创建kpropd.acl文件，将主KDC服务器和每个从KDC服务器的主机主体项添加到其中。</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>[root@node2 krb5kdc]# cat kpropd.acl
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[root@node2 krb5kdc]# cat kpropd.acl
 host/node1@HADOOP.COM
 host/node2@HADOOP.COM
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>说明：从KDC服务器上的kpropd.acl文件提供主机主体名称的列表(每个名称占一行)，用于指定该KDC可以通过传播从其接收更新数据库的系统。如果希望主KDC和从KDC能够交换，则需要在全部KDC的kpropd.acl列出全部KDC服务器的host主体。否则，如果仅使用主KDC服务器传播到所有从KDC服务器，则每个从KDC服务器上的kpropd.acl文件仅需包含主KDC服务器的主机主体名称。</p>
 
 <h3 id="在所有从kdc服务器上确保未填充kerberos访问控制列表文件kadm5acl">在所有从KDC服务器上，确保未填充kerberos访问控制列表文件kadm5.acl。</h3>
@@ -613,46 +603,41 @@ host/node2@HADOOP.COM
 
 <h3 id="在新的从kdc服务器上更改kdcconf某个项">在新的从KDC服务器上，更改kdc.conf某个项</h3>
 <p>使用定义“iprop_slave_poll = 2m”替换“iprop_master_ulogsize = 1000”。该项将轮询时间设为2分钟。</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>[realms]
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[realms]
 HADOOP.COM={
     ...
   iprop_enable = true
   iprop_slave_poll = 2m
     ...
 }
-</code></pre>
-</div>
+</code></pre></div></div>
 <h3 id="在新的从kdc服务器上启动kadmin命添加主体到密钥表">在新的从KDC服务器上，启动kadmin命，添加主体到密钥表。</h3>
 <p>必须使用在配置主KDC服务器时创建的一个admin主体名称登录。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>echo root@1234|kinit root/admin
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>echo root@1234|kinit root/admin
+</code></pre></div></div>
 <ol>
   <li>使用kadmin将从KDC服务器的主机主体添加到从KDC服务器的密钥表文件中。<br />
 该项可使kprop及其他基于Kerberos的应用程序正常工作。请注意，当主体实例为主机名时，无论名称服务中的域名是大写还是小写，都必须以小写字母指定FQDN。<br />
 注：添加自己的host主体到自己的密钥表文件中。
-    <div class="highlighter-rouge"><pre class="highlight"><code>#在node2上执行  
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>#在node2上执行  
 kadmin: ktadd host/node2  
-</code></pre>
-    </div>
+</code></pre></div>    </div>
     <p>理想情况下，应该在自己本地导出自己的keytab。如果不可行，则应该创建一个加密的会话来在网络中传输。</p>
   </li>
   <li>将kiprop主体添加到从KDC服务器的密钥表文件中。<br />
 通过将kiprop主体添加到krb5.keytab文件，允许kpropd命令在启动增量传播时对其自身进行验证。
-    <div class="highlighter-rouge"><pre class="highlight"><code>#在node2执行
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>#在node2执行
 kadmin: ktadd kiprop/node2
-</code></pre>
-    </div>
+</code></pre></div>    </div>
   </li>
 </ol>
 
 <h3 id="在新的从kdc服务器上启动kerberos传播守护进程不是增量传播是否需要此步骤todo记不清了">在新的从KDC服务器上，启动Kerberos传播守护进程。（不是增量传播是否需要此步骤@TODO记不清了）</h3>
 <p>如果需要启动增量传播，需要启动kpropd作为一个独立的进程。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>kpropd
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kpropd
+</code></pre></div></div>
 
 <p>至此，slave KDC可以接受数据库传播，需要将数据库从master server中传过来。<br />
 注意：目前不能够启动slave KDC，因为还没有复制master的database。</p>
@@ -660,26 +645,24 @@ kadmin: ktadd kiprop/node2
 <h2 id="将数据库复制到每一个slave-kdc中">将数据库复制到每一个slave KDC中</h2>
 <p>在master KDC（node1）上创建dump file：</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>[root@node1 kerberos]# kdb5_util dump /var/kerberos/krb5kdc/slave_datatrans 
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[root@node1 kerberos]# kdb5_util dump /var/kerberos/krb5kdc/slave_datatrans 
 [root@node1 kerberos]# ls
 krb5  krb5kdc  slave_datatrans  slave_datatrans.dump_ok
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h3 id="手动传播脚本传播">手动传播（脚本传播）</h3>
 <ol>
   <li>手动传播操作<br />
 手动传输数据库文件到每一个slave KDC上：
-    <div class="highlighter-rouge"><pre class="highlight"><code>[root@node1 kerberos]#  kprop -f /var/kerberos/krb5kdc/slave_datatrans  node2
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[root@node1 kerberos]#  kprop -f /var/kerberos/krb5kdc/slave_datatrans  node2
 Database propagation to node2: SUCCEEDED
-</code></pre>
-    </div>
+</code></pre></div>    </div>
     <blockquote>
       <p>补充说明：Kerberos的数据库在master KDC上，因此需要定期的把这个数据库复制到slave KDCs上。如何设置数据库复制的频率，需要跟进传播时间以及用户等待密码生效的最大时间而设置。如果传播时间比这个最大限制时间长，（比如有一个很大的数据库，并且有很多slave，或者频繁的网络延迟），则可能希望能通过并行传播来减少传播延迟。因此，可以将数据库先从主节点传播给一部分从节点，然后从从节点再传播给其他节点。  <br />
 因为此时没有配置开启增量传播，因此，需要手动或脚本定时复制数据库，类似如下。</p>
     </blockquote>
 
-    <div class="highlighter-rouge"><pre class="highlight"><code>#脚本方式：
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>#脚本方式：
 #!/bin/sh
 kdclist = "kerberos-1.mit.edu kerberos-2.mit.edu"
 kdb5_util dump /usr/local/var/krb5kdc/slave_datatrans
@@ -687,26 +670,23 @@ for kdc in $kdclist
 do
  kprop -f /usr/local/var/krb5kdc/slave_datatrans $kdc
 done
-</code></pre>
-    </div>
+</code></pre></div>    </div>
     <p>需要设置一个定时任务去运行这个脚本，或者在切换之前执行。<br />
 至此，slave KDC中有了Kerberos database的复制, slave上/var/kerberos/krb5kdc/会多出一些文件。<br />
 现在即可启动krb5kdc daemon:</p>
-    <div class="highlighter-rouge"><pre class="highlight"><code>[root@node2 kerberos]# systemctl start krb5kdc.service
-</code></pre>
-    </div>
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[root@node2 kerberos]# systemctl start krb5kdc.service
+</code></pre></div>    </div>
   </li>
   <li>启动遇到问题处理
     <ol>
       <li>手动传输数据库文件报错：
-        <div class="highlighter-rouge"><pre class="highlight"><code> kprop: No route to host while connecting to server
-</code></pre>
-        </div>
+        <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> kprop: No route to host while connecting to server
+</code></pre></div>        </div>
         <p>处理：Make sure that the hostname of the slave (as given to kprop) is correct, and that any firewalls between the master and the slave allow a connection on port 754.</p>
       </li>
       <li>从节点启动可以直接打“krb5kdc”来启动，但是直接krb5kdc和systemctl start krb5kdc.service只能使用一种。<br />
 报错：
-        <div class="highlighter-rouge"><pre class="highlight"><code> [root@node2 krb5kdc]# systemctl status krb5kdc.service -l
+        <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> [root@node2 krb5kdc]# systemctl status krb5kdc.service -l
  ● krb5kdc.service - Kerberos 5 KDC
    Loaded: loaded (/usr/lib/systemd/system/krb5kdc.service; disabled; vendor preset: disabled)
 Active: failed (Result: exit-code) since Tue 2017-09-19 16:06:57 CST; 17s ago
@@ -716,10 +696,9 @@ Active: failed (Result: exit-code) since Tue 2017-09-19 16:06:57 CST; 17s ago
  Sep 19 16:06:57 node2 systemd[1]: Failed to start Kerberos 5 KDC.
  Sep 19 16:06:57 node2 systemd[1]: Unit krb5kdc.service entered failed state.
  Sep 19 16:06:57 node2 systemd[1]: krb5kdc.service failed.
-</code></pre>
-        </div>
+</code></pre></div>        </div>
         <p>处理：</p>
-        <div class="highlighter-rouge"><pre class="highlight"><code> [root@node2 krb5kdc]# ps -ef | grep krb5
+        <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> [root@node2 krb5kdc]# ps -ef | grep krb5
  root      5080     1  0 15:47 ?        00:00:00 krb5kdc
  root      9330  2940  0 16:07 pts/0    00:00:00 grep --color=auto krb5
  [root@node2 krb5kdc]# kill 5080
@@ -736,8 +715,7 @@ CGroup: /system.slice/krb5kdc.service
  Sep 19 16:08:09 node2 systemd[1]: Starting Kerberos 5 KDC...
  Sep 19 16:08:09 node2 systemd[1]: PID file /var/run/krb5kdc.pid not readable (yet?) after start.
  Sep 19 16:08:09 node2 systemd[1]: Started Kerberos 5 KDC.
-</code></pre>
-        </div>
+</code></pre></div>        </div>
       </li>
     </ol>
   </li>
@@ -763,9 +741,8 @@ If incremental propagation is enabled, the principal kiprop/slavehostname@REALM 
       <li>The slave’s KDB module must support locking; it cannot be using the LDAP KDB module.</li>
       <li>The master and slave must be able to initiate TCP connections in both directions, without an intervening NAT.  <br />
  直接输入如下，启动kpropd作为一个独立的进程。
-        <div class="highlighter-rouge"><pre class="highlight"><code> kpropd
-</code></pre>
-        </div>
+        <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> kpropd
+</code></pre></div>        </div>
         <p>关闭：pkill kpropd</p>
       </li>
     </ul>
@@ -801,7 +778,7 @@ If incremental propagation is enabled, the principal kiprop/slavehostname@REALM 
   <li>错误处理
     <ol>
       <li>found kpropd.acl-报错如下：
-        <div class="highlighter-rouge"><pre class="highlight"><code> [root@node1 krb5kdc]# systemctl status kadmin.service
+        <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> [root@node1 krb5kdc]# systemctl status kadmin.service
  ● kadmin.service - Kerberos 5 Password-changing and Administration
 Loaded: loaded (/usr/lib/systemd/system/kadmin.service; enabled; vendor preset: disabled)
 Active: failed (Result: exit-code) since Tue 2017-09-19 15:29:26 CST; 8s ago
@@ -813,21 +790,19 @@ Active: failed (Result: exit-code) since Tue 2017-09-19 15:29:26 CST; 8s ago
  Sep 19 15:29:26 node1 systemd[1]: Failed to start Kerberos 5 Password-changing and Administration.
  Sep 19 15:29:26 node1 systemd[1]: Unit kadmin.service entered failed state.
  Sep 19 15:29:26 node1 systemd[1]: kadmin.service failed.
-</code></pre>
-        </div>
+</code></pre></div>        </div>
         <p>问题解决：<br />
  成为主节点的KDC，不能有kpropd.acl文件，删除原主kpropd.acl。 <br />
  解决参照：<a href="http://compgroups.net/comp.protocols.kerberos/kerberos-master-slave-setup-database/3021964">报错解决</a>。</p>
       </li>
       <li>密钥版本不匹配-Decrypt integrity check failed
-        <div class="highlighter-rouge"><pre class="highlight"><code> [root@node1 krb5kdc]#  kprop -f /var/kerberos/krb5kdc/slave_datatrans  node2
+        <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> [root@node1 krb5kdc]#  kprop -f /var/kerberos/krb5kdc/slave_datatrans  node2
  kprop: Server rejected authentication (during sendauth exchange) while authenticating to server
  kprop: Key version is not available signalled from server
  Error text from server: Key version is not available
  或者报错：
  kprop: Decrypt integrity check failed while getting initial credentials
-</code></pre>
-        </div>
+</code></pre></div>        </div>
         <p>原因：您的票证可能无效。<br />
  解决方法分析：<br />
  请检验以下两种情况：</p>
@@ -837,45 +812,40 @@ Active: failed (Result: exit-code) since Tue 2017-09-19 15:29:26 CST; 8s ago
  实际解决：<br />
  我出错的原因是因为主KDC和从KDC中都有host/node2@HADOOP.COM和host/node1@HADOOP.COM的keytab内容，然后导致互相获取kvno的时候版本不匹配。<br />
  1」.主从同时删除keytab文件和kdestroy
-            <div class="highlighter-rouge"><pre class="highlight"><code> #node1和node2上执行
+            <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> #node1和node2上执行
  rm -rf krb5.keytab
  kadmin:kdestroy
-</code></pre>
-            </div>
+</code></pre></div>            </div>
             <p>2」.分别执行：<br />
  node1上：</p>
-            <div class="highlighter-rouge"><pre class="highlight"><code> [root@node1 krb5kdc]# kvno  host/node1@HADOOP.COM
+            <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> [root@node1 krb5kdc]# kvno  host/node1@HADOOP.COM
  kvno: No credentials cache found (filename: /tmp/krb5cc_0) while getting client principal name
  kadmin: ktadd host/node1  
  [root@node1 krb5kdc]# kinit -k -t /etc/krb5.keytab host/node1@HADOOP.COM
-</code></pre>
-            </div>
+</code></pre></div>            </div>
             <p>node2上：</p>
-            <div class="highlighter-rouge"><pre class="highlight"><code> kadmin: ktadd host/node2  
+            <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> kadmin: ktadd host/node2  
  [root@node2 tmp]# kinit -k -t /etc/krb5.keytab   host/node2@HADOOP.COM
-</code></pre>
-            </div>
+</code></pre></div>            </div>
             <p>3」.查看密钥版本是否互相匹配<br />
  node1上：</p>
-            <div class="highlighter-rouge"><pre class="highlight"><code> [root@node1 krb5kdc]# klist -k
+            <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> [root@node1 krb5kdc]# klist -k
  #此处此命令可查看到自己的kvno
  [root@node1 krb5kdc]# kvno  host/node1@HADOOP.COM
  host/node1@HADOOP.COM: kvno = 4
  [root@node2 tmp]# kvno host/node2@HADOOP.COM
  host/node2@HADOOP.COM: kvno = 6
  #看此是否与node2的对应kvno匹配
-</code></pre>
-            </div>
+</code></pre></div>            </div>
             <p>node2上：</p>
-            <div class="highlighter-rouge"><pre class="highlight"><code> [root@node2 krb5kdc]# klist -k
+            <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> [root@node2 krb5kdc]# klist -k
  #此处此命令可查看到自己的kvno
  [root@node2 tmp]# kvno host/node2@HADOOP.COM
  host/node2@HADOOP.COM: kvno = 6
  [root@node2 krb5kdc]# kvno  host/node1@HADOOP.COM
  host/node1@HADOOP.COM: kvno = 4
  #看此是否与node1的对应kvno匹配
-</code></pre>
-            </div>
+</code></pre></div>            </div>
             <p>之后即可解决。<br />
  问题处理参考：<a href="http://compgroups.net/comp.protocols.kerberos/decrypt-integrity-check-failed-3/1946334">密钥版本不匹配</a>。</p>
           </li>

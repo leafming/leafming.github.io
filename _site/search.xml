@@ -5,8 +5,10 @@
       <title>实时流处理系统反压机制（BackPressure）综述[转]</title>
       <url>/bigdata/2018/11/15/%E5%AE%9E%E6%97%B6%E6%B5%81%E5%A4%84%E7%90%86%E7%B3%BB%E7%BB%9F%E5%8F%8D%E5%8E%8B%E6%9C%BA%E5%88%B6-BackPressure-%E7%BB%BC%E8%BF%B0-%E8%BD%AC/</url>
       <content type="text">
-  本文主要关于实时流处理系统反压机制，最近看到反压问题看到此文章很好，在此分享并mark一下， (￢_￢)ﾉ最近菜叶子没自己写见谅。
-本文转自 实时流处理系统反压机制（BackPressure）综述：https://blog.csdn.net/qq_21125183/article/details/80708142。
+  本文主要关于实时流处理系统反压机制，最近看到反压问题看到此文章很好，在此分享并mark一下。
+ (￢_￢)ﾉ最近菜叶子没自己写见谅。
+本文转自 实时流处理系统反压机制（BackPressure）综述
+https://blog.csdn.net/qq_21125183/article/details/80708142
 
 
 反压机制（BackPressure）被广泛应用到实时流处理系统中，流处理系统需要能优雅地处理反压（backpressure）问题。反压通常产生于这样的场景：短时负载高峰导致系统接收数据的速率远高于它处理数据的速率。许多日常问题都会导致反压，例如，垃圾回收停顿可能会导致流入的数据快速堆积，或者遇到大促或秒杀活动导致流量陡增。反压如果不能得到正确的处理，可能会导致资源耗尽甚至系统崩溃。反压机制就是指系统能够自己检测到被阻塞的Operator，然后系统自适应地降低源头或者上游的发送速率。目前主流的流处理系统 Apache Storm、JStorm、Spark Streaming、S4、Apache Flink、Twitter Heron都采用反压机制解决这个问题，不过他们的实现各自不同。
@@ -140,7 +142,6 @@ o.a.f.[...].LocalBufferPool.requestBufferBlocking(LocalBufferPool.java:133) &amp
 [...]
 
 
-
 那么事情就简单了。通过不断地采样每个 task 的 stack trace 就可以实现反压监控。
 
 
@@ -149,7 +150,14 @@ Flink 的实现中，只有当 Web 页面切换到某个 Job 的 Backpressure �
 
 总结
 
-Flink 不需要一种特殊的机制来处理反压，因为 Flink 中的数据传输相当于已经提供了应对反压的机制。因此，Flink 所能获得的最大吞吐量由其 pipeline 中最慢的组件决定。相对于 Storm/JStorm 的实现，Flink 的实现更为简洁优雅，源码中也看不见与反压相关的代码，无需 Zookeeper/TopologyMaster 的参与也降低了系统的负载，也利于对反压更迅速的响应。
+Flink不需要一种特殊的机制来处理反压，因为Flink 中的数据传输相当于已经提供了应对反压的机制。因此，Flink 所能获得的最大吞吐量由其 pipeline 中最慢的组件决定。相对于 Storm/JStorm 的实现，Flink 的实现更为简洁优雅，源码中也看不见与反压相关的代码，无需 Zookeeper/TopologyMaster 的参与也降低了系统的负载，也利于对反压更迅速的响应。
+
+
+  本文转自 实时流处理系统反压机制（BackPressure）综述
+https://blog.csdn.net/qq_21125183/article/details/80708142
+
+
+
 至此，本篇内容完成。
 </content>
       <categories>
@@ -1958,7 +1966,6 @@ ZooKeeper安全
 缓冲器的上一个TaskManager所要求数量为 总度的平行度（数的目标）* 节点内并行性（源在一个TaskManager数）× N 与 N 是限定多少repartitioning-恒定/您希望同时处于活动状态的广播步骤。由于节点内并行性通常是核心数量，并且超过4个重新分区或广播频道很少并行活动，因此它经常归结为
 #slots-per-TM^2 * #TMs * 4
 
-
 哪里#slots per TM是每个TaskManager插槽数量和#TMs是TaskManager的总数。
 例如，为了支持20个8插槽机器的集群，您应该使用大约5000个网络缓冲区来获得最佳吞吐量。
 默认情况下，每个网络缓冲区的大小为32 KiBytes.在上面的示例中，系统因此将为网络缓冲区分配大约300 MiBytes。
@@ -2060,7 +2067,6 @@ Tasks和Operator Chains
  }
  ...
 }
-
     
   
 
@@ -2319,7 +2325,6 @@ def saveAsTextFile(path: String): Unit
 def saveAsTextFile(path: String, codec: Class[_ &amp;lt;: CompressionCodec]): Unit
 saveAsTextFile用于将RDD以文本文件的格式存储到文件系统中。
 
-
 不过，直接使用saveAsTextFile有很多需要注意的问题。首先，saveAsTextFile要求保存的目录之前是没有的，否则会报错。所以，最好程序中保存前先判断一下目录是否存在。下面的代码的例子先没有判断目录是否存在，需要自己调整。
 下面我们说一下直接使用saveAsTextFile可能遇到的问题：
 
@@ -2336,7 +2341,6 @@ saveAsTextFile用于将RDD以文本文件的格式存储到文件系统中。
          competeTime(start_time, &quot;Processed data write to hdfs&quot;)
        }
      })
-
     
     而一旦实际测试之后，你会发现savepath目录里的文件每次都会被覆盖掉，只保存着最后一次saveAsTextFIle的内容。
 这是因为foreachRDD中使用saveAsTextFile默认保存的文件名就是part-0000_ … part-0000n，每一个rdd都是这样，所以在Spark Streaming程序中，后面的批次数据过来在同一路径下后面的文件可能会覆盖前面的，因此会出现文件内容会被覆盖掉。所以来说，为了避免这个问题，可以在保存的时候在文件夹后面加上时间戳来解决。
@@ -2352,7 +2356,6 @@ saveAsTextFile用于将RDD以文本文件的格式存储到文件系统中。
          competeTime(start_time, &quot;Processed data write to hdfs&quot;)
        }
      })
-
     
     即：rdd.saveAsTextFile(“hdfs://cdh5hdfs/savepath/”+date+”/”+start_time)，这样写之后，保存的路径会根据当前时间来生成，假设运行到此段程序的时间是“2018-06-30 18:30:20”，那么文件存储的目录就会是“hdfs://cdh5hdfs/savepath/2018-06-30/1530354620”，如下显示：
     dcos@d8pccdsj3[~]$hadoop fs -ls /savepath/2018-06-30/1530354620
@@ -2365,7 +2368,6 @@ Found 8 items
 -rw-r--r--   3 test cgroup 2202310836 2018-06-30 18:30 /savepath/2018-06-30/1530354620/part-00004
 -rw-r--r--   3 test cgroup 2202639458 2018-06-30 18:30 /savepath/2018-06-30/1530354620/part-00005
 -rw-r--r--   3 test cgroup 2201906597 2018-06-30 18:30 /savepath/2018-06-30/1530354620/part-00006
-
     
     这样暂且解决了文件内容会被覆盖掉的问题。不过，这种情况下，我们会发现以日期命名的文件夹2018-06-30下，会根据每个批次生成一个时间戳命名的目录，并且目录下文件名称名称为part-0000n，所以说只是解决了这个还不够，此种方式还有其他需要注意的问题。
   
@@ -2376,13 +2378,11 @@ Found 8 items
     rdd.coalesce(1,true).saveAsTextFile(&quot;hdfs://cdh5hdfs/savepath/&quot;+date+&quot;/&quot;+start_time)
 //或
 //rdd.repartition(1).saveAsTextFile(&quot;hdfs://cdh5hdfs/savepath/&quot;+date+&quot;/&quot;+start_time)
-
     
     不过这样写，在数据过多的时候有很大的隐患：一般情况下，Spark面对的是大量的数据，并且是并行执行的，在数据过多的时候，如果强行要求最后只有一个分区，必然导致大量的磁盘IO和网络IO产生，并且最终操作的节点的内存也会承受很大考验，可能会出现单节点内存不足的问题或者效率及其低下。因此，有人提出，可以采用HDFS磁盘合并操作，即HDFS的getmerge操作。
     //hadoop fs -getmerge 源路径 目的路径 
 hadoop fs -getmerge /hdfs/output   /hdfs2/output.txt
 //或者cat &amp;gt;操作
-
     
   
   不能自定义名称，目录层级太多
@@ -2394,20 +2394,17 @@ hadoop fs -getmerge /hdfs/output   /hdfs2/output.txt
 如果需要使用此方法，需要修改配置文件，开启此功能，把dfs.support.appen的参数设置为true，不然客户端写入的时候会报错：
 Exception in thread &quot;main&quot; org.apache.hadoop.ipc.RemoteException: java.io.IOException: Append to hdfs not supported. Please refer to dfs.support.append configuration parameter.
 
-
 修改namenode节点上的hdfs-site.xml：
   &amp;lt;property&amp;gt;  
        &amp;lt;name&amp;gt;dfs.support.append&amp;lt;/name&amp;gt;  
        &amp;lt;value&amp;gt;true&amp;lt;/value&amp;gt;  
   &amp;lt;/property&amp;gt;
 
-
 或者，可以直接在程序里面代码设置：
 private val conf = new Configuration()
 conf.setBoolean(&quot;dfs.support.append&quot;, true)
 //后续直接使用其创建fs如：
 //var fs=FileSystem.get(uri, conf)
-
 
 并且需要注意的是，如果使用append追加写入文件，如果文件不存在，需求先创建。那么如果出现了这样的问题，你可能会直接像如下代码那么写（注意是错误的）：
     val path=new Path(strpath)
@@ -2419,10 +2416,8 @@ conf.setBoolean(&quot;dfs.support.append&quot;, true)
     val out = fs.append(path)
     out.write(record_sum1.getBytes())
 
-
 这样的话，会报如下错误：
 Exception in thread &quot;main&quot; org.apache.hadoop.ipc.RemoteException: org.apache.hadoop.hdfs.protocol.AlreadyBeingCreatedException: failed to create file /hdfs/testfile/file for DFSClient_-14565853217 on client 132.90.130.101 because current leaseholder is trying to recreate file.
-
 
 通过搜索发现可能和fs句柄有关，因此解决的时候，可以创建完文件之后，关闭流fs，再次获得一次新的fs：
     val path=new Path(strpath)
@@ -2435,7 +2430,6 @@ Exception in thread &quot;main&quot; org.apache.hadoop.ipc.RemoteException: org.
     }
     val out = fs.append(path)
     out.write(record_sum1.getBytes())
-
 
 
   参考Hadoop HDFS文件常用操作及注意事项（更新）遇到的问题2，HDFS写入异常:追加文件第
@@ -2474,7 +2468,6 @@ Exception in thread &quot;main&quot; org.apache.hadoop.ipc.RemoteException: org.
     fs.close()
   }
 
-
 在spark程序里面可以直接rdd处这样使用：
       if (!rdd.isEmpty()){
       //注意这里， 因为不需要返回值，所以用foreachPartition直接落地存储了最好。foreachPartition是collect算子，mapPartitions是transofmation。
@@ -2493,7 +2486,6 @@ Exception in thread &quot;main&quot; org.apache.hadoop.ipc.RemoteException: org.
        // }).collect()
       }
 
-
 这样的话，目录层次就变成了“hdfs://cdh5hdfs/savepath/当前日期/时间戳文件”内容即直接追加写入了以时间戳命名的文件中，减少了目录层级，并且能够自定义文件名称了。
 但是使用此种方法，相当于一个partation建立一次HDFS连接，执行起来会特别慢，是否可以考虑向Kafka似的弄个连接池的方式提高效率，但是我没有这样实验，毕竟append被说是测试版本，不建议用于生产。
 需求更改
@@ -2501,7 +2493,6 @@ Exception in thread &quot;main&quot; org.apache.hadoop.ipc.RemoteException: org.
 我们处理的数据也是从上游接收过来的，每条数据中都有记录此条数据生成的时间，但是我们实际收到的时间可能较生成有所延迟，所以不仅仅要求需要自定义存储的文件名，而且要根据数据内容（数据内容的生成时间字段），来决定将数据写入到哪个文件夹的哪个文件内。
 比如如数据格式如下所示：
 0|18610000000|460010000000000|2018|07|28|16-21-35|41003|22002|35004007800300|0000|||||0|||2018-07-28 16:21:35
-
 
 因此，我们根据需求，生成的目录格式需要是：
 dcos@d8pccdsj3[~]$hadoop fs -ls /savepath/2018-07-28
@@ -2521,7 +2512,6 @@ drwxr-xr-x   - user1 cgroup          0 2018-07-28 11:42 /savepath/2018-07-28/10
 drwxr-xr-x   - user1 cgroup          0 2018-07-28 16:40 /savepath/2018-07-28/16
 ...
 drwxr-xr-x   - user1 cgroup          0 2018-07-29 00:30 /savepath/2018-07-28/23
-
 
 即目录要求为/savepath/日期/小时/文件名，文件名需要辨识当前此文件的写入时间（即系统时间），而目录名称的日期和小时需要根据数据里面的业务时间决定，即上述示例数据的第18个字段，那么上面那条数据就需要放在/savepath/2018-07-28/16目录下的某个文件内（如16-16-06-00）。
 所以来说，根据这个需求，我们是不能直接使用saveAsTextFile的，因为文件名称需要自定义；而也尝试直接用append的时候有很大的麻烦，需要根据每条数据内容来决定放入某个目录和文件，并且数据可能延迟比如说现在10点，能零零散散收到几条3点的数据，所以来说在使用append的时候把每条数据的提取日期等信息处理成了三元组的形式来在writeToHDFS方法里面提取时间决定目录和文件名称，但是使用起来还是很复杂并且处理和写入时间太长，影响实时性，并且append还是测试方法不适合投入生产。因此，最终再寻找了下面的最终方法。
@@ -2563,7 +2553,6 @@ drwxr-xr-x   - user1 cgroup          0 2018-07-29 00:30 /savepath/2018-07-28/23
     RDD.rddToPairRDDFunctions(r)(nullWritableClassTag, textClassTag, null)
       .saveAsHadoopFile[TextOutputFormat[NullWritable, Text]](path, codec)
   }
-
 
 可以发现，saveAsTextFile函数是依赖于saveAsHadoopFile函数，由于saveAsHadoopFile函数接受PairRDD，所以在saveAsTextFile函数中利用rddToPairRDDFunctions函数转化为(NullWritable,Text)类型的RDD，然后通过saveAsHadoopFile函数实现相应的写操作。
 
@@ -2618,7 +2607,6 @@ def saveAsHadoopFile[F &amp;lt;: OutputFormat[K, V]](path: String)(implicit fm: 
       outputFormatClass: Class[_ &amp;lt;: OutputFormat[_, _]],
       conf: JobConf = new JobConf(self.context.hadoopConfiguration),
       codec: Option[Class[_ &amp;lt;: CompressionCodec]] = None): Unit
-
 
 这里我们要使用的算子是:
 def saveAsHadoopFile(path: String,keyClass: Class[],valueClass: Class[],outputFormatClass: Class[_ &amp;lt;: OutputFormat[, _]],conf: JobConf = new JobConf(self.context.hadoopConfiguration),codec: Option[Class[ &amp;lt;: CompressionCodec]] = None): Unit
@@ -2806,7 +2794,6 @@ extends FileOutputFormat&amp;lt;K, V&amp;gt; {
       JobConf job, String name, Progressable arg3) throws IOException;
 }
 
-
 在源码的最开始，我们看到对于MultipleOutputFormat&amp;lt;K, V&amp;gt;的描述，它可以将相似的记录输出到相同的数据集。我们可以看出，在写每条记录之前，MultipleOutputFormat将调用generateFileNameForKeyValue方法来确定需要写入的文件名。
 通过下图源码我们可以看出，在getRecordWriter中，对于文件名称的生成会先调用generateLeafFileName方法，而其只是传入了“name”来生成文件的leaf名称（图中标号1的myName），而此部分传入的name即默认的每个part生成的文件名称（如part-0000，关于这个name的值，也可以继续向父类FileOutputFormat或MultipleOutputs类继续挖掘，找出来为何这个默认值，或者参考后续的关于spark这里的源码说明文档，这里就不说明了）；而之后生成的myName会传入generateFileNameForKeyValue的方法，这个方法接受3个参数，可以根据k、v以及传入的name再次生成一个KeyBasePath即文件名称（图中标号2），之后获取到的KeyBasePath再作为参数传入getInputFileBasedOutputFileName方法生成finalPath。可以看到在默认情况下，我们看到generateLeafFileName方法和generateFileNameForKeyValue的方法均是直接“return name”，因此默认情况下得到name==myName==KeyBasePath，文件的名称即为part-0000。
 
@@ -2832,7 +2819,6 @@ public class MultipleTextOutputFormat&amp;lt;K, V&amp;gt; extends MultipleOutput
   }
 }  
 
-
 它默认能够将以text的格式将数据输出到不同的目录中，我们需要输出的也是文本，只不过是写入目录需要自定义一下，所以我们只需要继承MultipleTextOutputFormat来自定义一个类即可。
 测试generateLeafFileName（补充，可略过）
 上面我们说了MultipleOutputFormat中有两个决定文件名称的方法，generateLeafFileName和generateFileNameForKeyValue，我们在正式代码前，先直接写入文件系统测试下generateLeafFileName，可略过。
@@ -2854,7 +2840,6 @@ class TestMultipleTextOutputFormat  extends MultipleTextOutputFormat[Any, Any]{
  filename
   }
 }
-
     
   
   spark程序中测试使用
@@ -2872,7 +2857,6 @@ object TestSparkSave {
  rdd1.rapartation(2).saveAsHadoopFile(&quot;/Users/yeziming/test/saveDir&quot;, classOf[String], classOf[String],classOf[RDDMultipleTextOutputFormat])
   }
 }
-
     
   
 
@@ -2891,7 +2875,6 @@ yezm:2018-24-28 yeziming$ cat 11-24-44_part-00000
 yezm:2018-24-28 yeziming$ cat 11-24-44_part-00001
 0|18610000001|460010000000001|2018|07|21|15-21-35|41000|22000|35004007800301|0000|||||0|||2018-07-21 15:21:35
 0|18610000003|460010000000003|2018|07|21|17-21-35|41001|22002|35004007800303|0000|||||0|||2018-07-21 17:21:35
-
 
 可以看到，我们文件名称的拼接使用的是“val filename=dirName+”/”+fileName+”_“+name”，因此是时间+name的方式传入的，所以可以看出，name的值果然是part-0000n，后面的数字为partation的标号，所以我们在使用的过程中，也可以留下来默认的name的值的标号来区分不同的partation。
 正式代码编写
@@ -2917,7 +2900,6 @@ yezm:2018-24-28 yeziming$ cat 11-24-44_part-00001
    }
  })//foreachRDD
 //...
-
     
   
   自定义RDDMultipleTextOutputFormat继承MultipleTextOutputFormat[Any, Any]
@@ -2943,7 +2925,6 @@ class RDDMultipleTextOutputFormat  extends MultipleTextOutputFormat[Any, Any]{
  service_date
   }
 }
-
     
     在generateFileNameForKeyValue方法中，我们根据上面用map转换的“rdd.map(x=&amp;gt;(x,””))”，则key为数据内容。所以对key进行切分，取第18个字段的日期来作为目录生成的依据。并且我们截取默认name的后两位，来作为partation编号，所以我们最后生成的文件路径名为“文件基础路径（即上述saveAsHadoopFile中传入的hdfsPath）/业务年月日/业务小时/文件写入时间_part编号”。
   
@@ -2974,7 +2955,6 @@ Found 40 items
 -rw-r--r--   3 user1 cgroup   73337561 2018-07-28 12:13 /encrypt_data/4g_info_c60/2018-07-28/12/12-13-03-03
 -rw-r--r--   3 user1 cgroup   73320851 2018-07-28 12:13 /encrypt_data/4g_info_c60/2018-07-28/12/12-13-03-04
 
-
 大功告成！
 
 补充-需求2实现-validateOutputSpecs参数-2018-09-03
@@ -2985,7 +2965,6 @@ Found 40 items
 61,2018-08-14 10:16:47.095155954,2018-08-14 10:17:21.435997962,0,52......
 62,2018-08-14 10:17:05.457761049,2018-08-14 10:17:28.077723979,0,6......
 ...
-
 
 解决
 此需求跟上述问题解决方案一摸一样，也是重写自己的RDDMultipleTextOutputFormat即可。代码示例如下:
@@ -3012,7 +2991,6 @@ class RDDMultipleTextOutputFormat  extends MultipleTextOutputFormat[Any, Any]{
     filePath
   }
 }
-
 
 本机测试调用
 import org.apache.spark.{SparkConf, SparkContext}
@@ -3041,11 +3019,9 @@ object TestXXOriFile {
   }
 }
 
-
 为了测试RDDMultipleTextOutputFormat的文件目录格式写的是否正确，所以在本机使用sparkcore写spark程序测试了一下，但是在测试的过程中，在最初的时候，没有设置spark.hadoop.validateOutputSpecs，因此每次执行一次之后，如果不删除原来的目录，则会报错如下：
 Exception in thread &quot;main&quot; org.apache.hadoop.mapred.FileAlreadyExistsException: Output directory file:/Users/yeziming/test/xxdata already exists
 	at org.apache.hadoop.mapred.FileOutputFormat.checkOutputSpecs(FileOutputFormat.java:132)
-
 
 是因为在spark中也是用的hadoop那一套，所以原来mr中保存文件的时候，其中的org.apache.hadoop.mapred.FileOutputFormat.checkOutputSpecs方法会检查输出目录是否合法，如果没有指定，则抛出InvalidJobConfException，文件已经存在则抛出FileAlreadyExistsException。
 因此，因为再次执行，目录是存在的，所以会报出FileAlreadyExistsException的错误。
@@ -3053,7 +3029,6 @@ Exception in thread &quot;main&quot; org.apache.hadoop.mapred.FileAlreadyExistsE
 spark.hadoop.validateOutputSpecs
 默认是true。若设置为true，saveAsHadoopFile会验证输出目录是否存在。虽然设为false可以忽略文件存在的异常，但建议使用 Hadoop文件系统的API手动删除输出目录。当通过Spark Streaming的StreamingContext时本参数会被忽略，因为当进行checkpoint恢复时会重写已经存在的文件。  
 If set to true, validates the output specification (e.g. checking if the output directory already exists) used in saveAsHadoopFile and other variants. This can be disabled to silence exceptions due to pre-existing output directories. We recommend that users do not disable this except if trying to achieve compatibility with previous versions of Spark. Simply use Hadoop's FileSystem API to delete output directories by hand. This setting is ignored for jobs generated through Spark Streaming's StreamingContext, since data may need to be rewritten to pre-existing output directories during checkpoint recovery.
-
 
 所以，我们再用spark streaming程序的时候，不会出现这个问题。
 因此，如果后续使用spark core程序的时候，如果出现了此问题，想要覆盖目录，则可设置此参数。
@@ -3073,7 +3048,6 @@ xx-xxxxx-events-61-20180903132401.txt
 xx-xxxxx-events-61-20180903134300.txt
 xx-xxxxx-events-61-20180903134301.txt
 ...
-
 
 即，我的输出文件是以分钟命名的，所以在不同的分钟运行多次，会在那个目录里面生成多个文件，并不会将文件覆盖。
 但是，一般情况下，是建议不设置这个参数的，因为需要将hdfs中的旧文件删除的话。
@@ -3128,14 +3102,12 @@ root/admin         - admin principal
 如果需要将从KDC和主KDC交换的话，要使从KDC服务器正常工作，它必须有主机主体。
 注：当主体实例名为主机名时，无论名称服务中的域名是大写还是小写，都必须以小写字母指定FQDN。
     kadmin：addprinc -randkey host/node2
-
     
   
   在主KDC服务器上，创建kiprop主体。
 kiprop主体用于授权来自主KDC服务器的更新。
     kadmin：addprinc -randkey kiprop/node1
 kadmin：addprinc -randkey kiprop/node2
-
     
   
 
@@ -3143,7 +3115,6 @@ kadmin：addprinc -randkey kiprop/node2
 在node2上安装Kerberos-server
 node2:
 $ yum install krb5-server -y 
-
 
 
 修改配置文件
@@ -3161,7 +3132,6 @@ HADOOP.COM = {
   admin_server = node1
   default_domain = HADOOP.COM
  }
-
 
 配置文件整体示例：
 [logging]
@@ -3196,7 +3166,6 @@ HADOOP.COM = {
 # # this entry is not needed
 
 
-
 kdc.conf配置-node1
 在主KDC服务器（node1）上编辑kdc.conf文件，realms部分添加用于增量传播和选择主KDC服务器将在日志中保留的更新数的行。
 
@@ -3209,7 +3178,6 @@ HADOOP.COM={
 }
 
 
-
 kadm5.acl配置-node1
 在主KDC服务器上，向kadm5.acl添加kiprop项。
 通过此项，主KDC服务器可以接受对kdc2服务器的kerberos数据库增量传播请求。
@@ -3218,10 +3186,8 @@ root/admin@HADOOP.COM    *
 kiprop/node2@HADOOP.COM p
 
 
-
 在KDC服务器上，重启kadmin以使用kadm5.acl文件中新的内容
 [root@node1 etc]# service kadmin restart
-
 
 将主KDC服务器上以下文件复制到所有从KDC上
 主KDC和从KDC间的数据库扩展，传播的是master的数据库内容的拷贝，而不是配置文件、stash文件或kadm5 ACL文件。
@@ -3241,7 +3207,6 @@ $ scp /var/kerberos/krb5kdc/.k5.HADOOP.COM node2:/var/kerberos/krb5kdc/.k5.HADOO
 $ scp /var/kerberos/krb5kdc/kadm5.acl node2:/var/kerberos/krb5kdc/kadm5.acl
 
 
-
 从、主服务器其他配置操作
 在所有的从KDC服务器上，将主KDC服务器和每个从KDC服务器的项添加到数据库传播配置文件kpropd.acl中
 在master KDC和slave KDCs之间传输数据库是通过kpropd daemon来实现，因此需要明确的定义允许在slave机器的新数据库上提供kerberos dump更新的主体。
@@ -3249,7 +3214,6 @@ $ scp /var/kerberos/krb5kdc/kadm5.acl node2:/var/kerberos/krb5kdc/kadm5.acl
 [root@node2 krb5kdc]# cat kpropd.acl
 host/node1@HADOOP.COM
 host/node2@HADOOP.COM
-
 
 说明：从KDC服务器上的kpropd.acl文件提供主机主体名称的列表(每个名称占一行)，用于指定该KDC可以通过传播从其接收更新数据库的系统。如果希望主KDC和从KDC能够交换，则需要在全部KDC的kpropd.acl列出全部KDC服务器的host主体。否则，如果仅使用主KDC服务器传播到所有从KDC服务器，则每个从KDC服务器上的kpropd.acl文件仅需包含主KDC服务器的主机主体名称。
 
@@ -3266,12 +3230,10 @@ HADOOP.COM={
     ...
 }
 
-
 在新的从KDC服务器上，启动kadmin命，添加主体到密钥表。
 必须使用在配置主KDC服务器时创建的一个admin主体名称登录。
 
 echo root@1234|kinit root/admin
-
 
 
   使用kadmin将从KDC服务器的主机主体添加到从KDC服务器的密钥表文件中。
@@ -3279,7 +3241,6 @@ echo root@1234|kinit root/admin
 注：添加自己的host主体到自己的密钥表文件中。
     #在node2上执行  
 kadmin: ktadd host/node2  
-
     
     理想情况下，应该在自己本地导出自己的keytab。如果不可行，则应该创建一个加密的会话来在网络中传输。
   
@@ -3287,7 +3248,6 @@ kadmin: ktadd host/node2
 通过将kiprop主体添加到krb5.keytab文件，允许kpropd命令在启动增量传播时对其自身进行验证。
     #在node2执行
 kadmin: ktadd kiprop/node2
-
     
   
 
@@ -3296,7 +3256,6 @@ kadmin: ktadd kiprop/node2
 如果需要启动增量传播，需要启动kpropd作为一个独立的进程。
 
 kpropd
-
 
 
 至此，slave KDC可以接受数据库传播，需要将数据库从master server中传过来。
@@ -3310,14 +3269,12 @@ kpropd
 krb5  krb5kdc  slave_datatrans  slave_datatrans.dump_ok
 
 
-
 手动传播（脚本传播）
 
   手动传播操作
 手动传输数据库文件到每一个slave KDC上：
     [root@node1 kerberos]#  kprop -f /var/kerberos/krb5kdc/slave_datatrans  node2
 Database propagation to node2: SUCCEEDED
-
     
     
       补充说明：Kerberos的数据库在master KDC上，因此需要定期的把这个数据库复制到slave KDCs上。如何设置数据库复制的频率，需要跟进传播时间以及用户等待密码生效的最大时间而设置。如果传播时间比这个最大限制时间长，（比如有一个很大的数据库，并且有很多slave，或者频繁的网络延迟），则可能希望能通过并行传播来减少传播延迟。因此，可以将数据库先从主节点传播给一部分从节点，然后从从节点再传播给其他节点。  
@@ -3332,20 +3289,17 @@ for kdc in $kdclist
 do
  kprop -f /usr/local/var/krb5kdc/slave_datatrans $kdc
 done
-
     
     需要设置一个定时任务去运行这个脚本，或者在切换之前执行。
 至此，slave KDC中有了Kerberos database的复制, slave上/var/kerberos/krb5kdc/会多出一些文件。
 现在即可启动krb5kdc daemon:
     [root@node2 kerberos]# systemctl start krb5kdc.service
-
     
   
   启动遇到问题处理
     
       手动传输数据库文件报错：
          kprop: No route to host while connecting to server
-
         
         处理：Make sure that the hostname of the slave (as given to kprop) is correct, and that any firewalls between the master and the slave allow a connection on port 754.
       
@@ -3361,7 +3315,6 @@ Active: failed (Result: exit-code) since Tue 2017-09-19 16:06:57 CST; 17s ago
  Sep 19 16:06:57 node2 systemd[1]: Failed to start Kerberos 5 KDC.
  Sep 19 16:06:57 node2 systemd[1]: Unit krb5kdc.service entered failed state.
  Sep 19 16:06:57 node2 systemd[1]: krb5kdc.service failed.
-
         
         处理：
          [root@node2 krb5kdc]# ps -ef | grep krb5
@@ -3381,7 +3334,6 @@ CGroup: /system.slice/krb5kdc.service
  Sep 19 16:08:09 node2 systemd[1]: Starting Kerberos 5 KDC...
  Sep 19 16:08:09 node2 systemd[1]: PID file /var/run/krb5kdc.pid not readable (yet?) after start.
  Sep 19 16:08:09 node2 systemd[1]: Started Kerberos 5 KDC.
-
         
       
     
@@ -3409,7 +3361,6 @@ If incremental propagation is enabled, the principal kiprop/slavehostname@REALM 
       The master and slave must be able to initiate TCP connections in both directions, without an intervening NAT.  
  直接输入如下，启动kpropd作为一个独立的进程。
          kpropd
-
         
         关闭：pkill kpropd
       
@@ -3458,7 +3409,6 @@ Active: failed (Result: exit-code) since Tue 2017-09-19 15:29:26 CST; 8s ago
  Sep 19 15:29:26 node1 systemd[1]: Failed to start Kerberos 5 Password-changing and Administration.
  Sep 19 15:29:26 node1 systemd[1]: Unit kadmin.service entered failed state.
  Sep 19 15:29:26 node1 systemd[1]: kadmin.service failed.
-
         
         问题解决：
  成为主节点的KDC，不能有kpropd.acl文件，删除原主kpropd.acl。 
@@ -3471,7 +3421,6 @@ Active: failed (Result: exit-code) since Tue 2017-09-19 15:29:26 CST; 8s ago
  Error text from server: Key version is not available
  或者报错：
  kprop: Decrypt integrity check failed while getting initial credentials
-
         
         原因：您的票证可能无效。
  解决方法分析：
@@ -3485,7 +3434,6 @@ Active: failed (Result: exit-code) since Tue 2017-09-19 15:29:26 CST; 8s ago
              #node1和node2上执行
  rm -rf krb5.keytab
  kadmin:kdestroy
-
             
             2」.分别执行：
  node1上：
@@ -3493,12 +3441,10 @@ Active: failed (Result: exit-code) since Tue 2017-09-19 15:29:26 CST; 8s ago
  kvno: No credentials cache found (filename: /tmp/krb5cc_0) while getting client principal name
  kadmin: ktadd host/node1  
  [root@node1 krb5kdc]# kinit -k -t /etc/krb5.keytab host/node1@HADOOP.COM
-
             
             node2上：
              kadmin: ktadd host/node2  
  [root@node2 tmp]# kinit -k -t /etc/krb5.keytab   host/node2@HADOOP.COM
-
             
             3」.查看密钥版本是否互相匹配
  node1上：
@@ -3509,7 +3455,6 @@ Active: failed (Result: exit-code) since Tue 2017-09-19 15:29:26 CST; 8s ago
  [root@node2 tmp]# kvno host/node2@HADOOP.COM
  host/node2@HADOOP.COM: kvno = 6
  #看此是否与node2的对应kvno匹配
-
             
             node2上：
              [root@node2 krb5kdc]# klist -k
@@ -3519,7 +3464,6 @@ Active: failed (Result: exit-code) since Tue 2017-09-19 15:29:26 CST; 8s ago
  [root@node2 krb5kdc]# kvno  host/node1@HADOOP.COM
  host/node1@HADOOP.COM: kvno = 4
  #看此是否与node1的对应kvno匹配
-
             
             之后即可解决。
  问题处理参考：密钥版本不匹配。
@@ -3569,12 +3513,10 @@ kadmin.local -q &quot;addprinc -randkey zookeeper/node1@HADOOP.COM&quot;
 kadmin.local -q &quot;addprinc -randkey zookeeper/node2@HADOOP.COM&quot;  
 kadmin.local -q &quot;addprinc -randkey zookeeper/node3@HADOOP.COM&quot;
 
-
 执行如下命令，在当前目录中创建keytab，名为zookeeper.keytab：
 kadmin.local -q &quot;xst  -k zookeeper.keytab  zookeeper/node1@HADOOP.COM &quot;
 kadmin.local -q &quot;xst  -k zookeeper.keytab  zookeeper/node2@HADOOP.COM &quot;
 kadmin.local -q &quot;xst  -k zookeeper.keytab  zookeeper/node3@HADOOP.COM &quot;
-
 
 部署Keytab（zookeeper-server）
 拷贝node1上生成的keytab(新创建的就是zookeeper.keytab)文件到其他节点的某一目录上（如/opt/zookeeper/conf，为了在zk配置文件种找到keytab），并为其设置属主和权限400（如chown zookeeper:hadoop zookeeper.keytab ;chmod 400 *.keytab），同HDFS配置过程中的操作。
@@ -3584,11 +3526,9 @@ kadmin.local -q &quot;xst  -k zookeeper.keytab  zookeeper/node3@HADOOP.COM &quot
 authProvider.1=org.apache.zookeeper.server.auth.SASLAuthenticationProvider
 jaasLoginRenew=3600000
 
-
 将修改的上面文件同步到其他节点：node2、node3：
 $ scp /opt/zookeeper-3.4.8/conf/zoo.cfg node2:/opt/zookeeper-3.4.8/conf/zoo.cfg
 $ scp /opt/zookeeper-3.4.8/conf/zoo.cfg node3:/opt/zookeeper-3.4.8/conf/zoo.cfg
-
 
 创建jaas文件（zookeeper-server）
 在node1的配置文件目录/opt/zookeeper-3.4.8/conf/（zookeeper安装目录下的conf）创建 jaas.conf文件，内容如下：
@@ -3601,17 +3541,14 @@ Server {
   principal=&quot;hadoop/node1@HADOOP.COM&quot;;
 };
 
-
 其中，keytab填写真实的keytab的绝对路径，principal填写对应的认证的用户和机器名称。需要在 node2和node3节点也创建该文件，注意每个节点的principal有所不同。
 创建java.env文件（zookeeper-server）
 在node1的配置文件目录/opt/zookeeper-3.4.8/conf/（zookeeper安装目录下的conf）创建 java.env文件，内容如下：
 export JVMFLAGS=&quot;-Djava.security.auth.login.config=/opt/zookeeper-3.4.8/conf/jaas.conf&quot;
 
-
 并将该文件同步到其他节点：
 $ scp /opt/zookeeper-3.4.8/conf/java.env node2:/opt/zookeeper-3.4.8/conf/java.env
 $ scp /opt/zookeeper-3.4.8/conf/java.env node3:/opt/zookeeper-3.4.8/conf/java.env
-
 
 以上Zookeeper-server配置完毕。
 重新启动zookeeper
@@ -3630,18 +3567,15 @@ kadmin.local -q &quot;xst  -k zkcli.keytab  zkcli/node1@HADOOP.COM&quot;
 kadmin.local -q &quot;xst  -k zkcli.keytab  zkcli/node2@HADOOP.COM &quot;
 kadmin.local -q &quot;xst  -k zkcli.keytab  zkcli/node3@HADOOP.COM &quot;
 
-
 拷贝 zkcli.keytab文件到其他节点的zk配置目录：
 $ scp zkcli.keytab node1:/etc/zookeeper/conf
 $ scp zkcli.keytab node2:/etc/zookeeper/conf
 $ scp zkcli.keytab node3:/etc/zookeeper/conf
 
-
 并设置属主和权限，分别在node1、node2、node3 上执行：
 $ ssh node1 &quot;cd /etc/zookeeper/conf/;chown zookeeper:hadoop zkcli.keytab ;chmod 400 *.keytab&quot;
 $ ssh node2 &quot;cd /etc/zookeeper/conf/;chown zookeeper:hadoop zkcli.keytab ;chmod 400 *.keytab&quot;
 $ ssh node3 &quot;cd /etc/zookeeper/conf/;chown zookeeper:hadoop zkcli.keytab ;chmod 400 *.keytab&quot;
-
 
 创建jaas配置文件
 在node1的zk配置文件目录创建 client-jaas.conf 文件，内容如下：
@@ -3654,16 +3588,13 @@ Client {
   principal=&quot;zkcli@HADOOP.COM&quot;;
 };
 
-
 同步到其他client节点：
 $ scp client-jaas.conf node2:/etc/zookeeper/conf
 $ scp client-jaas.conf node3:/etc/zookeeper/conf
 
-
 创建java.env文件
 然后，在zk安装目录conf目录创建或者修改java.env，内容如下：
 export CLIENT_JVMFLAGS=&quot;-Djava.security.auth.login.config=/etc/zookeeper/conf/client-jaas.conf&quot;
-
 
 
   如果，zookeeper-client 和 zookeeper-server 安装在同一个节点上，则 java.env 中的 java.security.auth.login.config 参数会被覆盖，这一点从 zookeeper-client 命令启动日志可以看出来。
@@ -3673,22 +3604,18 @@ export CLIENT_JVMFLAGS=&quot;-Djava.security.auth.login.config=/etc/zookeeper/co
 $ scp /etc/zookeeper/conf/java.env node2:/etc/zookeeper/conf/java.env
 $ scp /etc/zookeeper/conf/java.env node3:/etc/zookeeper/conf/java.env
 
-
 启动并验证
 启动客户端：
 $ zookeeper-client -server node1:2181
-
 
 创建一个znode 节点：
 k: node1:2181(CONNECTED) 0] create /znode1 sasl:zkcli@HADOOP.COM:cdwra
     Created /znode1
 
-
 验证该节点是否创建以及其 ACL：
 [zk: node1:2181(CONNECTED) 1] getAcl /znode1
     'world,'anyone
     : cdrwa
-
 
 以上为ZK整合Kerberos操作部分。
 
@@ -3735,12 +3662,10 @@ kadmin.local -q &quot;addprinc -randkey hadoop/node2@HADOOP.COM&quot;
 kadmin.local -q &quot;addprinc -randkey hadoop/node3@HADOOP.COM&quot;
 
 
-
 创建 HTTP principal：
 kadmin.local -q &quot;addprinc -randkey HTTP/node1@HADOOP.COM&quot; 
 kadmin.local -q &quot;addprinc -randkey HTTP/node2@HADOOP.COM&quot;  
 kadmin.local -q &quot;addprinc -randkey HTTP/node3@HADOOP.COM&quot;
-
 
 
 
@@ -3750,7 +3675,6 @@ kadmin.local -q &quot;addprinc -randkey HTTP/node3@HADOOP.COM&quot;
 创建完成后，查看：
 
 $ kadmin.local -q &quot;listprincs&quot;
-
 
 
 操作结果小例子：
@@ -3809,7 +3733,6 @@ kiprop/node1@HADOOP.COM
 krbtgt/HADOOP.COM@HADOOP.COM
 root/admin@HADOOP.COM
 
-
 生成keytab
 keytab是包含principals和加密principal key的文件。keytab文件对于每个host是唯一的，因为key包含hostname。keytab文件用于不需要人工交互和保存纯文本密码，实现到kerberos上验证一个主机上的principal。因为服务器上可以访问keytab文件即可以以principal的身份通过 kerberos 的认证，所以，keytab文件应该被妥善保存，应该只有少数的用户可以访问。
 创建包含hadoop principal和HTTP principal的keytab。
@@ -3818,7 +3741,6 @@ keytab是包含principals和加密principal key的文件。keytab文件对于每
 在node1节点，即KDC server节点上执行下面命令，会在当前目录下创建keytab，名字为hdfs.keytab：
     1、kadmin.local进入kerberos shell中
 2、kadmin.local:  xst -norandkey -k hdfs.keytab hadoop/node1@HADOOP.COM hadoop/node2@HADOOP.COM hadoop/node3@HADOOP.COM HTTP/node1@HADOOP.COM HTTP/node2@HADOOP.COM HTTP/node3@HADOOP.COM
-
     
     使用klist显示hdfs.keytab文件列表,查看执行结果：
     [root@node1 etc]# klist -ket  hdfs.keytab
@@ -3861,7 +3783,6 @@ KVNO Timestamp           Principal
 1 09/06/2017 17:53:54 HTTP/node3@HADOOP.COM (camellia128-cts-cmac)
 1 09/06/2017 17:53:54 HTTP/node3@HADOOP.COM (des-hmac-sha1)
 1 09/06/2017 17:53:54 HTTP/node3@HADOOP.COM (des-cbc-md5)
-
     
   
   方法二（未使用）：
@@ -3873,7 +3794,6 @@ $ kadmin.local -q &quot;xst  -k hdfs-unmerged.keytab hadoop/node3@HADOOP.COM&quo
 $ kadmin.local -q &quot;xst  -k HTTP.keytab  HTTP/node1@HADOOP.COM&quot;  
 $ kadmin.local -q &quot;xst  -k HTTP.keytab  HTTP/node2@HADOOP.COM&quot;  
 $ kadmin.local -q &quot;xst  -k HTTP.keytab  HTTP/node3@HADOOP.COM&quot;  
-
     
     这样，就会在/var/kerberos/krb5kdc/（当前）目录下生成hdfs-unmerged.keytab和HTTP.keytab两个文件，接下来使用ktutil合并者两个文件为hdfs.keytab。
     $ cd /var/kerberos/krb5kdc/   
@@ -3881,18 +3801,15 @@ $ ktutil
 ktutil: rkt hdfs-unmerged.keytab  
 ktutil: rkt HTTP.keytab  
 ktutil: wkt hdfs.keytab
-
     
     使用klist显示hdfs.keytab文件列表：
     $ klist -ket  hdfs.keytab
-
     
   
   测试：
 验证是否正确合并了key，使用合并后的keytab，分别使用hadoop和HTTP principals来获取证书。
     $ kinit -k -t hdfs.keytab hadoop/node1@HADOOP.COM
 $ kinit -k -t hdfs.keytab HTTP/node1@HADOOP.COM
-
     
     如果出现错误：kinit: Key table entry not found while getting initial credentials，则上面的（生成）合并有问题，重新执行前面的操作。
   
@@ -3905,12 +3822,10 @@ $ scp hdfs.keytab node1:/etc/hadoop/conf
 $ scp hdfs.keytab node2:/etc/hadoop/conf  
 $ scp hdfs.keytab node3:/etc/hadoop/conf
 
-
 并设置权限，分别在node1、node2、node3上执行更改文件属主和权限命令：
 $ ssh node1 &quot;chown hadoop:hadoop /etc/hadoop/conf/hdfs.keytab ;chmod 400 /etc/hadoop/conf/hdfs.keytab&quot;
 $ ssh node2 &quot;chown hadoop:hadoop /etc/hadoop/conf/hdfs.keytab ;chmod 400 /etc/hadoop/conf/hdfs.keytab&quot;
 $ ssh node3 &quot;chown hadoop:hadoop /etc/hadoop/conf/hdfs.keytab ;chmod 400 /etc/hadoop/conf/hdfs.keytab&quot;
-
 
 
   注意：由于keytab相当于有了永久凭证，不需要提供密码(如果修改kdc中的principal的密码，则该keytab就会失效)，所以其他用户如果对该文件有读权限，就可以冒充 keytab中指定的用户身份访问hadoop，所以keytab文件需要确保只对owner有读权限(0400)
@@ -3929,7 +3844,6 @@ HDFS配置修改
   &amp;lt;name&amp;gt;hadoop.security.authorization&amp;lt;/name&amp;gt;
   &amp;lt;value&amp;gt;true&amp;lt;/value&amp;gt;
 &amp;lt;/property&amp;gt;
-
 
 修改hdfs-site.xml配置文件
 在集群中所有节点的hdfs-site.xml文件中添加下面的配置：
@@ -4018,7 +3932,6 @@ HDFS配置修改
   &amp;lt;value&amp;gt;HTTP/_HOST@HADOOP.COM&amp;lt;/value&amp;gt;
 &amp;lt;/property&amp;gt;
 
-
 修改hadoop-env.sh配置文件
 在hadoop-env.sh文件中，需要修改HADOOP_SECURE_DN_USER的值，其依据datanode启动方式不同，有不同的设置。
 注意的关键点如下：
@@ -4030,7 +3943,6 @@ HDFS配置修改
 #export HADOOP_SECURE_DN_USER=${HADOOP_SECURE_DN_USER}
 #export HADOOP_SECURE_DN_USER=hadoop
 
-
 具体配置方式，见下述启动datanode的部分，以不同的启动方式来详细说明。
 
 配置中有几点要注意的：
@@ -4041,7 +3953,6 @@ HDFS配置修改
       一定小于1024-jsvc:如果开启security，并且使用jsvc模式启动datanode（不配置SSL），dfs.datanode.address、dfs.datanode.http.address的端口一定要小于1024（privileged端口），否则的话启动datanode时候会报Cannot start secure cluster without privileged resources错误。CDH官网说明如下（详见Configure Secure HDFS）：
          The dfs.datanode.address and dfs.datanode.http.address port numbers for the DataNode must be below 1024,because this provides part of the security mechanism to make it impossible for a user to run a map task which impersonates a DataNode. 
  The port numbers for the NameNode and Secondary NameNode can be anything you want, but the default port numbers are good ones to use.
-
         
       
       一定大于1024-SASL:如果使用在2.6之前的版本，安全模式的hadoop只能使用jsvc，即先以root用户来启动datanode，然后再切到普通用户。而在2.6.0之后的版本，SASL可以用来验证数据传输。在使用SASL的配置下，不再需要root用jsvc来启动安全模式的集群，并且也不在需要使用特权端口。如果启用SASL模式，需要在hdfs-site.xml中设置dfs.data.transfer.protection，并且dfs.datanode.address的端口要大于1024（non-privileged端口），并且设置dfs.http.policy为HTTPS_ONLY，而且保证HADOOP_SECURE_DN_USER环境变量值没有设置。一定要注意的是，dfs.datanode.address若设置成了特权端口，则SASL无法使用，这是向后兼容性原因所必需的。官网说明如下Hadoop in Secure Mode-Secure DataNode ：
@@ -4049,7 +3960,6 @@ HDFS配置修改
  In this configuration, it is no longer required for secured clusters to start the DataNode as root using jsvc and bind to privileged ports. To enable SASL on data transfer protocol, set dfs.data.transfer.
  protection in hdfs-site.xml, set a non-privileged port for dfs.datanode.address, set dfs.http.policy to HTTPS_ONLY and make sure the HADOOP_SECURE_DN_USER environment variable is not defined. 
  Note that it is not possible to use SASL on data transfer protocol if dfs.datanode.address is set to a privileged port. This is required for backwards-compatibility reasons.
-
         
       
     
@@ -4257,7 +4167,6 @@ hdfs-site.xml
 &amp;lt;/configuration&amp;gt;
 -----------------------------------------------------------------
 
-
 检查集群上的HDFS和本地文件的权限（未尝试，HDFS配置Kerberos认证 文章中写需要此操作）
 请参考Verify User Accounts and Groups in CDH 5 Due to Security或者Hadoop in Secure Mode。
 
@@ -4275,17 +4184,14 @@ $ ssh cdh1 &quot;echo root@1234|kinit root/admin&quot;
 $ ssh cdh2 &quot;echo root@1234|kinit root/admin&quot;
 $ ssh cdh3 &quot;echo root@1234|kinit root/admin&quot;
 
-
 关闭selinux
 
 setenforce 0
 
 
-
 获取node1的启动namenode的ticket：
 
 kinit -k -t /opt/hadoop_krb5/conf/hdfs.keytab hadoop/node1@HADOOP.COM
-
 
 如果出现下面异常kinit: Password incorrect while getting initial credentials，则重新导出keytab再试试。
 
@@ -4308,7 +4214,6 @@ hadoop-daemon.sh start namenode
  drwxrwxrwt   - hdfs hadoop          0 2014-11-04 10:44 /tmp
  drwxr-xr-x   - hdfs hadoop          0 2014-08-10 10:53 /user
  drwxr-xr-x   - hdfs hadoop          0 2013-05-20 22:52 /var
-
     
   
 
@@ -4321,7 +4226,6 @@ hadoop-daemon.sh start namenode
      GSS initiate failed [Caused by GSSException: No valid credentials provided (Mechanism level: Failed to find any Kerberos tgt)]
      Bad connection to FS. command aborted. exception: Call to nn-host/10.0.0.2:8020 failed on local exception: java.io.IOException:
      javax.security.sasl.SaslException: GSS initiate failed [Caused by GSSException: No valid credentials provided (Mechanism level: Failed to find any Kerberos tgt)]
-
     
     解决方法：可通过klist来查看缓存状态，或重新kinit更新缓存。
     
@@ -4333,7 +4237,6 @@ hadoop-daemon.sh start namenode
      GSS initiate failed [Caused by GSSException: No valid credentials provided (Mechanism level: Failed to find any Kerberos tgt)]
      Bad connection to FS. command aborted. exception: Call to nn-host/10.0.0.2:8020 failed on local exception: java.io.IOException:
      javax.security.sasl.SaslException: GSS initiate failed [Caused by GSSException: No valid credentials provided (Mechanism level: Failed to find any Kerberos tgt)]
-
     
     问题原因：这个问题是因为MIT kerberos 1.8.1或更高版本在写凭证缓存的时候做了一个更改（change参考MIT Kerberos Change），如果使用是Oracle JDK 6 Update 26或更低版本，会遇到一个bug（bug参考Report of bug in Oracle JDK 6 Update 26 and lower），这个bug导致了在MIT kerberos 1.8.1或更高版中，java无法去读取Kerberos的票据缓存。而需要额外说明的是，Kerberos 1.8.1在Ubuntu Lucid或更高版本、 Debian Squeeze或更高版本中是默认Kerberos，会出现这个问题；但是在RHEL或CentOS中,默认的Kerberos是较老的版本，所以目前不会出现此问题。
 解决方法：在使用kinit获取ticket之后使用kinit -R来renew ticket。这样，将重写票据缓存中的ticket为java可读的格式，如下：
@@ -4363,14 +4266,12 @@ hadoop-daemon.sh start namenode
      $ hadoop fs -ls
      Found 6 items
      drwx------   - atm atm          0 2011-01-02 16:16 /user/atm/.staging
-
     
   
   在上述问题2中，也有kinit -R 问题：
      但是，需要注意的是使用2这种方法，要求的是ticket是可renew的。而能否获取renewable tickets依赖于KDC的设置和每一个principal的设置（包括realm中有问题的principal和TGT service端的principal）。
      如果，一个ticker不可renew，那么它的”valid starting”和”renew until”的值是相同的时间。这时，使用kinit -R就会遇到下面的问题：
          kinit: Ticket expired while renewing credentials
-
     
     
       此问题官网说明参考Java is unable to read the Kerberos credentials cache created by versions of MIT Kerberos 1.8.1 or higher.
@@ -4379,12 +4280,10 @@ hadoop-daemon.sh start namenode
     所以为了获取可renew的ticket，可尝试使用以下方法-未彻底测试，若有问题，还需要大家自行解决下，并希望大家告诉我一下啦～（以下解决方法部分参考其他文章，CDH的Kerberos认证配置，时间过去挺久了，有些遗忘，待有时间再重新测试下）：
 a.在kdc.conf中添加默认flag
          default_principal_flags = +forwardable,+renewable
-
     
     但是实际没有起作用，因为查看资料，默认的principal_flags就包含了renewable，所以问题不是出在这里。另外需要说明一点，default_principal_flags只对这个flags生效以后创建的principal生效，之前创建的不生效，需要使用modprinc来使之前的principal生效。
 b.在kdc.conf中添加，并加大该参数：
          max_renewable_life = 10d
-
     
     修改之后重启kdc，重新kinit，再重新执行kinit -R则可以正常renew了。
 为了进行验证，再次将参数修改为“max_renewable_life = 0s”，再重新kinit后执行kinit -R则再次不能renew，则说明是否可以获取renew的ticket中，默认是可以获取renew的ticket的，但是，可以renw的最长时间是0s，所以造成无法renew，解决的办法是在kdc.conf中增大该参数。
@@ -4397,7 +4296,6 @@ b.在kdc.conf中添加，并加大该参数：
 2」可以通过modprinc来修改max_renewable_life的值，使用modprinc修改的值比kdc.conf中的配置有更高的优先级，例如，使用modprinc设置了为7天，kdc.conf中设置了为10天，使用getprinc可以看出，实际生效的是7天。需要注意的是，既要修改krbtgt/for_hadoop@for_hadoop，也要修改类似于hdfs/hadoop.local@for_hadoop这样的prinicials。使用modprinc来修改max_renewable_life，即kadmin.local进入kerberos的shell之后，执行：
   modprinc -maxrenewlife 7days krbtgt/for_hadoop@for_hadoop  
 getprinc krbtgt/for_hadoop@for_hadoop
-
   
 
 
@@ -4420,14 +4318,12 @@ jsvc模式启动datanode关键点先说明：
     hadoop-env.sh设置HADOOP_SECURE_DN_USER为实际启动用户；
 
       export HADOOP_SECURE_DN_USER=hadoop
-
     
   
   
     安装jsvc，在hdfs-site.xml下加入安装目录JSVC_HOME，jsvc相关jar包替换；
 
       export JSVC_HOME=/opt/hadoop/sbin/Linux/bigtop-jsvc-1.0.10-cdh5.11.0
-
     
   
   启动服务前，先获取ticket再运行相关命令，要使用root用户启动datanode。
@@ -4450,7 +4346,6 @@ i.jsvc环境部署（hdfs集群的所有节点都要进行此操作）
 在hadoop-env.sh文件中加入以下内容：
     export HADOOP_SECURE_DN_USER=hadoop
 export JSVC_HOME=/opt/hadoop/sbin/Linux/bigtop-jsvc-1.0.10-cdh5.11.0
-
     
     
       说明：设置了HADOOP_SECURE_DN_USER的环境变量后，start-dfs.sh的启动脚本将会自动跳过DATANODE的启动。
@@ -4478,7 +4373,6 @@ ii.启动（集群）datanode
 kinit -k -t /opt/hadoop_krb5/conf/hdfs.keytab hadoop/node1@HADOOP.COM
 #node1上
 start-dfs.sh
-
     
     使用start-dfs.sh之后查看QJM的日志和ZKFC的日志（QJM的报错不会有明显的提示）检查有无exception；如果启动不成功则仍需进行排查（keytab、zk的kerberos等）。
   
@@ -4489,11 +4383,9 @@ kinit并启动服务：
      # ssh node1 &quot;kinit -k -t /opt/hadoop_krb5/conf/hdfs.keytab hadoop/node1@HADOOP.COM; ./opt/hadoop/sbin/hadoop-daemon.sh start datanode&quot;
  # ssh node2 &quot;kinit -k -t /opt/hadoop_krb5/conf/hdfs.keytab hadoop/node2@HADOOP.COM; ./opt/hadoop/sbin/hadoop-daemon.sh start datanode&quot;
  # ssh node3 &quot;kinit -k -t /opt/hadoop_krb5/conf/hdfs.keytab hadoop/node3@HADOOP.COM; ./opt/hadoop/sbin/hadoop-daemon.sh start datanode&quot;
-
     
     补充，或在kinit后每台机器上使用命令启动：
      HADOOP_DATANODE_USER=hadoop sudo -E /opt/hadoop/bin/hdfs datanode
-
     
     或：
      [root@node1 ~]# kinit -k -t /opt/hadoop_krb5/conf/hdfs.keytab hadoop/node1@HADOOP.COM
@@ -4502,12 +4394,10 @@ kinit并启动服务：
  node1: starting datanode, logging to /app/dcos/hadoop_logs//hadoop-hadoop-datanode-node1.out
  node2: starting datanode, logging to /app/dcos/hadoop_logs//hadoop-hadoop-datanode-node2.out
     
-
     
   
   验证datanode启动情况：观看node1上NameNode日志，出现下面日志表示DataNode启动成功：
     2017-09-11 10:06:27,667 INFO org.apache.hadoop.security.UserGroupInformation: Login successful for user hadoop/node1@HADOOP.COM using keytab file /opt/hadoop_krb5/conf/hdfs.keytab
-
     
   
 
@@ -4523,7 +4413,6 @@ kinit并启动服务：
 19929 Main
 9033 JournalNode
 
-
 排查问题补充相关：
 jps(Java Virtual Machine Process Status Tool)是提供的一个显示当前所有java进程pid的命令，而jvm运行时会生成一个目录hsperfdata_$USER(其中user是启动java进程的用户)，默认的是生成在 java.io.tmpdir目录下，在linux中默认是/tmp，目录下会有些pid文件,存放jvm进程信息可以利用strings查看里面的文件内容，一般就是jvm的进程信息而已。
 以上问题是只有进程号，没有进程名字，就思考是不是pid文件问题，于是去/tmp/hsperfdata_hadoop/和/tmp/hsperfdata_root/下看看是否有相关进程信息，发现datanode虽然是用jsvc方式用root用户启动的，而“10456”进程在/tmp/hsperfdata_hadoop/下。
@@ -4532,7 +4421,6 @@ hsperfdata_apple1/  hsperfdata_apple2/  hsperfdata_hadoop/  hsperfdata_root/    
 [root@node1 tmp]# cd hsperfdata_hadoop/
 [root@node1 hsperfdata_hadoop]# ls
 10456  6912  8785  9033  9251
-
 
 之后就去尝试使用SASL方式启动datanode了，这个问题就没有继续解决。怀疑是不是上面部署步骤出现问题了，有时间回来再看看是什么问题，再进行修改@TODO，希望大家有消息告诉我下，非常感谢！邮箱：leafming@foxmail.com。
 
@@ -4552,14 +4440,12 @@ hsperfdata_apple1/  hsperfdata_apple2/  hsperfdata_hadoop/  hsperfdata_root/    
     hadoop-env.sh设置HADOOP_SECURE_DN_USER为实际启动用户；
 
       export HADOOP_SECURE_DN_USER=hadoop
-
     
   
   
     安装jsvc，在hdfs-site.xml下加入安装目录JSVC_HOME，jsvc相关jar包替换；
 
       export JSVC_HOME=/opt/hadoop/sbin/Linux/bigtop-jsvc-1.0.10-cdh5.11.0
-
     
   
   启动服务前，先获取ticket再运行相关命令，要使用root用户启动datanode，其它正常用hadoop用户即可。
@@ -4571,7 +4457,6 @@ hsperfdata_apple1/  hsperfdata_apple2/  hsperfdata_hadoop/  hsperfdata_root/    
   过渡说明：关于迁移一个使用root验证的hdfs集群为SASL方式，官方网站（Hadoop in Secure Mode-Secure DataNode ）上有如下说明：
 
   In order to migrate an existing cluster that used root authentication to start using SASL instead, first ensure that version 2.6.0 or later has been deployed to all cluster nodes as well as any external applications that need to connect to the cluster. Only versions 2.6.0 and later of the HDFS client can connect to a DataNode that uses SASL for authentication of data transfer protocol, so it is vital that all callers have the correct version before migrating. After version 2.6.0 or later has been deployed everywhere, update configuration of any external applications to enable SASL. If an HDFS client is enabled for SASL, then it can connect successfully to a DataNode running with either root authentication or SASL authentication. Changing configuration for all clients guarantees that subsequent configuration changes on DataNodes will not disrupt the applications. Finally, each individual DataNode can be migrated by changing its configuration and restarting. It is acceptable to have a mix of some DataNodes running with root authentication and some DataNodes running with SASL authentication temporarily during this migration period, because an HDFS client enabled for SASL can connect to both.
-
   
 
 
@@ -4603,7 +4488,6 @@ i.hdfs配置（1基础配置）
   	&amp;lt;name&amp;gt;dfs.data.transfer.protection&amp;lt;/name&amp;gt;
  	 &amp;lt;value&amp;gt;integrity&amp;lt;/value&amp;gt;
  &amp;lt;/property&amp;gt;
-
     
     说明，这里可以使用三个参数：  
 HTTP_ONLY: Only HTTP server is started
@@ -4619,7 +4503,6 @@ ii.https配置
 2017-09-13 14:12:37,273 INFO org.apache.hadoop.http.HttpServer2: HttpServer.start() threw a non Bind IOException
 java.io.FileNotFoundException: /home/dtdream/.keystore (No such file or directory)
 
-
 发现没有keystore文件，这个问题跟hadoop、Kerberos没什么关系，纯粹是https的配置了。
 简单说明https相关原理：https要求集群中有一个CA，它会生成ca_key和ca_cert，想要加入这个集群的节点，需要拿到这2个文件，然后经过一连串的动作生成keystore，并在hadoop的ssl-server.xml和ssl-client.xml中指定这个keystore的路径和密码，这样各个节点间就可以使用https进行通信了。
 因此若要继续使用此模式，后续需要进行hdfs中的https配置。详细hdfs的https配置，可参考DEPLOYING HTTPS IN HDFS，下面直接帖命令简单说明下过程。
@@ -4629,7 +4512,6 @@ java.io.FileNotFoundException: /home/dtdream/.keystore (No such file or director
   生成每个机器的密钥和证书
 首先需要在集群里面的每个机器上创建keyhecertificate，可以使用keytool命令来创建，如：
     $ keytool -keystore {keystore} -alias localhost -validity {validity} -genkey
-
     
     即通过此命令定义两个关键参数：
 keystore：keystore文件负责存储certificate，里面包括certificate的私钥，因此需要好好保存；
@@ -4642,7 +4524,6 @@ keytool -keystore keystore -alias node1 -validity 9999 -genkey -keyalg RSA -keys
 keytool -keystore keystore -alias node2 -validity 9999 -genkey -keyalg RSA -keysize 2048 -dname &quot;CN=node1, OU=security, O=hadoop, L=beijing, ST=beijing, C=CN&quot;  
 #node3  ／opt／ca目录下
 keytool -keystore keystore -alias node3 -validity 9999 -genkey -keyalg RSA -keysize 2048 -dname &quot;CN=node1, OU=security, O=hadoop, L=beijing, ST=beijing, C=CN&quot;
-
     
     执行完上述命令，会在当前目录下生成keystore文件。
   
@@ -4653,7 +4534,6 @@ keytool -keystore keystore -alias node3 -validity 9999 -genkey -keyalg RSA -keys
 我们这里将node1作为CA，在node1上执行如下命令（注意密码）：
     #node1  ／opt／ca目录下
 openssl req -new -x509 -keyout test_ca_key -out test_ca_cert -days 9999 -subj '/C=CN/ST=beijing/L=beijing/O=hadoop/OU=security/CN=node1'
-
     
     说明：这里cn是CA服务器的地址。
 执行完以上命令，会在当前目录下生成test_ca_cert、test_ca_key文件。
@@ -4661,7 +4541,6 @@ openssl req -new -x509 -keyout test_ca_key -out test_ca_cert -days 9999 -subj '/
   添加CA到客户机器的信任库
 在生成了CA之后，需要添加CA到每个客户端的信任库中，使客户可以信任这个CA，使用命令：
     $ keytool -keystore {truststore} -alias CARoot -import -file {ca-cert}
-
     
     此步骤操作命令示例： 
 即，首先在node1上，将上面生成的test_ca_key和test_ca_cert拷贝到集群中的所有机器上。
@@ -4670,7 +4549,6 @@ scp test_ca_cert node2:/opt/ca/
 scp test_ca_cert node3:/opt/ca/  
 scp test_ca_key node3:/opt/ca/  
 scp test_ca_key node2:/opt/ca/
-
     
     在集群中每台机器上执行如下命令（注意密码）：
     #node1  ／opt／ca目录下  
@@ -4679,7 +4557,6 @@ keytool -keystore truststore -alias CARoot -import -file test_ca_cert
 keytool -keystore truststore -alias CARoot -import -file test_ca_cert
 #node3  ／opt／ca目录下  
 keytool -keystore truststore -alias CARoot -import -file test_ca_cert
-
     
     执行完以上命令，会在当前目录下生成truststore文件。
 在步骤1中的ketstore存储的是每一台机器自己的身份，而客户机的truststore存储的是客户端信任的所有证书。导入证书到一个truststore中意味着信任那个证书签名的其它所有证书。如以上所述，信任政府（CA）也意味着信任它签发的所有护照（证书）。这个属性称为信任链，它在大型Hadoop集群上部署HTTPS时特别有用。你可以在集群中用一个CA签名所有认证，然后每个机器就能使用一个相同信任了CA的truststore，通过这种方式，所有的机器可以验证所有其他机器。
@@ -4689,7 +4566,6 @@ keytool -keystore truststore -alias CARoot -import -file test_ca_cert
     
       首先，你需要从密钥库中导出的证书，使用如下命令：
          $ keytool -keystore -alias localhost -certreq -file {cert-file}
-
         
         即在node1、node2、node3上执行（注意密码）：
 
@@ -4699,13 +4575,11 @@ keytool -keystore truststore -alias CARoot -import -file test_ca_cert
  keytool -certreq -alias node2 -keystore keystore -file cert
  #node3  ／opt／ca目录下
  keytool -certreq -alias node3 -keystore keystore -file cert
-
         
         执行完以上命令，会在当前目录下生成cert文件。
       
       之后，使用CA进行签名，使用如下命令：
          $ openssl x509 -req -CA {ca-cert} -CAkey {ca-key} -in {cert-file} -out {cert-signed} -days {validity} -CAcreateserial -passin pass:{ca-password}
-
         
         即在node1、node2、node3上执行（注意密码）：
          #node1  ／opt／ca目录下
@@ -4715,14 +4589,12 @@ keytool -keystore truststore -alias CARoot -import -file test_ca_cert
  openssl x509 -req -CA test_ca_cert -CAkey test_ca_key -in cert -out cert_signed -days 9999 -CAcreateserial -passin pass:hadoop@1234
  #node3  ／opt／ca目录下
  openssl x509 -req -CA test_ca_cert -CAkey test_ca_key -in cert -out cert_signed -days 9999 -CAcreateserial -passin pass:hadoop@1234
-
         
         执行完以上命令，会在当前目录下生成cert_signed文件。
       
       最后，将CA正式和被签名的证书都导入keystore中，使用如下命令：
          $ keytool -keystore -alias CARoot -import -file {ca-cert}
  $ keytool -keystore -alias localhost -import -file {cert-signed}
-
         
         即在node1、node2、node3上执行（注意密码）：
 
@@ -4735,7 +4607,6 @@ keytool -keystore truststore -alias CARoot -import -file test_ca_cert
  #node3  ／opt／ca目录下
  keytool -keystore keystore -alias CARoot -import -file test_ca_cert
  keytool -keystore keystore -alias node3 -import -file cert_signed
-
         
       
       补充：以上命令参数说明：
@@ -4808,7 +4679,6 @@ iii.hdfs配置（2整合https）
    &amp;lt;/description&amp;gt;
  &amp;lt;/property&amp;gt;
  &amp;lt;/configuration&amp;gt;
-
     
   
   ssl-server.xml
@@ -4869,7 +4739,6 @@ iii.hdfs配置（2整合https）
    &amp;lt;description&amp;gt;Optional. The weak security cipher suites that you want excluded from SSL communication.&amp;lt;/description&amp;gt;
  &amp;lt;/property&amp;gt;
  &amp;lt;/configuration&amp;gt;
-
     
     以上，关于Hfds中开启SASL整体配置说明完毕。
   
@@ -4895,26 +4764,22 @@ iv.测试启动（集群）
         分别启动zookeeper
 
          zkServer.sh start
-
         
       
       
         启动三台JournalNode：node1、node2、node3
 
          hadoop-daemon.sh start journalnode
-
         
       
       在其中一个NameNode上格式化hadoop.tmp.dir并初始化(格式化完成之后，将会在目录下生成元数据，是在hdfs-site.xml中配置的，默认值是，dfs.namenode.name.dir属性可配多个目录，如 /data1/dfs/name，/data2/dfs/name，/data3/dfs/name等。各个目录存储的文件结构和内容都完全一样，相当于备份，这样做的好处是当其中一个目录损坏了，也不会影响到Hadoop的元数据，特别是当其中一个目录是NFS（网络文件系统 Network File System，NFS）之上，即使你这台机器损坏了，元数据也得到保存；是在core-si te.xml文件内配置的）
          #node1
  hdfs namenode -format
-
         
       
       把格式化后的元数据拷备到另一台NameNode节点上
          #node1
  $ scp -r ${hadoop.tmp.dir} root@node2:${hadoop.tmp.dir}
-
         
       
       
@@ -4925,7 +4790,6 @@ iv.测试启动（集群）
  #node2
  hdfs namenode -bootstrapStandby（Y/N？）
  hadoop-daemon.sh start namenode
-
         
       
       
@@ -4933,7 +4797,6 @@ iv.测试启动（集群）
 
          #Node1:
  hdfs zkfc -formatZK
-
         
       
       
@@ -4942,7 +4805,6 @@ iv.测试启动（集群）
          #Node1:
  stop-dfs.sh
  start-dfs.sh
-
         
       
     
@@ -4953,14 +4815,12 @@ iv.测试启动（集群）
         用命令查看namenode的状态（两台namenode，在hdfs-si te.xml中配置的名字和主机名保持了一直，也是node1，所以这里测试写node1）：
 
          hdfs haadmin -getServiceState node1
-
         
       
       
         通过使用上述命令，有时候出现两台namenode都是standby的情况，则可以使用如下命令进行强制切换：
 
          hdfs haadmin -transitionToActive --forcemanual node1
-
         
       
       
@@ -5012,7 +4872,6 @@ Docker daemon可以有3种远程访问方式的socket：unix、tcp和fd。
 systemctl show –property=FragmentPath docker
     ---@---[~]$systemctl show --property=FragmentPath docker 
 FragmentPath=/usr/lib/systemd/system/docker.service
-
     
     找到docker.service文件并查看，发现docker文件位置：/etc/sysconfig/docker
 
@@ -5061,7 +4920,6 @@ Docker-Client的使用
   &amp;lt;version&amp;gt;LATEST-VERSION&amp;lt;/version&amp;gt;
 &amp;lt;/dependency&amp;gt;
 
-
 针对Docker1.12.6，选择的是8.9.1版本。
 
 开始使用
@@ -5076,20 +4934,17 @@ Docker-Client的使用
 String dockerUri =&quot;http://&quot;+hostIp+&quot;:&quot;+port;
 final DockerClient docker = DefaultDockerClient.builder().uri(URI.create(dockerUri)).build();
 
-
 除了这种方式，还有其它几种方式创建docker连接，详细参考Creating a docker-client。
 关闭Docker连接
 关闭连接直接通过创建的DockerClient docker连接对象，调用close方法即可。
 // Close the docker client
 docker.close();
 
-
 Docker操作
 容器列表
 获取宿主机上的容器列表，方法如下：
 这个方法能够列出宿主机上全部正在运行的容器的列表。
 List&amp;lt;Container&amp;gt; containers = docker.listContainers(DockerClient.ListContainersParam.allContainers());
-
 
 通过这个方法，可以返回List，其中的Container对象，可以取到的容器的id、名称、镜像信息、网络信息、状态等内容。
 
@@ -5102,7 +4957,6 @@ List&amp;lt;Container&amp;gt; containers = docker.listContainers(DockerClient.Li
 容器详情
 上述获取容器列表的过程中取到的容器信息并不详细，如果想看容器的详细信息可使用inspect方法,需要传入的内容是容器的id，不过通过测试，不需要传入全部的完整id，部分。
 ContainerInfo info = docker.inspectContainer(&quot;containerID&quot;);
-
 
 通过这个方法可以获取到ContainerInfo对象，其中包括容器的详细信息，如下：
 
@@ -5129,15 +4983,12 @@ ContainerInfo info = docker.inspectContainer(&quot;containerID&quot;);
 TopResults topResults = docker.topContainer(&quot;containerID&quot;, &quot;aux&quot;);
 ImmutableList&amp;lt;ImmutableList&amp;lt;String&amp;gt;&amp;gt; processes = topResults.processes();
 
-
 容器资源使用情况
 在命令行中，我们可以通过docker stats来查看docker容器资源使用情况的信息，通过命令行能查询到如下内容：
 CONTAINER    CPU %    MEM USAGE / LIMIT    MEM %    NET I/O    BLOCK I/O
 
-
 docker-client也提供了方法，来通过如下方式获取docker stats信息：
 ContainerStats stats = docker.stats(&quot;containerID&quot;);
-
 
 通过此方法，能够取到ContainerStats对象，其中包含内容如下：
 
@@ -5155,14 +5006,12 @@ CPU利用率计算
     cpu_delta = cpu_total_usage - pre_cpu_total_usage;
 system_delta = system_usage - pre_system_usage;
 CPU % = ((cpu_delta / system_delta) * length(per_cpu_usage_array) ) * 100.0
-
     
   
   代码实现
 所以说，将上述内容中得到的公式所需数据与我们通过取到的数据相对应，通过已经得到的stats对象，用方法可以取到两个CpuStats对象：
     CpuStats cpuStats = stats.cpuStats();
 CpuStats precpuStats = stats.precpuStats();
-
     
     然后我们计算cpu利用率，就可以这样来计算：
     String cpuPercent=&quot;---&quot;;
@@ -5182,7 +5031,6 @@ if (null!=cpuStats&amp;amp;&amp;amp;null!=precpuStats){
  	Integer percpuUsageListSize = cpuStats.cpuUsage().percpuUsage().size();
  	cpuPercent = ((cpuDelta.floatValue() / systemDelta.floatValue()) * percpuUsageListSize.floatValue()) * 100+&quot;%&quot;;
  }
-
     
   
 
@@ -5199,13 +5047,11 @@ memory利用率计算
     MEM USAGE = mem_usage
 MEM LIMIT = mem_limit
 MEM % = (mem_usage / mem_limit) * 100.0
-
     
   
   代码实现
 通过已经得到的stats对象，用方法可以取到MemoryStats对象。
     MemoryStats memoryStats = stats.memoryStats();
-
     
     然后根据公式来计算memory利用率：
      String memUsageFormat=&quot;---&quot;;
@@ -5224,7 +5070,6 @@ MEM % = (mem_usage / mem_limit) * 100.0
         memLimitFormat=Utils.getDynamicSizeUnit(memLimit);
         memPercent=(memUsage.floatValue()/memLimit.floatValue())*100+&quot;%&quot;;
  }
-
     
   
 
@@ -5240,13 +5085,11 @@ Network IO计算
     因此我们可以得到network stats的计算算法如下：
     NET I = rx_bytes
 NET O = tx_bytes
-
     
   
   代码实现
 通过已经得到的stats对象，可以取到 ImmutableMap&amp;lt;String, NetworkStats&amp;gt;。
     ImmutableMap&amp;lt;String, NetworkStats&amp;gt; networks = stats.networks();
-
     
     然后根据公式来计算network io：
      String rxBytesSumFormat=&quot;---&quot;;
@@ -5267,7 +5110,6 @@ NET O = tx_bytes
         rxBytesSumFormat=Utils.getDynamicSizeUnit(rxBytesSum);
         txBytesSumFormat=Utils.getDynamicSizeUnit(txBytesSum);
  }
-
     
   
 
@@ -5283,7 +5125,6 @@ Blk IO计算
     因此，我们可以得到Blk IO计算算法如下：
     BLOCK I = blk_read
 BLOCK O = blk_write
-
     
   
   代码实现
@@ -5311,7 +5152,6 @@ BLOCK O = blk_write
         blkReadFormat=Utils.getDynamicSizeUnit(blkRead);
         blkWriteFormat=Utils.getDynamicSizeUnit(blkWrite);
  }
-
     
   
 
@@ -5321,14 +5161,12 @@ BLOCK O = blk_write
  Date read = stats.read();
 
 
-
 容器其他
 上面说的基本上是关于docker容器监控所用的方法，剩下的都是直接操作容器的工具，先不写出来了，有需要的可以直接参考官方说明spotify/docker-client。
 
 容器宿主机监控
 以上说明了容器的基础监控，我们在应用中，如果需要监控容器所在宿主机的情况，也可以使用下述方法：
 Info info = docker.info();
-
 
 获取到了Info对象，通过此对象可以取到宿主机上运行的容器状态、资源情况等，具体可获取到的如下。
 
@@ -5354,29 +5192,24 @@ Docker仓库实际上提供两方面的功能，一个是镜像管理，一个�
 
   官方提供了registry镜像，我们直接下载：
     docker pull registry
-
     
   
   默认情况下，会将仓库存放于容器内,这样的话如果容器被删除，则存放于容器中的镜像也会丢失，所以我们需要指定一个本地目录挂载到容器内的存放镜像的目录下。所以，我们以如下命令来启动一个docker容器：
     docker run --privileged=true -d -v /datacenter02/registry:/var/lib/registry -p 5000:5000 --restart=always --name registry registry
-
     
   
   查看启动的容器
     ---@---[~]#docker ps -a
 CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                    NAMES
 458a9e2301a6        registry            &quot;/entrypoint.sh /etc/&quot;   7 months ago        Up 7 months         0.0.0.0:5000-&amp;gt;5000/tcp   registry
-
     
   
   测试使用
 创建一个小的镜像，然后测试push
     docker push 132.-.-.-:5000/busybox（这里的ip没写全，用-代替了，自己写的时候写全）
-
     
     可以看到push失败，报关于https的错误类似如下。
     Error response from daemon: invalid registry endpoint https://132.-.-.-:5000/v1/: Get https://132.-.-.-:5000/v1/_ping: http: server gave HTTP response to HTTPS client. If this private registry supports only HTTP or HTTPS with an unknown CA certificate, please add `--insecure-registry 132.-.-.-:5000` to the daemon's arguments. In the case of HTTPS, if you have access to the registry's CA certificate, no need for the flag; simply place the CA certificate at /etc/docker/certs.d/132.-.-.-:5000/ca.crt
-
     
   
   配置http访问
@@ -5387,7 +5220,6 @@ CONTAINER ID        IMAGE               COMMAND                  CREATED        
 # adding the registry to the INSECURE_REGISTRY line and uncommenting it.
 # INSECURE_REGISTRY='--insecure-registry'
 INSECURE_REGISTRY='--insecure-registry 132.-.-.-:5000'
-
     
     之后重启docker服务。
 之后再次测试，可以发现没有报错啦，push成功。
@@ -5398,7 +5230,6 @@ INSECURE_REGISTRY='--insecure-registry 132.-.-.-:5000'
 如果需要查询，则也是直接curl使用v2版本的API：
     ---@---[~]#curl 132.90.130.13:5000/v2/_catalog
 {&quot;repositories&quot;:[&quot;alluxio&quot;,&quot;basic&quot;,&quot;go&quot;,&quot;go1.10&quot;,&quot;go_zhzj&quot;,&quot;hdfs_datanode&quot;,&quot;hello-mine&quot;,&quot;hiveonspark&quot;,&quot;hiveonspark-gx&quot;,&quot;hivespark&quot;,&quot;jdk&quot;,&quot;jtwspark1.6.3&quot;,&quot;kafka&quot;,&quot;ninecon&quot;,&quot;nm&quot;,&quot;rm1&quot;,&quot;rm2&quot;,&quot;spark-2.3.0&quot;,&quot;spark2&quot;,&quot;spark2.2.1&quot;,&quot;spark2.2.1-gx&quot;,&quot;spark2.2.1-jtw&quot;,&quot;spark2.2.1-rx-demo&quot;,&quot;sparkdemo&quot;,&quot;sparkrx1.6.3&quot;,&quot;sparkrx2.2.1&quot;,&quot;tensorflow&quot;]}
-
     
     详细的将在下面说明。
   
@@ -5412,7 +5243,6 @@ INSECURE_REGISTRY='--insecure-registry 132.-.-.-:5000'
 request:
 GET /v2/_catalog
 
-
 response:
 200 OK
 Content-Type: application/json
@@ -5424,14 +5254,12 @@ Content-Type: application/json
   ]
 }
 
-
 我这里直接使用json工具，获取到我们仓库中的镜像列表：
 
 镜像tags
 但是，对于一个镜像来说，有不同的tags来标明它的版本，所以单单靠上述方法获取镜像的名称还是不够的，还需获取到tags。官方也给出了相关的例子：
 request:
 GET /v2/&amp;lt;name&amp;gt;/tags/list
-
 
 response:
 200 OK
@@ -5444,7 +5272,6 @@ Content-Type: application/json
         ...
     ]
 }
-
 
 之后，我也使用json工具，获取了仓库中“spark2.2.1”的tags信息如下：
 
@@ -5527,7 +5354,6 @@ Content-Type: application/json
         return imagesDetailsList;
     }
 
-
 至此，完成了镜像仓库列表获取的全部工具类。
 
 以上也将Docker监控的总结暂时告一段落，下面进行Mesos的说明。
@@ -5540,7 +5366,6 @@ http://ip:port/endpoint
 如：
 http://masterIp:5050/metrics/snapshot
 http://slaveIp:5050/metrics/snapshot
-
 
 具体使用可以参考官方网站说明：HTTP Endpoints。
 通过观察，发现mesos原生监控页面中，是使用的这种方式，直接在前台进行调用的此api，所以，如果端口没开，当终端访问页面的时候，会无法获取数据。
@@ -5571,7 +5396,6 @@ Accept: application/json
     }
   }
 }
-
 
 然后我们可以直接使用工具进行获取测试：
 
@@ -5683,7 +5507,6 @@ Accept: application/json
         return masterMesosMetrics;
     }
 
-
 至此，关于mesos的监控就这么多了，都是直接使用的httpApi官网都列明白了就不复制过来了，再贴一遍官网连接，有需要的直接去查吧：HTTP Endpoints和Operator HTTP API。
 
 Marathon管理
@@ -5696,7 +5519,6 @@ Marathon-client
   &amp;lt;artifactId&amp;gt;marathon-client&amp;lt;/artifactId&amp;gt;
   &amp;lt;version&amp;gt;0.6.0&amp;lt;/version&amp;gt;
 &amp;lt;/dependency&amp;gt;
-
 
 导入依赖之后，我们就可以直接使用了。
 首先，使用MarathonClient.getInstance()创建Marathon实例对象，之后就可以直接使用其对应的各种方法了，在这里就不和docker-client似的详细说明了，因为这里没有参与过多就不贴详细使用代码啦，官方使用说明挺好的（marathon-client），所以直接放上来一个小例子来参考吧(IP全用-.-.-.-代替了)。
@@ -5770,7 +5592,6 @@ public static void main(String args[]) throws Exception{
         app.setHealthChecks(healthChecks);
         marathon.createApp(app);
     }
-
 
 
 Marathon restful api
@@ -5872,7 +5693,6 @@ Standalone日志自动删除配置
 其中，更改了conf/spark-env.sh，设置SPARK_WORKER_OPTS，即在文件内增加：
 export SPARK_WORKER_OPTS=&quot;-Dspark.worker.cleanup.enabled=true -Dspark.worker.cleanup.interval=3600 -Dspark.worker.cleanup.appDataTtl=604800 -Dspark.worker.ui.compressedLogFileLengthCacheSize=100&quot;  
 
-
 参数解释：
 (1)spark.worker.cleanup.enabled（默认false）：仅在standalone模式下生效，开启后定期清理worker节点的worker目录下的应用程序日志，并且仅会清理已经停止的application日志。Enable periodic cleanup of worker / application directories. Note that this only affects standalone mode, as YARN works differently. Only the directories of stopped applications are cleaned up.
 (2)spark.worker.cleanup.interval（默认1800）：清理频率。Controls the interval, in seconds, at which the worker cleans up old application work dirs on the local machine.
@@ -5885,7 +5705,6 @@ import org.apache.log4j.{Level, Logger}
 Logger.getLogger(&quot;org.apache.spark&quot;).setLevel(Level.WARN)
 Logger.getLogger(&quot;org.eclipse.jetty.server&quot;).setLevel(Level.OFF)
 Logger.getLogger(&quot;kafka.utils.VerifiableProperties&quot;).setLevel(Level.WARN)
-
 
 这样的话，就可以看到我们关心的信息了。
 补充说明参考：使用一个类Log4jUtils来专门处理Logger对象的声明等操作。
@@ -5902,7 +5721,6 @@ log4j.appender.console=org.apache.log4j.ConsoleAppender
 log4j.appender.console.target=System.err
 log4j.appender.console.layout=org.apache.log4j.PatternLayout
 log4j.appender.console.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n
-
     
     这个文件设置了Spark应用程序在运行的时候会打出WARN级别的日志，然后在spark-submit提交应用程序的时候，通过–files参数，指定上述log4j.properties的文件路径，上传后即可即可使用这个配置打印应用程序的日志。
 问题：Note that for the first option, both executors and the application master will share the same log4j configuration, which may cause issues when they run on the same node (e.g. trying to write to the same log file).
@@ -5917,7 +5735,6 @@ log4j.appender.console=org.apache.log4j.ConsoleAppender
 log4j.appender.console.target=System.err
 log4j.appender.console.layout=org.apache.log4j.PatternLayout
 log4j.appender.console.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n
-
     
     这样设置，即进行了全局日志的设置。
 在standalone模式下，如果不进行配置，集群默认使用的是org/apache/spark/log4j-defaults.properties配置，配置的话则如上操作。但是，如果在全局设置了之后，会同时生效Driver端和Executor端的日志级别。
@@ -5926,13 +5743,11 @@ log4j.appender.console.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{1}: 
     在yarn模式下：
 If you need a reference to the proper location to put log files in the YARN so that YARN can properly display and aggregate them, use spark.yarn.app.container.log.dir in your log4j.properties. For example,
      log4j.appender.file_appender.File=${spark.yarn.app.container.log.dir}/spark.log
-
     
     For streaming applications, configuring RollingFileAppender and setting file location to YARN’s log directory will avoid disk overflow caused by large log files, and logs can be accessed using YARN’s log utility.
 翻译：
 如果你需要引用YARN放置日志文件的路径，以便YARN可以正确地展示和聚合日志，请在log4j.properties文件中使用spark.yarn.app.container.log.dir。例如，
     log4j.appender.file_appender.File=${spark.yarn.app.container.log.dir}/spark.log
-
     
     对于流式应用，可以配置RollingFileAppender，并将文件路径设置为YARN日志目录，以避免磁盘打满，而且这些日志还可以利用YARN的日志工具访问和查看。
     Spark Streaming中应用的日志切分
@@ -5941,7 +5756,6 @@ If you need a reference to the proper location to put log files in the YARN so t
     spark.executor.logs.rolling.strategy  time  //可以按日期（time）和日志大小(size)来切分日志
 spark.executor.logs.rolling.time.interval daily  //可以按天、小时、分钟切分
 spark.executor.logs.rolling.maxRetainedFiles 7  //保留多少个日志文件，旧的日志自动删除
-
     
     或者也可以自定义日志生成方式，同上述3方法，只要配置参数spark.executor.extraJavaOptions，指定log4j配置。
     Driver日志切分
@@ -5992,15 +5806,12 @@ log4j.logger.parquet=ERROR
 # SPARK-9183: Settings to avoid annoying messages when looking up nonexistent UDFs in SparkSQL with Hive support
 log4j.logger.org.apache.hadoop.hive.metastore.RetryingHMSHandler=FATAL
 log4j.logger.org.apache.hadoop.hive.ql.exec.FunctionRegistry=ERROR
-
     
     提交命令：
     spark-submit --master spark://master01:7077,master02:7077 --jars /usr/tools/spark_234gsignalling/sparkStreamingKafka0.8-0.10Jars/spark-streaming-kafka-0-8_2.11-2.2.1.jar,/usr/tools/spark_234gsignalling/sparkStreamingKafka0.8-0.10Jars/kafka_2.11-0.8.2.1.jar,/usr/tools/spark_234gsignalling/sparkStreamingKafka0.8-0.10Jars/metrics-core-2.2.0.jar,/usr/tools/spark_234gsignalling/sparkStreamingKafka0.8-0.10Jars/kafka-clients-0.10.1.1.jar --files &quot;/usr/tools/spark_234gsignalling/kafka_client_jaas.conf&quot; --driver-java-options &quot;-Dlog4j.configuration=file:/usr/tools/spark_234gsignalling/log4j4g.properties -Dapp.logging.name=NAME&quot; --driver-memory 2g --total-executor-cores 36 --executor-cores 2 --executor-memory 10g --class com.sitech.signallingStreaming.Signalling234gMask 4gsignallingSpark-0.10kafka-c60.jar skhconf_4g hdfs://dcoshdfs/spark_log/4g_info_c60log
-
     
     提交命令中对于此次日志设置的主要是：
     --driver-java-options &quot;-Dlog4j.configuration=file:/usr/tools/spark_234gsignalling/log4j4g.properties -Dapp.logging.name=NAME&quot;
-
     
   
 
@@ -6143,7 +5954,6 @@ Kerberos单节点KDC部署
 10.211.55.11 node2
 10.211.55.12 node3
 
-
 注意：hostname 请使用小写，要不然在集成 kerberos 时会出现一些错误。
 (2)配置NTP
 Kerberos集群对时间同步敏感度较高，默认时间相差超过5分钟就会出现问题，所以最好是在集群中增加NTP服务器。不过我的集群机器比较少，先跳过NTP吧。
@@ -6152,10 +5962,8 @@ Kerberos有不同的实现，如MIT KDC、Microsoft Active Directory等。我这
 在 KDC (这里是 node1 ) 上安装包 krb5、krb5-server 和 krb5-client：
 $ yum install krb5-server krb5-libs krb5-workstation  -y 
 
-
 在其他节点（node1、node2、node3）安装 krb5-devel、krb5-workstation：
 $ yum install krb5-libs krb5-workstation  -y
-
 
 (4).修改配置文件
 kdc 服务器涉及到三个配置文件：
@@ -6197,7 +6005,6 @@ HADOOP.COM = {
 #.hadoop.com = HADOOP.COM
 #hadoop.com = HADOOP.COM
 
-
 总结：
 
   这个文件可以用include和includedir引入其他文件或文件夹，但必须是绝对路径
@@ -6234,7 +6041,6 @@ b).kdc.conf配置
   supported_enctypes = des3-hmac-sha1:normal arcfour-hmac:normal camellia256-cts:normal camellia128-cts:normal des-hmac-sha1:normal des-cbc-md5:normal des-cbc-crc:normal #支持的校验方式.注意把aes256-cts去掉
  }
 
-
 总结：
 
   HADOOP.COM： 是设定的 realms。名字随意。Kerberos可以支持多个。
@@ -6256,12 +6062,10 @@ c).kadm5.acl配置
 */admin@HADOOP.COM	*
 
 
-
 (5)同步配置文件
 将 kdc 中的 /etc/krb5.conf 拷贝到集群中其他服务器即可。
 $ scp /etc/krb5.conf node2:/etc/krb5.conf
 $ scp /etc/krb5.conf node3:/etc/krb5.conf
-
 
 请确认集群如果关闭了 selinux。
 
@@ -6270,7 +6074,6 @@ $ scp /etc/krb5.conf node3:/etc/krb5.conf
 该命令会在 /var/kerberos/krb5kdc/ 目录下创建 principal 数据库。
 如果遇到数据库已经存在的提示，可以把/var/kerberos/krb5kdc/目录下的principal的相关文件都删除掉。默认的数据库名字都是 principal。可以使用 -d 指定数据库名字。
 $ kdb5_util create -r JAVACHEN.COM -s
-
 
 
   补充小技巧-（未测试，其他帖子看到的）：出现Loading random data的时候另开个终端执行点消耗CPU的命令如cat /dev/sda &amp;gt; /dev/urandom 可以加快随机数采集。
@@ -6287,14 +6090,12 @@ Enter KDC database master key:
 Re-enter KDC database master key to verify:
 
 
-
 (7)启动服务
 在node1节点上运行：
 [root@node1 etc]# service krb5kdc start
 Redirecting to /bin/systemctl start krb5kdc.service
 [root@node1 etc]# service kadmin start
 Redirecting to /bin/systemctl start kadmin.service
-
 
 至此kerberos，搭建完毕。
 
@@ -6312,7 +6113,6 @@ $ kadmin.local -q &quot;addprinc root/admin&quot;
 # 也可以不用手动输入密码，通过echo将密码引入
 $ echo -e &quot;root\nroot&quot; | kadmin.local -q &quot;addprinc root/admin&quot;
 
-
 建议：
 最好把username设为root，会提示输入密码，可以输入一个密码。
 创建第一个principal，必须在KDC自身的终端上进行，而且需要以root登录，这样才可以执行kadmin.local命令。
@@ -6326,7 +6126,6 @@ Re-enter password for principal &quot;root/admin@HADOOP.COM&quot;:
 Principal &quot;root/admin@HADOOP.COM&quot; created.
 
 
-
 (2)添加更多主体-创建host主体并将自己的host主题添加到自己密钥表文件
 a).基于Kerberos 的应用程序(例如 kprop)将使用主机主体将变更传播到从KDC服务器。也可以通过该主体提供对使用应用程序(如ssh)的KDC服务器的安全远程访问。
 请注意，当主体实例为主机名时，无论名称服务中的域名是大写还是小写，都必须以小写字母指定FQDN。
@@ -6335,12 +6134,10 @@ kadmin: addprinc -randkey host/node1
 Principal &quot;host/node1@HADOOP.COM&quot; created. 
 kadmin:
 
-
 或用命令（创建了node1、node2、node3的host主体）：
 kadmin.local -q &quot;addprinc -randkey host/node1@HADOOP.COM&quot;
 kadmin.local -q &quot;addprinc -randkey host/node2@HADOOP.COM&quot;
 kadmin.local -q &quot;addprinc -randkey host/node3@HADOOP.COM&quot;
-
 
 b).将KDC服务器的host主体添加到KDC服务器的密钥表文件。
 通过将主机主体添加到密钥表文件，允许应用服务器(如sshd)自动使用该主体。
@@ -6350,27 +6147,22 @@ b).将KDC服务器的host主体添加到KDC服务器的密钥表文件。
 kadmin: ktadd host/node1
 
 
-
 (3)Kerberos简单命令测试
 输入kadmin或者kadmin.local命令进入kerberos的shell(登录到管理员账户:如果在本机上，可以通过kadmin.local直接登录。其它机器的，先使用kinit进行验证)，如下：
 1、其他机器上先使用kinit进行验证：
 echo root@1234|kinit root/admin  
 2、之后再使用kadmin或者kadmin.local命令进入kerberos的shell
 
-
 a).principals操作
 查看principals
 $ kadmin: list_principals
 
-
 添加一个新的 principal
 $ kadmin:  addprinc user1  
-
 
 删除 principal
 $ kadmin:  delprinc user1  
 $ kadmin: exit
-
 
 也可以直接通过下面的命令来执行：
 #提示需要输入密码
@@ -6384,11 +6176,9 @@ $ kadmin.local -q &quot;addprinc user2&quot;
 $ kadmin.local -q &quot;delprinc user2&quot;
 
 
-
 b).ticket操作:创建一个测试用户test，密码设置为test
 
 $ echo -e &quot;test\ntest&quot; | kadmin.local -q &quot;addprinc test&quot;
-
 
 获取 test 用户的 ticket：
 #通过用户名和密码进行登录
@@ -6401,7 +6191,6 @@ Valid starting       Expires              Service principal
 09/06/2017 16:06:57  09/07/2017 16:06:57  krbtgt/HADOOP.COM@HADOOP.COM
 	renew until 09/13/2017 16:06:57, Etype (skey, tkt): des3-cbc-sha1, des3-cbc-sha1
 
-
 销毁该 test 用户的 ticket:
 [root@node2 ~]# kdestroy
 Other credential caches present, use -A to destroy all
@@ -6410,7 +6199,6 @@ Other credential caches present, use -A to destroy all
 klist: Credentials cache keyring 'persistent:0:krb_ccache_CGo77JQ' not found
 [root@node2 ~]# klist
 klist: Credentials cache keyring 'persistent:0:krb_ccache_CGo77JQ' not found
-
 
 更新 ticket:
 $ kinit root/admin
@@ -6433,7 +6221,6 @@ $ klist
   Kerberos 4 ticket cache: /tmp/tkt0
   klist: You have no tickets cached
 
-
 c). 抽取密钥到在本地keytab文件
 抽取密钥并将其储存在本地keytab文件/etc/krb5.keytab中。这个文件由超级用户拥有，所以您必须是root用户才能在kadmin shell 中执行以下命令:
 $ kadmin.local -q &quot;ktadd kadmin/admin&quot;
@@ -6447,7 +6234,6 @@ $ klist -k /etc/krb5.keytab
      3 kadmin/admin@LASHOU-INC.COM
      3 kadmin/admin@LASHOU-INC.COM
    -----------------
-
 
 
 至此，本篇内容完成。以上为Kerberos单KDC版搭建过程，下篇文章进行HDFS和Kerberos整合操作的整理。
@@ -6525,7 +6311,6 @@ object DroppedWordsCounter {
   }
 }
 
-
 第二步：在Spark主程序中使用
 在主程序的driver端位置使用，懒实例化操作，这样可以使累加器和广播变量在driver失败重启时能够重新实例化。
 object RecoverableNetworkWordCount {
@@ -6594,7 +6379,6 @@ object RecoverableNetworkWordCount {
   }
 }
 
-
 解决-SparkStreaming+kafkaPool程序修改(兼容checkpoint和广播变量kafkaPool)
 上述内容即如何将checkpoint与广播变量或累加器兼容的例子，下面则结合上述例子，对上文(SparkStreaming写数据到Kafka)的程序做修改来解决“java.lang.ClassCastException:B cannot be cast to KafkaPool”的问题。
 第一步：包装KafkaProducer-创建Kafka连接池（不变）
@@ -6628,7 +6412,6 @@ object KafkaPool{
   def apply[K, V](config: java.util.Properties): KafkaPool[K, V] = apply(config.toMap)
 }
 
-
 第二步：对广播变量懒实例化操作，使用单例模式来获取广播变量KafkaPool
 这里较上文(SparkStreaming写数据到Kafka)第一种方式中的直接下发广播变量有所区别，而是创建来一个GetKafkaPoolBroadcast的getKafkaPool方法，用于在主程序中driver端调用此方法时再获取或生成广播变量。
 import java.util.Properties
@@ -6661,7 +6444,6 @@ object GetKafkaPoolBroadcast extends Logging {
   }
 }
 
-
 第三步：在主程序中使用GetKafkaPoolBroadcast的getKafkaPool获取或生成广播变量
 在主程序中，driver端的位置调用此方法，这样可以使广播变量在driver失败重启时能够重新示例化。
     //保存处理后的数据到kafka
@@ -6679,7 +6461,6 @@ object GetKafkaPoolBroadcast extends Logging {
         competeTime(start_time, &quot;Processed data write to KAFKA&quot;)
       }
     })
-
 
 这样，就不会再尝试从checkpoint中恢复广播变量，而可以避免“java.lang.ClassCastException:B cannot be cast to KafkaPool”这个问题啦。
 
@@ -6725,7 +6506,6 @@ object GetKafkaPoolBroadcast extends Logging {
         competeTime(start_time, &quot;Processed data write to KAFKA&quot;)
       }
     })
-
 
 在每个partation中调用ProcessData类中的writeAsPartitionToKafka方法来向kafka写入数据。
 
@@ -6781,7 +6561,6 @@ object GetKafkaPoolBroadcast extends Logging {
       }
     }
 
-
 此类中主要2个方法，writeAsPartitionToKafka是用于处理数据，sendMessages用来创建KafkaProducer来向kafka生产消息。
 writeAsPartitionToKafka方法为了“提高”写入效率，设置了一个cacheNum值，这个方法会将每个patation中的数据以cacheNum条和并成一条数据来向Kafka中写入，因此是cacheNum条数据以“\n”来分割合并成一条在Kafka里的消息，所以对下游数据处理也造成了麻烦。
 并且使用此方式，相当于对于每个partation的每cacheNum条记录（即每次调用sendMessages方法，发送1条kafka消息）都需要创建KafkaProducer，然后再利用producer进行输出操作
@@ -6821,7 +6600,6 @@ writeAsPartitionToKafka方法为了“提高”写入效率，设置了一个cac
     }
 
 
-
   补充说明：
 传值传参和传名的区别（()=&amp;gt;和:=&amp;gt;的区别）
   
@@ -6835,7 +6613,6 @@ writeAsPartitionToKafka方法为了“提高”写入效率，设置了一个cac
     println(&quot;when evaluated&quot;) //传入就打印
     ()=&amp;gt;{println(&quot;bb&quot;)} // 执行code()才打印
   }
-
       
       结果: 
 when evaluated 
@@ -6853,7 +6630,6 @@ end
     println(&quot;when evaluated&quot;)  //执行code的时候才调用
     println(&quot;bb&quot;) //执行code的时候才调用  
   }
-
       
       结果:
 start
@@ -6884,7 +6660,6 @@ end
       ssc.sparkContext.broadcast(KafkaPool[String, String](kafkaProducerConfig))
     }
 
-
 第三步：使用广播变量
 spark 主程序中，在每个executor中使用广播变量。
     writeDStrem.foreachRDD(rdd =&amp;gt; {
@@ -6898,7 +6673,6 @@ spark 主程序中，在每个executor中使用广播变量。
         competeTime(start_time, &quot;Processed data write to KAFKA&quot;)
       }
     })
-
 
 至此，更改完毕。
 结果对比

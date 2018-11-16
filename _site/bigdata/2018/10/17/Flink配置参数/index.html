@@ -2244,9 +2244,8 @@ TaskManagers的配置文件可能不同，Flink不承担集群中的统一机器
 <h3 id="直接设置网络缓冲区的数量">直接设置网络缓冲区的数量</h3>
 <p><strong>注意：不建议使用</strong>这种配置网络缓冲区使用的内存量的方法。请考虑使用上述方法定义要使用的内存部分。<br />
 缓冲器的上一个TaskManager所要求数量为 <em>总度的平行度</em>（数的目标）* <em>节点内并行性</em>（源在一个TaskManager数）× <em>N</em> 与 <em>N</em> 是限定多少repartitioning-恒定/您希望同时处于活动状态的广播步骤。由于<em>节点内并行</em>性通常是核心数量，并且超过4个重新分区或广播频道很少并行活动，因此它经常归结为</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>#slots-per-TM^2 * #TMs * 4
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>#slots-per-TM^2 * #TMs * 4
+</code></pre></div></div>
 <p>哪里<code class="highlighter-rouge">#slots per TM</code>是<a href="https://flink.lantingmeeting.com/ops/config.html#configuring-taskmanager-processing-slots">每个TaskManager插槽数量</a>和<code class="highlighter-rouge">#TMs</code>是TaskManager的总数。<br />
 例如，为了支持20个8插槽机器的集群，您应该使用大约5000个网络缓冲区来获得最佳吞吐量。<br />
 默认情况下，每个网络缓冲区的大小为32 KiBytes.在上面的示例中，系统因此将为网络缓冲区分配大约300 MiBytes。<br />
