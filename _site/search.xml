@@ -2,6 +2,32 @@
 <search>
   
     <entry>
+      <title>基数估算-Hyperloglog算法</title>
+      <url>/bigdata/2018/11/16/%E5%9F%BA%E6%95%B0%E4%BC%B0%E7%AE%97-Hyperloglog%E7%AE%97%E6%B3%95/</url>
+      <content type="text">
+  本文主要关于HDFS的用户权限设置以及目录的限额控制的总结。本文主要分3部分进行总结，1为HDFS的用户权限设置，2为目录的限额控制，最后简单说明一下单纯使用HDFS ACL可能造成的安全隐患。
+注意: 本文中使用的版本是Hadoop 2.6.0-cdh5.11.0
+
+
+平台中需要对于使用租户的权限以及所用文件空间进行控制，所以查找了关于HDFS用户权限以及目录限额控制的相关方法和权限控制JAVA API，并且翻阅源码的时候也找到了相关HDFS存储限额控制的JAVA API，过了这么长时间今天终于想起来要总结一下。不过有点需要注明，目前为止单纯的使用HDFS ACL控制权限有用户伪造的隐患，此种隐患会在本文最后进行说明。
+
+# 
+(๑•́ ₃ •̀๑) 呃，一直占位没来得及整理～容我拖延症再飞一会～
+—  
+至此，本篇内容完成。
+</content>
+      <categories>
+        
+          <category> BigData </category>
+        
+      </categories>
+      <tags>
+        
+      </tags>
+      <tags></tags>
+    </entry>
+  
+    <entry>
       <title>实时流处理系统反压机制（BackPressure）综述[转]</title>
       <url>/bigdata/2018/11/15/%E5%AE%9E%E6%97%B6%E6%B5%81%E5%A4%84%E7%90%86%E7%B3%BB%E7%BB%9F%E5%8F%8D%E5%8E%8B%E6%9C%BA%E5%88%B6-BackPressure-%E7%BB%BC%E8%BF%B0-%E8%BD%AC/</url>
       <content type="text">
@@ -9,6 +35,7 @@
  (￢_￢)ﾉ最近菜叶子没自己写见谅。
 本文转自 实时流处理系统反压机制（BackPressure）综述
 https://blog.csdn.net/qq_21125183/article/details/80708142
+开启Back Pressure使生产环境的Spark Streaming应用更稳定、有效
 
 
 反压机制（BackPressure）被广泛应用到实时流处理系统中，流处理系统需要能优雅地处理反压（backpressure）问题。反压通常产生于这样的场景：短时负载高峰导致系统接收数据的速率远高于它处理数据的速率。许多日常问题都会导致反压，例如，垃圾回收停顿可能会导致流入的数据快速堆积，或者遇到大促或秒杀活动导致流量陡增。反压如果不能得到正确的处理，可能会导致资源耗尽甚至系统崩溃。反压机制就是指系统能够自己检测到被阻塞的Operator，然后系统自适应地降低源头或者上游的发送速率。目前主流的流处理系统 Apache Storm、JStorm、Spark Streaming、S4、Apache Flink、Twitter Heron都采用反压机制解决这个问题，不过他们的实现各自不同。
@@ -56,11 +83,14 @@ SparkStreaming 反压机制
 
 为什么引入反压机制Backpressure
 
-默认情况下，Spark Streaming通过Receiver以生产者生产数据的速率接收数据，计算过程中会出现batch processing time &amp;gt; batch interval的情况，其中batch processing time 为实际计算一个批次花费时间， batch interval为Streaming应用设置的批处理间隔。这意味着Spark Streaming的数据接收速率高于Spark从队列中移除数据的速率，也就是数据处理能力低，在设置间隔内不能完全处理当前接收速率接收的数据。如果这种情况持续过长的时间，会造成数据在内存中堆积，导致Receiver所在Executor内存溢出等问题（如果设置StorageLevel包含disk, 则内存存放不下的数据会溢写至disk, 加大延迟）。Spark 1.5以前版本，用户如果要限制Receiver的数据接收速率，可以通过设置静态配制参数“spark.streaming.receiver.maxRate”的值来实现，此举虽然可以通过限制接收速率，来适配当前的处理能力，防止内存溢出，但也会引入其它问题。比如：producer数据生产高于maxRate，当前集群处理能力也高于maxRate，这就会造成资源利用率下降等问题。为了更好的协调数据接收速率与资源处理能力，Spark Streaming 从v1.5开始引入反压机制（back-pressure）,通过动态控制数据接收速率来适配集群数据处理能力。
+默认情况下，Spark Streaming通过Receiver以生产者生产数据的速率接收数据，计算过程中会出现batch processing time &amp;gt; batch interval的情况，其中batch processing time 为实际计算一个批次花费时间， batch interval为Streaming应用设置的批处理间隔。这意味着Spark Streaming的数据接收速率高于Spark从队列中移除数据的速率，也就是数据处理能力低，在设置间隔内不能完全处理当前接收速率接收的数据。如果这种情况持续过长的时间，会造成数据在内存中堆积，导致Receiver所在Executor内存溢出等问题（如果设置StorageLevel包含disk, 则内存存放不下的数据会溢写至disk, 加大延迟）。
+Spark 1.5以前版本，用户如果要限制Receiver的数据接收速率，可以通过设置静态配制参数“spark.streaming.receiver.maxRate”的值来实现，此举虽然可以通过限制接收速率，来适配当前的处理能力，防止内存溢出，但也会引入其它问题。比如：producer数据生产高于maxRate，当前集群处理能力也高于maxRate，这就会造成资源利用率下降等问题。为了更好的协调数据接收速率与资源处理能力，Spark Streaming 从v1.5开始引入反压机制（back-pressure）,通过动态控制数据接收速率来适配集群数据处理能力。
 
 反压机制Backpressure
 
 Spark Streaming Backpressure:  根据JobScheduler反馈作业的执行信息来动态调整Receiver数据接收率。通过属性“spark.streaming.backpressure.enabled”来控制是否启用backpressure机制，默认值false，即不启用。
+sparkConf.set(&quot;spark.streaming.backpressure.enabled&quot;,”true”)
+
 
 SparkStreaming 架构图如下所示:
 
@@ -71,6 +101,20 @@ SparkStreaming 反压过程执行如下图所示：
 在原架构的基础上加上一个新的组件RateController,这个组件负责监听“OnBatchCompleted”事件，然后从中抽取processingDelay 及schedulingDelay信息.  Estimator依据这些信息估算出最大处理速度（rate），最后由基于Receiver的Input Stream将rate通过ReceiverTracker与ReceiverSupervisorImpl转发给BlockGenerator（继承自RateLimiter）.
 
 
+
+direct模式-BackPressure(此部分详细说明了direct模式接收：转自-开启Back Pressure使生产环境的Spark Streaming应用更稳定、有效)
+当Spark Streaming与Kafka使用Direct API集群时，我们可以很方便的去控制最大数据摄入量–通过一个被称作spark.streaming.kafka.maxRatePerPartition的参数。根据文档描述，他的含义是：Direct API读取每一个Kafka partition数据的最大速率（每秒读取的消息量）。
+配置项spark.streaming.kafka.maxRatePerPartition，对防止流式应用在下边两种情况下出现流量过载时尤其重要：
+1.Kafka Topic中有大量未处理的消息，并且我们设置是Kafka auto.offset.reset参数值为smallest，他可以防止第一个批次出现数据流量过载情况。
+2.当Kafka 生产者突然飙升流量的时候，他可以防止批次处理出现数据流量过载情况。
+
+但是，配置Kafka每个partition每批次最大的摄入量是个静态值，也算是个缺点。随着时间的变化，在生产环境运行了一段时间的Spark Streaming应用，每批次每个Kafka partition摄入数据最大量的最优值也是变化的。有时候，是因为消息的大小会变，导致数据处理时间变化。有时候，是因为流计算所使用的多租户集群会变得非常繁忙，比如在白天时候，一些其他的数据应用（例如Impala/Hive/MR作业）竞争共享的系统资源时（CPU/内存/网络/磁盘IO）。
+背压机制可以解决该问题。背压机制是呼声比较高的功能，他允许根据前一批次数据的处理情况，动态、自动的调整后续数据的摄入量，这样的反馈回路使得我们可以应对流式应用流量波动的问题。
+Spark Streaming的背压机制是在Spark1.5版本引进的，我们可以添加如下代码启用改功能：
+sparkConf.set(&quot;spark.streaming.backpressure.enabled&quot;,”true”)
+
+那应用启动后的第一个批次流量怎么控制呢？因为他没有前面批次的数据处理时间，所以没有参考的数据去评估这一批次最优的摄入量。在Spark官方文档中有个被称作spark.streaming.backpressure.initialRate的配置，看起来是控制开启背压机制时初始化的摄入量。其实不然，该参数只对receiver模式起作用，并不适用于direct模式。推荐的方法是使用spark.streaming.kafka.maxRatePerPartition控制背压机制起作用前的第一批次数据的最大摄入量。我通常建议设置spark.streaming.kafka.maxRatePerPartition的值为最优估计值的1.5到2倍，让背压机制的算法去调整后续的值。请注意，spark.streaming.kafka.maxRatePerPartition的值会一直控制最大的摄入量，所以背压机制的算法值不会超过他。
+另一个需要注意的是，在第一个批次处理完成前，紧接着的批次都将使用spark.streaming.kafka.maxRatePerPartition的值作为摄入量。通过Spark UI可以看到，批次间隔为5s，当批次调度延迟31秒时候，前7个批次的摄入量是20条记录。直到第八个批次，背压机制起作用时，摄入量变为5条记录。
 
 Heron 反压机制
 
@@ -155,6 +199,7 @@ Flink不需要一种特殊的机制来处理反压，因为Flink 中的数据传
 
   本文转自 实时流处理系统反压机制（BackPressure）综述
 https://blog.csdn.net/qq_21125183/article/details/80708142
+开启Back Pressure使生产环境的Spark Streaming应用更稳定、有效
 
 
 
