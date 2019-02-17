@@ -2,7 +2,7 @@
 layout: post
 title: "Spark(Streaming)写入数据到文件-关键为根据数据内容输出到不同自定义名称文件(saveAsHadoopFile以及自定义MultipleOutputFormat)"
 date: 2018-07-02
-updated: 2018-09-03
+updated: 2018-12-04
 description: 本文关于在使用Spark或Spark Streaming输出数据到文件的几种方式。关键的内容是Spark Streaming中实现实时根据数据内容，将数据写入不同的文件存储，支持自定义输出的文件名称，主要使用saveAsHadoopFile以及自定义MultipleOutputFormat实现。本文的场景是数据写入hdfs。
 categories:
 - BigData
@@ -137,10 +137,25 @@ Exception in thread "main" org.apache.hadoop.ipc.RemoteException: org.apache.had
     }
     val out = fs.append(path)
     out.write(record_sum1.getBytes())
-``` 
+```
+经实践测试，上述方法仍可能报错：“org.apache.hadoop.hdfs.protocol.AlreadyBeingCreatedException”，异常的原因：FSDataOutputStream create(Path f) 产生了一个输出流，创建完后需要关闭。解决：创建完文件之后，关闭流FSDataOutputStream。因此可尝试使用如下：  
+```scala
+      //不重新读传入uri，则直接从操作系统环境变量获取
+      var fs: FileSystem =FileSystem.get(conf)
+      println("append to file:"+dirPath)
+      if (!fs.exists(path)) {
+        println("path not exist")
+        // create(Path f) 产生了一个输出流，创建完后需要关闭,否则报错
+        fs.create(path).close()
+      }
+
+      //fs.append不建议在生产环境使用
+      val out: FSDataOutputStream = fs.append(path)
+```  
 > 参考[Hadoop HDFS文件常用操作及注意事项（更新）遇到的问题2](https://www.cnblogs.com/byrhuangqiang/p/3926663.html)，[HDFS写入异常:追加文件第
 一次抛异常](https://blog.csdn.net/liu0bing/article/details/78951415)。  
  
+
 因此整体的写入HDFS的方法，我们这么写（假设这里测试数据的Iterator[(String,String)]元组，需要写入第二个字段），在spark调用的时候，每cache条写入一次：  
 ```scala
   def writeToHDFS(strpath: String,iter: Iterator[(String,String)], cache: Int): Try[Unit] = Try {
