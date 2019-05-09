@@ -1,4 +1,178 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.7.4">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2019-02-17T18:25:31+08:00</updated><id>http://localhost:4000/atom.xml</id><title type="html">iLeaf</title><subtitle>Yesterday you said tomorrow.</subtitle><author><name>叶子  ( ˘ ³˘)♥</name></author><entry><title type="html">Flink编程模型知识梳理脑图</title><link href="http://localhost:4000/bigdata/2019/02/17/Flink%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B%E7%9F%A5%E8%AF%86%E6%A2%B3%E7%90%86%E8%84%91%E5%9B%BE/" rel="alternate" type="text/html" title="Flink编程模型知识梳理脑图" /><published>2019-02-17T00:00:00+08:00</published><updated>2019-02-17T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2019/02/17/Flink%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B%E7%9F%A5%E8%AF%86%E6%A2%B3%E7%90%86%E8%84%91%E5%9B%BE</id><content type="html" xml:base="http://localhost:4000/bigdata/2019/02/17/Flink%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B%E7%9F%A5%E8%AF%86%E6%A2%B3%E7%90%86%E8%84%91%E5%9B%BE/">&lt;blockquote&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.7.4">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2019-05-09T10:21:19+08:00</updated><id>http://localhost:4000/atom.xml</id><title type="html">iLeaf</title><subtitle>Yesterday you said tomorrow.</subtitle><author><name>叶子  ( ˘ ³˘)♥</name></author><entry><title type="html">Flink中CheckPoint和SavePoint相关概念</title><link href="http://localhost:4000/bigdata/2019/05/08/FlinkCheckPoint%E5%92%8CSavePoint%E6%A6%82%E8%BF%B0/" rel="alternate" type="text/html" title="Flink中CheckPoint和SavePoint相关概念" /><published>2019-05-08T00:00:00+08:00</published><updated>2019-05-08T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2019/05/08/FlinkCheckPoint%E5%92%8CSavePoint%E6%A6%82%E8%BF%B0</id><content type="html" xml:base="http://localhost:4000/bigdata/2019/05/08/FlinkCheckPoint%E5%92%8CSavePoint%E6%A6%82%E8%BF%B0/">&lt;blockquote&gt;
+  &lt;p&gt;本文主要关于Flink中CheckPoint和SavePoint相关概念，基于Flink1.7.1。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h1 id=&quot;基础概念一览-checkpoint和savepoint的区别&quot;&gt;基础概念一览-CheckPoint和SavePoint的区别&lt;/h1&gt;
+&lt;h3 id=&quot;使用场景&quot;&gt;使用场景&lt;/h3&gt;
+&lt;p&gt;Checkpoint仅用于恢复意外失败的作业（走flink的job默认恢复机制）。&lt;br /&gt;
+SavePoint用于用户计划的、手动的备份和恢复（代码版本更新、更改并行度、jog graph、2个程序同时运行red/blue deployment）。&lt;/p&gt;
+&lt;h3 id=&quot;保留时间&quot;&gt;保留时间&lt;/h3&gt;
+&lt;p&gt;Checkpoint默认情况下是作业终止会被删除可配置保留）；Savepoint作业终止后继续存在。&lt;/p&gt;
+&lt;h3 id=&quot;设计目标&quot;&gt;设计目标&lt;/h3&gt;
+&lt;p&gt;Checkpoint设计目标：轻量级创建；快速恢复。&lt;br /&gt;
+SavePoint：生成和恢复成本更高，关注可移植性和对先前提到的作业更改的支持。&lt;/p&gt;
+&lt;h3 id=&quot;维护&quot;&gt;维护&lt;/h3&gt;
+&lt;p&gt;Checkpoint由flink自动维护（ created, owned, and released by Flink），Savepoint需用户维护（ created, owned, and released by user）。&lt;/p&gt;
+&lt;h3 id=&quot;其他&quot;&gt;其他&lt;/h3&gt;
+&lt;p&gt;存储的数据格式与state backend密切相关；使用RocksDB state backend，Checkpoint支持增量存储（轻量）；Savepoint是全量Snapshot。&lt;/p&gt;
+
+&lt;h1 id=&quot;checkpoint&quot;&gt;Checkpoint&lt;/h1&gt;
+&lt;h2 id=&quot;checkpoint配置例子&quot;&gt;Checkpoint配置例子&lt;/h2&gt;
+&lt;div class=&quot;language-scala highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;StreamExecutionEnvironment&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mode&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;local&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nc&quot;&gt;StreamExecutionEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;createLocalEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nc&quot;&gt;StreamExecutionEnvironment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getExecutionEnvironment&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stateBackend&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;RocksDBStateBackend&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;RocksDBStateBackend&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;checkpointDir&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rocksdbConf&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Configuration&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;rocksdbConf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setString&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;RocksDBOptions&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;TIMER_SERVICE_FACTORY&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;RocksDBStateBackend&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;PriorityQueueStateType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;ROCKSDB&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toString&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;stateBackend&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setPredefinedOptions&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;PredefinedOptions&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;SPINNING_DISK_OPTIMIZED_HIGH_MEM&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;stateBackend&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stateBackend&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configure&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rocksdbConf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setStateBackend&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;stateBackend&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;enableCheckpointing&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;triggerInterval&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1000&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getCheckpointConfig&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setCheckpointingMode&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;CheckpointingMode&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;AT_LEAST_ONCE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getCheckpointConfig&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;enableExternalizedCheckpoints&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;ExternalizedCheckpointCleanup&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;DELETE_ON_CANCELLATION&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getCheckpointConfig&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setMinPauseBetweenCheckpoints&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3000&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getCheckpointConfig&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setMaxConcurrentCheckpoints&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;说明&lt;/strong&gt;:&lt;br /&gt;
+通过env.setStateBackend(stateBackend)，设置使用的state backend。&lt;br /&gt;
+通过env.enableCheckpointing开启checkpoint并设置时间间隔为triggerInterval * 1000。&lt;br /&gt;
+通过ExternalizedCheckpointCleanup配置checkpoints在job取消的时候是否清除：ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION表示一旦Flink处理程序被cancel后，会保留Checkpoint数据，以便后续需要的话根据实际需要恢复到指定的Checkpoint处理，需要手动清除checkpoint。ExternalizedCheckpointCleanup.DELETE_ON_CANCELLATION表示默认的，当job停止后删除checkpoint数据。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;其他配置&lt;/strong&gt;:&lt;br /&gt;
+默认情况下，如果设置了Checkpoint选项，则Flink只保留最近成功生成的1个Checkpoint，由于Flink的job恢复机制只需要使用最新一个有效的checkpoint，因此在新的checkpoint生成后就可以安全移除其余旧的checkpoint了，当Flink程序失败时，可以从最近的这个Checkpoint来进行恢复。&lt;br /&gt;
+如果需要保留多个Checkpoint，需要在Flink的配置文件conf/flink-conf.yaml中，添加如下配置，指定最多需要保存Checkpoint的个数，这样在HDFS的相应文件夹下面会产生多个checkpoint文件：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;state.checkpoints.num-retained: 20
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;从checkpoint恢复&quot;&gt;从checkpoint恢复&lt;/h2&gt;
+&lt;p&gt;checkpoint由元数据文件、额外的数据文件（与state backend相关）组成。在保留checkpoint的情况下，使用命令:&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ bin/flink run -s :checkpointMetaDataPath [:runArgs]
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;从checkpoint的元数据文件进行数据恢复，注意若元数据文件中信息不够，那么jobmanager就需要使用相关的数据文件来恢复作业。&lt;br /&gt;
+例如：bin/flink run -s hdfs://checkpoint目录/JobID/chk-21(checkpint点)/_metadata 其他运行命令，成功启动的job对应的Checkpoint编号会从该次运行基于的编号继续连续生成：chk-22、chk-23、chk-24等。&lt;/p&gt;
+
+&lt;h1 id=&quot;savepoint&quot;&gt;SavePoint&lt;/h1&gt;
+&lt;p&gt;avepoint使用Flink的Checkpoint机制创建流作业的全量（非增量）状态快照，包含Streaming程序的状态，并且将checkpoint数据和元数据写出到外部文件系统。&lt;/p&gt;
+&lt;h2 id=&quot;算子uid&quot;&gt;算子UID&lt;/h2&gt;
+&lt;p&gt;Flink程序中包含两种状态数据，一种是用户定义的状态（User-defined State），他们是基于Flink的Transformation函数来创建或者修改得到的状态数据；另一种是系统状态（System State），他们是指作为Operator计算一部分的数据Buffer等状态数据，比如在使用Window Function时，在Window内部缓存Streaming数据记录。为了能够在创建Savepoint过程中，唯一识别对应的Operator的状态数据，Flink提供了API来为程序中每个Operator设置ID，这样可以在后续更新/升级程序的时候，可以在Savepoint数据中基于Operator ID来与对应的状态信息进行匹配，从而实现恢复。&lt;br /&gt;
+当然，如果我们不指定Operator ID，Flink也会我们自动生成对应的Operator状态ID。自动生成的ID依赖于程序的结构，并且非常容易受到程序变化的影响。因此，强烈推荐手动指定ID。手动为每个Operator设置ID，即使未来Flink应用程序可能会改动很大，比如替换原来的Operator实现、增加新的Operator、删除Operator等等，至少我们有可能与Savepoint中存储的Operator状态对应上。另外，保存的Savepoint状态数据，毕竟是基于当时程序及其内存数据结构生成的，所以如果未来Flink程序改动比较大，尤其是对应的需要操作的内存数据结构都变化了，可能根本就无法从原来旧的Savepoint正确地恢复。&lt;br /&gt;
+&lt;strong&gt;官网设置例子&lt;/strong&gt;：&lt;/p&gt;
+&lt;div class=&quot;language-scala highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nc&quot;&gt;DataStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stream&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// Stateful source (e.g. Kafka) with ID
+&lt;/span&gt;  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;addSource&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;StatefulSource&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;uid&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;source-id&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// ID for the source operator
+&lt;/span&gt;  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;shuffle&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// Stateful mapper with ID
+&lt;/span&gt;  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;StatefulMapper&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;uid&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;mapper-id&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// ID for the mapper
+&lt;/span&gt;  &lt;span class=&quot;c1&quot;&gt;// Stateless printing sink
+&lt;/span&gt;  &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// Auto-generated ID
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;h2 id=&quot;savepoint-state&quot;&gt;SavePoint state&lt;/h2&gt;
+&lt;p&gt;可以将savepoint想象成为保存了每个有状态的算子的“算子ID-&amp;gt;状态”映射的集合。&lt;br /&gt;
+Operator ID | State&lt;br /&gt;
+————+————————&lt;br /&gt;
+source-id   | State of StatefulSource&lt;br /&gt;
+mapper-id   | State of StatefulMapper&lt;br /&gt;
+在上述示例中，print结果表是无状态的，因此不是savepoint状态的一部分。默认情况下，我们试图将savepoint的每条数据，都映射到新的程序中。&lt;/p&gt;
+
+&lt;h2 id=&quot;savepoint操作&quot;&gt;SavePoint操作&lt;/h2&gt;
+&lt;p&gt;可以通过命令行操作SavePoint，Flink版本&amp;gt;=1.2.0可以使用 webui 从savepoint恢复作业 。&lt;/p&gt;
+&lt;h3 id=&quot;创建一个savepoint&quot;&gt;创建一个Savepoint&lt;/h3&gt;
+&lt;p&gt;创建一个Savepoint，需要指定对应Savepoint基础目录，此job对应的新的savepoint目录将在其内被创建并存储数据和元数据。&lt;br /&gt;
+有两种方式来指定Savepoint目录:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;配置Savepoint的默认路径，在Flink的配置文件conf/flink-conf.yaml中，添加如下配置：state.savepoints.dir:hdfs://hdfscluster/flink-savepoints&lt;/li&gt;
+  &lt;li&gt;在手动执行savepoint命令的时候，指定Savepoint存储目录，命令格式如下所示：bin/flink savepoint :jobId [:targetDirectory]&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;如果你既不配置默认目标目录，也不指定自定义目标目录，触发savepoint将失败。&lt;br /&gt;
+注意： 目标目录位置必须可以被JobManager和TaskManager访问，比如位于分布式文件系统中。&lt;br /&gt;
+&lt;strong&gt;例子&lt;/strong&gt;：&lt;br /&gt;
+例如，正在运行的Flink Job对应的ID为，使用默认state.savepoints.dir配置指定的Savepoint目录，执行如下命令:bin/flink savepoint 40be7c0160b73041dbceafc6256cb37d,可以看到，在目录hdfs://hdfscluster/flink-savepoints/savepoint-40be7c-8201276a3c10下面生成了ID为40be7c0160b73041dbceafc6256cb37d的Job的Savepoint数据。&lt;br /&gt;
+为正在运行的Flink Job指定一个目录存储Savepoint数据，执行如下命令:bin/flink savepoint 40be7c0160b73041dbceafc6256cb37d hdfs://hdfscluster/tmp/flink/savepoints,可以看到，在目录 hdfs://hdfscluster/tmp/flink/savepoints/savepoint-40be7c-c19253t1b376下面生成了ID为40be7c0160b73041dbceafc6256cb37d的Job的Savepoint数据。&lt;/p&gt;
+&lt;h4 id=&quot;yarn环境中触发savepoint&quot;&gt;YARN环境中触发Savepoint&lt;/h4&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ bin/flink savepoint :jobId [:targetDirectory] -yid :yarnAppId  
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;这将为ID为:yarnAppId的YARN应用中，为ID为:jobId的作业触发一份savepoint，并返回savepoint的路径。&lt;/p&gt;
+&lt;h4 id=&quot;取消作业时触发savepoint&quot;&gt;取消作业时触发savepoint&lt;/h4&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ bin/flink cancel -s [:targetDirectory] :jobId  
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;这将为ID为:jobId的作业自动触发一份savepoint，并取消作业。此外，你可以指定目标目录用于保存savepoint。此目录需要可以被JobManager和TaskManager访问。&lt;/p&gt;
+
+&lt;h3 id=&quot;savepoint目录结构&quot;&gt;savepoint目录结构&lt;/h3&gt;
+&lt;p&gt;以FsStateBackend或RocksDBStateBackend为例：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# Savepoint target directory
+# savepoint目标目录
+/savepoints/
+# Savepoint directory
+# savepoint目录
+/savepoints/savepoint-:shortjobid-:savepointid/
+# Savepoint file contains the checkpoint meta data
+# savepoint元数据文件
+/savepoints/savepoint-:shortjobid-:savepointid/_metadata
+# Savepoint state
+# savepoint状态
+/savepoints/savepoint-:shortjobid-:savepointid/...
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;注意&lt;/strong&gt;： 虽然看起来savepoint可能被移动，但是由于_metadata文件中的绝对路径，目前这是不可能的。如果你使用MemoryStateBackend，元数据和savepoint状态将被存储于_metadata文件。因为它是自完备的，你可以移动此文件并从任何位置恢复。&lt;br /&gt;
+&lt;strong&gt;例子&lt;/strong&gt;：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;hdfs dfs -ls /flink-1.5.3/flink-savepoints/savepoint-11bbc5-bd967f90709b
+Found 5 items
+-rw-r--r--   3 hadoop supergroup       4935 2018-09-02 01:21 /flink-1.5.3/flink-savepoints/savepoint-11bbc5-bd967f90709b/50231e5f-1d05-435f-b288-06d5946407d6
+-rw-r--r--   3 hadoop supergroup       4599 2018-09-02 01:21 /flink-1.5.3/flink-savepoints/savepoint-11bbc5-bd967f90709b/7a025ad8-207c-47b6-9cab-c13938939159
+-rw-r--r--   3 hadoop supergroup       4976 2018-09-02 01:21 /flink-1.5.3/flink-savepoints/savepoint-11bbc5-bd967f90709b/_metadata
+-rw-r--r--   3 hadoop supergroup       4348 2018-09-02 01:21 /flink-1.5.3/flink-savepoints/savepoint-11bbc5-bd967f90709b/bd9b0849-aad2-4dd4-a5e0-89297718a13c
+-rw-r--r--   3 hadoop supergroup       4724 2018-09-02 01:21 /flink-1.5.3/flink-savepoints/savepoint-11bbc5-bd967f90709b/be8c1370-d10c-476f-bfe1-dd0c0e7d498a
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;如上面列出的HDFS路径中，11bbc5是Flink Job ID字符串前6个字符，后面bd967f90709b是随机生成的字符串，然后savepoint-11bbc5-bd967f90709b作为存储此次Savepoint数据的根目录，最后savepoint-11bbc5-bd967f90709b目录下面_metadata文件包含了Savepoint的元数据信息，其中序列化包含了savepoint-11bbc5-bd967f90709b目录下面其它文件的路径，这些文件内容都是序列化的状态信息。&lt;/p&gt;
+
+&lt;h3 id=&quot;从savepoint恢复&quot;&gt;从savepoint恢复&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ bin/flink run -s :savepointPath [:runArgs]
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;这将提交作业并从指定的savepoint目录恢复作业。你可以指定savepoint的目录或_metadata 文件路径。&lt;/p&gt;
+&lt;h4 id=&quot;允许不恢复状态-allowing-non-restored-state&quot;&gt;允许不恢复状态-Allowing Non-Restored State&lt;/h4&gt;
+&lt;p&gt;默认情况下，恢复操作将试图将savepoint中所有状态条目映射到你计划恢复的程序中。如果你删除了一个算子，通过–allowNonRestoredState(简写：-n)参数，将允许忽略某个不能映射到新程序的状态：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ bin/flink run -s :savepointPath -n [:runArgs]
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;删除savepoint&quot;&gt;删除savepoint&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ bin/flink savepoint -d :savepointPath
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;这将删除存储于:savepointPath的savepoint。&lt;br /&gt;
+注意，同样可以通过常规的文件系统操作手动的删除savepoint，而不影响其他的savepoint或checkpoint（回想下每个savepoint都是自完备的）。在FLink 1.2版本之前，执行以上savepoint命令曾是一个更繁琐的任务。&lt;/p&gt;
+
+&lt;h2 id=&quot;savepoint-faq&quot;&gt;SavePoint FAQ&lt;/h2&gt;
+&lt;h3 id=&quot;是否需要为我作业中的所有算子都分配id&quot;&gt;是否需要为我作业中的所有算子都分配ID？&lt;/h3&gt;
+&lt;p&gt;根据经验，是的。严格来说，在作业中通过uid方法仅仅为那些有状态的算子分配ID更高效。savepoint仅仅包含这些算子的状态，而无状态算子则不是savepoint的一部分。&lt;br /&gt;
+在实践中，推荐为所有算子分配ID，因为某些Flink的内置算子如窗口同样是有状态的，但是哪些算子实际上是有状态的、哪些是没有状态的却并不明显。如果你非常确定某个算子是无状态的，你可以省略uid方法。&lt;/p&gt;
+&lt;h3 id=&quot;如果在我的作业中增加一个需要状态的新算子将会发生什么&quot;&gt;如果在我的作业中增加一个需要状态的新算子将会发生什么？&lt;/h3&gt;
+&lt;p&gt;当你在作业中增加一个新算子，它将被初始化为无任何状态。savepoint包含每个有状态算子的状态。无状态算子不是savepoint的一部分。新算子表现为类似于无状态算子。&lt;/p&gt;
+&lt;h3 id=&quot;如果从作业中删除一个有状态算子将会发生什么&quot;&gt;如果从作业中删除一个有状态算子将会发生什么？&lt;/h3&gt;
+&lt;p&gt;默认情况下，从savepoint恢复时作业时，将试图匹配savepoint中所有operatorid和state条目。如果你的新作业将某个有状态的算子删除了，那么从savepoint恢复作业会失败。&lt;br /&gt;
+你可以通过使用–allowNonRestoredState (简写：-n)参数运行命令来允许这种情况下对作业恢复状态。&lt;br /&gt;
+$ bin/flink run -s :savepointPath -n [:runArgs]&lt;/p&gt;
+&lt;h3 id=&quot;如果在我的作业中重排序reorder有状态的算子将会发生什么&quot;&gt;如果在我的作业中重排序（reorder）有状态的算子将会发生什么？&lt;/h3&gt;
+&lt;p&gt;如果你为这些算子分配了ID，它们将正常的被恢复。&lt;br /&gt;
+如果你没有分配ID，在重排序后，有状态算子自动生成的ID很可能改变。这将可能导致你无法从之前的savepoint中恢复。&lt;/p&gt;
+&lt;h3 id=&quot;如果在我的作业中增加删除或重排序无状态的算子将会发生什么&quot;&gt;如果在我的作业中增加、删除或重排序无状态的算子将会发生什么？&lt;/h3&gt;
+&lt;p&gt;如果你为有状态算子分配了ID，在savepoint恢复时无状态算子将不受影响。&lt;br /&gt;
+如果你没有分配ID，在重排序后，这些有状态算子自动生成的ID很可能改变。这将可能导致你无法从之前的savepoint中恢复。&lt;/p&gt;
+&lt;h3 id=&quot;在恢复时当我改变程序的并发时将会发生什么&quot;&gt;在恢复时当我改变程序的并发时将会发生什么？&lt;/h3&gt;
+&lt;p&gt;如果savepoint是在Flink 1.2.0及以上版本触发的，并且没有使用deprecated state API如Checkpointed，你可以指定新的并发并从savepoint恢复程序。&lt;br /&gt;
+如果作业要从低于flink 1.2.0版本触发的savepoint中恢复，或使用了已经deprecated APIs，则在改并发之前，必须将作业和savepoint迁移到Flink 1.2.0及以上版本。&lt;br /&gt;
+更新详见&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/ops/upgrading.html&quot;&gt;Upgrading Applications and Flink Versions&lt;/a&gt;。&lt;/p&gt;
+&lt;h3 id=&quot;我可以在稳定存储上移动保存点文件吗&quot;&gt;我可以在稳定存储上移动保存点文件吗？&lt;/h3&gt;
+&lt;p&gt;这个问题的快速答案目前是“否”，因为元数据文件出于技术原因将稳定存储中的文件作为绝对路径引用。详细回答答案是：如果出于某种原因必须移动文件，有两种可能的解决方法。首先，更简单但可能更危险，您可以使用编辑器在元数据文件中查找旧路径，并将其替换为新路径。其次，可以使用 class SavepointV2Serializer作为以编程方式读取、操作和用新路径重写元数据文件的起点。&lt;/p&gt;
+
+&lt;p&gt;本文参考:&lt;br /&gt;
+&lt;a href=&quot;https://www.jianshu.com/p/8e74c7cdd463&quot;&gt;flink使用checkpoint等知识&lt;/a&gt;&lt;br /&gt;
+&lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/ops/state/savepoints.html&quot;&gt;flink官网以及相关官网翻译&lt;/a&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+&lt;p&gt;至此，本篇内容完成。&lt;/p&gt;</content><author><name>叶子  ( ˘ ³˘)♥</name></author><category term="Flink" /><summary type="html">本文主要关于Flink中CheckPoint和SavePoint相关概念，基于Flink1.7.1。 基础概念一览-CheckPoint和SavePoint的区别 使用场景 Checkpoint仅用于恢复意外失败的作业（走flink的job默认恢复机制）。 SavePoint用于用户计划的、手动的备份和恢复（代码版本更新、更改并行度、jog graph、2个程序同时运行red/blue deployment）。 保留时间 Checkpoint默认情况下是作业终止会被删除可配置保留）；Savepoint作业终止后继续存在。 设计目标 Checkpoint设计目标：轻量级创建；快速恢复。 SavePoint：生成和恢复成本更高，关注可移植性和对先前提到的作业更改的支持。 维护 Checkpoint由flink自动维护（ created, owned, and released by Flink），Savepoint需用户维护（ created, owned, and released by user）。 其他 存储的数据格式与state backend密切相关；使用RocksDB state backend，Checkpoint支持增量存储（轻量）；Savepoint是全量Snapshot。 Checkpoint Checkpoint配置例子 val env: StreamExecutionEnvironment = if (mode == &quot;local&quot;) { StreamExecutionEnvironment.createLocalEnvironment() } else { StreamExecutionEnvironment.getExecutionEnvironment } var stateBackend: RocksDBStateBackend = new RocksDBStateBackend(checkpointDir, false) val rocksdbConf = new Configuration rocksdbConf.setString(RocksDBOptions.TIMER_SERVICE_FACTORY, RocksDBStateBackend.PriorityQueueStateType.ROCKSDB.toString) stateBackend.setPredefinedOptions(PredefinedOptions.SPINNING_DISK_OPTIMIZED_HIGH_MEM) stateBackend = stateBackend.configure(rocksdbConf) env.setStateBackend(stateBackend) env.enableCheckpointing(triggerInterval * 1000) env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.AT_LEAST_ONCE) env.getCheckpointConfig.enableExternalizedCheckpoints(ExternalizedCheckpointCleanup.DELETE_ON_CANCELLATION) env.getCheckpointConfig.setMinPauseBetweenCheckpoints(3000) env.getCheckpointConfig.setMaxConcurrentCheckpoints(1) 说明: 通过env.setStateBackend(stateBackend)，设置使用的state backend。 通过env.enableCheckpointing开启checkpoint并设置时间间隔为triggerInterval * 1000。 通过ExternalizedCheckpointCleanup配置checkpoints在job取消的时候是否清除：ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION表示一旦Flink处理程序被cancel后，会保留Checkpoint数据，以便后续需要的话根据实际需要恢复到指定的Checkpoint处理，需要手动清除checkpoint。ExternalizedCheckpointCleanup.DELETE_ON_CANCELLATION表示默认的，当job停止后删除checkpoint数据。 其他配置: 默认情况下，如果设置了Checkpoint选项，则Flink只保留最近成功生成的1个Checkpoint，由于Flink的job恢复机制只需要使用最新一个有效的checkpoint，因此在新的checkpoint生成后就可以安全移除其余旧的checkpoint了，当Flink程序失败时，可以从最近的这个Checkpoint来进行恢复。 如果需要保留多个Checkpoint，需要在Flink的配置文件conf/flink-conf.yaml中，添加如下配置，指定最多需要保存Checkpoint的个数，这样在HDFS的相应文件夹下面会产生多个checkpoint文件： state.checkpoints.num-retained: 20 从checkpoint恢复 checkpoint由元数据文件、额外的数据文件（与state backend相关）组成。在保留checkpoint的情况下，使用命令: $ bin/flink run -s :checkpointMetaDataPath [:runArgs] 从checkpoint的元数据文件进行数据恢复，注意若元数据文件中信息不够，那么jobmanager就需要使用相关的数据文件来恢复作业。 例如：bin/flink run -s hdfs://checkpoint目录/JobID/chk-21(checkpint点)/_metadata 其他运行命令，成功启动的job对应的Checkpoint编号会从该次运行基于的编号继续连续生成：chk-22、chk-23、chk-24等。 SavePoint avepoint使用Flink的Checkpoint机制创建流作业的全量（非增量）状态快照，包含Streaming程序的状态，并且将checkpoint数据和元数据写出到外部文件系统。 算子UID Flink程序中包含两种状态数据，一种是用户定义的状态（User-defined State），他们是基于Flink的Transformation函数来创建或者修改得到的状态数据；另一种是系统状态（System State），他们是指作为Operator计算一部分的数据Buffer等状态数据，比如在使用Window Function时，在Window内部缓存Streaming数据记录。为了能够在创建Savepoint过程中，唯一识别对应的Operator的状态数据，Flink提供了API来为程序中每个Operator设置ID，这样可以在后续更新/升级程序的时候，可以在Savepoint数据中基于Operator ID来与对应的状态信息进行匹配，从而实现恢复。 当然，如果我们不指定Operator ID，Flink也会我们自动生成对应的Operator状态ID。自动生成的ID依赖于程序的结构，并且非常容易受到程序变化的影响。因此，强烈推荐手动指定ID。手动为每个Operator设置ID，即使未来Flink应用程序可能会改动很大，比如替换原来的Operator实现、增加新的Operator、删除Operator等等，至少我们有可能与Savepoint中存储的Operator状态对应上。另外，保存的Savepoint状态数据，毕竟是基于当时程序及其内存数据结构生成的，所以如果未来Flink程序改动比较大，尤其是对应的需要操作的内存数据结构都变化了，可能根本就无法从原来旧的Savepoint正确地恢复。 官网设置例子： DataStream&amp;lt;String&amp;gt; stream = env. // Stateful source (e.g. Kafka) with ID .addSource(new StatefulSource()) .uid(&quot;source-id&quot;) // ID for the source operator .shuffle() // Stateful mapper with ID .map(new StatefulMapper()) .uid(&quot;mapper-id&quot;) // ID for the mapper // Stateless printing sink .print(); // Auto-generated ID SavePoint state 可以将savepoint想象成为保存了每个有状态的算子的“算子ID-&amp;gt;状态”映射的集合。 Operator ID | State ————+———————— source-id | State of StatefulSource mapper-id | State of StatefulMapper 在上述示例中，print结果表是无状态的，因此不是savepoint状态的一部分。默认情况下，我们试图将savepoint的每条数据，都映射到新的程序中。 SavePoint操作 可以通过命令行操作SavePoint，Flink版本&amp;gt;=1.2.0可以使用 webui 从savepoint恢复作业 。 创建一个Savepoint 创建一个Savepoint，需要指定对应Savepoint基础目录，此job对应的新的savepoint目录将在其内被创建并存储数据和元数据。 有两种方式来指定Savepoint目录: 配置Savepoint的默认路径，在Flink的配置文件conf/flink-conf.yaml中，添加如下配置：state.savepoints.dir:hdfs://hdfscluster/flink-savepoints 在手动执行savepoint命令的时候，指定Savepoint存储目录，命令格式如下所示：bin/flink savepoint :jobId [:targetDirectory] 如果你既不配置默认目标目录，也不指定自定义目标目录，触发savepoint将失败。 注意： 目标目录位置必须可以被JobManager和TaskManager访问，比如位于分布式文件系统中。 例子： 例如，正在运行的Flink Job对应的ID为，使用默认state.savepoints.dir配置指定的Savepoint目录，执行如下命令:bin/flink savepoint 40be7c0160b73041dbceafc6256cb37d,可以看到，在目录hdfs://hdfscluster/flink-savepoints/savepoint-40be7c-8201276a3c10下面生成了ID为40be7c0160b73041dbceafc6256cb37d的Job的Savepoint数据。 为正在运行的Flink Job指定一个目录存储Savepoint数据，执行如下命令:bin/flink savepoint 40be7c0160b73041dbceafc6256cb37d hdfs://hdfscluster/tmp/flink/savepoints,可以看到，在目录 hdfs://hdfscluster/tmp/flink/savepoints/savepoint-40be7c-c19253t1b376下面生成了ID为40be7c0160b73041dbceafc6256cb37d的Job的Savepoint数据。 YARN环境中触发Savepoint $ bin/flink savepoint :jobId [:targetDirectory] -yid :yarnAppId 这将为ID为:yarnAppId的YARN应用中，为ID为:jobId的作业触发一份savepoint，并返回savepoint的路径。 取消作业时触发savepoint $ bin/flink cancel -s [:targetDirectory] :jobId 这将为ID为:jobId的作业自动触发一份savepoint，并取消作业。此外，你可以指定目标目录用于保存savepoint。此目录需要可以被JobManager和TaskManager访问。 savepoint目录结构 以FsStateBackend或RocksDBStateBackend为例： # Savepoint target directory # savepoint目标目录 /savepoints/ # Savepoint directory # savepoint目录 /savepoints/savepoint-:shortjobid-:savepointid/ # Savepoint file contains the checkpoint meta data # savepoint元数据文件 /savepoints/savepoint-:shortjobid-:savepointid/_metadata # Savepoint state # savepoint状态 /savepoints/savepoint-:shortjobid-:savepointid/... 注意： 虽然看起来savepoint可能被移动，但是由于_metadata文件中的绝对路径，目前这是不可能的。如果你使用MemoryStateBackend，元数据和savepoint状态将被存储于_metadata文件。因为它是自完备的，你可以移动此文件并从任何位置恢复。 例子： hdfs dfs -ls /flink-1.5.3/flink-savepoints/savepoint-11bbc5-bd967f90709b Found 5 items -rw-r--r-- 3 hadoop supergroup 4935 2018-09-02 01:21 /flink-1.5.3/flink-savepoints/savepoint-11bbc5-bd967f90709b/50231e5f-1d05-435f-b288-06d5946407d6 -rw-r--r-- 3 hadoop supergroup 4599 2018-09-02 01:21 /flink-1.5.3/flink-savepoints/savepoint-11bbc5-bd967f90709b/7a025ad8-207c-47b6-9cab-c13938939159 -rw-r--r-- 3 hadoop supergroup 4976 2018-09-02 01:21 /flink-1.5.3/flink-savepoints/savepoint-11bbc5-bd967f90709b/_metadata -rw-r--r-- 3 hadoop supergroup 4348 2018-09-02 01:21 /flink-1.5.3/flink-savepoints/savepoint-11bbc5-bd967f90709b/bd9b0849-aad2-4dd4-a5e0-89297718a13c -rw-r--r-- 3 hadoop supergroup 4724 2018-09-02 01:21 /flink-1.5.3/flink-savepoints/savepoint-11bbc5-bd967f90709b/be8c1370-d10c-476f-bfe1-dd0c0e7d498a 如上面列出的HDFS路径中，11bbc5是Flink Job ID字符串前6个字符，后面bd967f90709b是随机生成的字符串，然后savepoint-11bbc5-bd967f90709b作为存储此次Savepoint数据的根目录，最后savepoint-11bbc5-bd967f90709b目录下面_metadata文件包含了Savepoint的元数据信息，其中序列化包含了savepoint-11bbc5-bd967f90709b目录下面其它文件的路径，这些文件内容都是序列化的状态信息。 从savepoint恢复 $ bin/flink run -s :savepointPath [:runArgs] 这将提交作业并从指定的savepoint目录恢复作业。你可以指定savepoint的目录或_metadata 文件路径。 允许不恢复状态-Allowing Non-Restored State 默认情况下，恢复操作将试图将savepoint中所有状态条目映射到你计划恢复的程序中。如果你删除了一个算子，通过–allowNonRestoredState(简写：-n)参数，将允许忽略某个不能映射到新程序的状态： $ bin/flink run -s :savepointPath -n [:runArgs] 删除savepoint $ bin/flink savepoint -d :savepointPath 这将删除存储于:savepointPath的savepoint。 注意，同样可以通过常规的文件系统操作手动的删除savepoint，而不影响其他的savepoint或checkpoint（回想下每个savepoint都是自完备的）。在FLink 1.2版本之前，执行以上savepoint命令曾是一个更繁琐的任务。 SavePoint FAQ 是否需要为我作业中的所有算子都分配ID？ 根据经验，是的。严格来说，在作业中通过uid方法仅仅为那些有状态的算子分配ID更高效。savepoint仅仅包含这些算子的状态，而无状态算子则不是savepoint的一部分。 在实践中，推荐为所有算子分配ID，因为某些Flink的内置算子如窗口同样是有状态的，但是哪些算子实际上是有状态的、哪些是没有状态的却并不明显。如果你非常确定某个算子是无状态的，你可以省略uid方法。 如果在我的作业中增加一个需要状态的新算子将会发生什么？ 当你在作业中增加一个新算子，它将被初始化为无任何状态。savepoint包含每个有状态算子的状态。无状态算子不是savepoint的一部分。新算子表现为类似于无状态算子。 如果从作业中删除一个有状态算子将会发生什么？ 默认情况下，从savepoint恢复时作业时，将试图匹配savepoint中所有operatorid和state条目。如果你的新作业将某个有状态的算子删除了，那么从savepoint恢复作业会失败。 你可以通过使用–allowNonRestoredState (简写：-n)参数运行命令来允许这种情况下对作业恢复状态。 $ bin/flink run -s :savepointPath -n [:runArgs] 如果在我的作业中重排序（reorder）有状态的算子将会发生什么？ 如果你为这些算子分配了ID，它们将正常的被恢复。 如果你没有分配ID，在重排序后，有状态算子自动生成的ID很可能改变。这将可能导致你无法从之前的savepoint中恢复。 如果在我的作业中增加、删除或重排序无状态的算子将会发生什么？ 如果你为有状态算子分配了ID，在savepoint恢复时无状态算子将不受影响。 如果你没有分配ID，在重排序后，这些有状态算子自动生成的ID很可能改变。这将可能导致你无法从之前的savepoint中恢复。 在恢复时当我改变程序的并发时将会发生什么？ 如果savepoint是在Flink 1.2.0及以上版本触发的，并且没有使用deprecated state API如Checkpointed，你可以指定新的并发并从savepoint恢复程序。 如果作业要从低于flink 1.2.0版本触发的savepoint中恢复，或使用了已经deprecated APIs，则在改并发之前，必须将作业和savepoint迁移到Flink 1.2.0及以上版本。 更新详见Upgrading Applications and Flink Versions。 我可以在稳定存储上移动保存点文件吗？ 这个问题的快速答案目前是“否”，因为元数据文件出于技术原因将稳定存储中的文件作为绝对路径引用。详细回答答案是：如果出于某种原因必须移动文件，有两种可能的解决方法。首先，更简单但可能更危险，您可以使用编辑器在元数据文件中查找旧路径，并将其替换为新路径。其次，可以使用 class SavepointV2Serializer作为以编程方式读取、操作和用新路径重写元数据文件的起点。 本文参考: flink使用checkpoint等知识 flink官网以及相关官网翻译 至此，本篇内容完成。</summary></entry><entry><title type="html">Flink编程模型知识梳理脑图</title><link href="http://localhost:4000/bigdata/2019/02/17/Flink%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B%E7%9F%A5%E8%AF%86%E6%A2%B3%E7%90%86%E8%84%91%E5%9B%BE/" rel="alternate" type="text/html" title="Flink编程模型知识梳理脑图" /><published>2019-02-17T00:00:00+08:00</published><updated>2019-02-17T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2019/02/17/Flink%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B%E7%9F%A5%E8%AF%86%E6%A2%B3%E7%90%86%E8%84%91%E5%9B%BE</id><content type="html" xml:base="http://localhost:4000/bigdata/2019/02/17/Flink%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B%E7%9F%A5%E8%AF%86%E6%A2%B3%E7%90%86%E8%84%91%E5%9B%BE/">&lt;blockquote&gt;
   &lt;p&gt;最近在重新整理学习flink官网内容，并在学习过程中将内容总结成脑图，是叶子自己最近一点一点整理绘制哒，转载请贴此文链接谢谢啦～图片以svg形式插入文章，可拖动显示完整，后续如有更改会持续更新。&lt;/p&gt;
 &lt;/blockquote&gt;
 
@@ -3029,7 +3203,133 @@ xx-xxxxx-events-61-20180903134301.txt
 
 &lt;p&gt;至此，本篇内容完成。&lt;br /&gt;
 本文由2018-07-02开始建立文档，于2018-07-28整理完成，几乎历时一个月，期间断断续续抽时间整理成文，很有收获。&lt;br /&gt;
-2018-09-03更新6补充需求2。&lt;/p&gt;</content><author><name>叶子  ( ˘ ³˘)♥</name></author><category term="Spark" /><category term="HDFS" /><summary type="html">之前的Spark实时流处理的数据处理程序，要求把数据从kafka接收之后，分2路分别写入kafka和hdfs，写入kafka的部分之前已经有过总结，现在回过头来把之前的写入HDFS的地方重新总结一下，整个过程从头到尾有一个写入方式的优化，不过时间有点长啦，尽量描述完整( ˘ ³˘)♥。 注意: 本文中使用的版本是spark2.2.1和2.6.0-cdh5.11.0</summary></entry><entry><title type="html">Kerberos具体实践4-Kerberos主从KDC部署</title><link href="http://localhost:4000/bigdata/2018/06/29/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B54-Kerberos%E4%B8%BB%E4%BB%8EKDC%E9%83%A8%E7%BD%B2/" rel="alternate" type="text/html" title="Kerberos具体实践4-Kerberos主从KDC部署" /><published>2018-06-29T00:00:00+08:00</published><updated>2018-06-29T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/06/29/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B54-Kerberos%E4%B8%BB%E4%BB%8EKDC%E9%83%A8%E7%BD%B2</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/06/29/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B54-Kerberos%E4%B8%BB%E4%BB%8EKDC%E9%83%A8%E7%BD%B2/">&lt;blockquote&gt;
+2018-09-03更新6补充需求2。&lt;/p&gt;</content><author><name>叶子  ( ˘ ³˘)♥</name></author><category term="Spark" /><category term="HDFS" /><summary type="html">之前的Spark实时流处理的数据处理程序，要求把数据从kafka接收之后，分2路分别写入kafka和hdfs，写入kafka的部分之前已经有过总结，现在回过头来把之前的写入HDFS的地方重新总结一下，整个过程从头到尾有一个写入方式的优化，不过时间有点长啦，尽量描述完整( ˘ ³˘)♥。 注意: 本文中使用的版本是spark2.2.1和2.6.0-cdh5.11.0</summary></entry><entry><title type="html">Kerberos具体实践3-Kerberos与ZK的整合操作</title><link href="http://localhost:4000/bigdata/2018/06/29/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B53-Kerberos%E4%B8%8EZK%E7%9A%84%E6%95%B4%E5%90%88%E6%93%8D%E4%BD%9C/" rel="alternate" type="text/html" title="Kerberos具体实践3-Kerberos与ZK的整合操作" /><published>2018-06-29T00:00:00+08:00</published><updated>2018-06-29T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/06/29/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B53-Kerberos%E4%B8%8EZK%E7%9A%84%E6%95%B4%E5%90%88%E6%93%8D%E4%BD%9C</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/06/29/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B53-Kerberos%E4%B8%8EZK%E7%9A%84%E6%95%B4%E5%90%88%E6%93%8D%E4%BD%9C/">&lt;blockquote&gt;
+  &lt;p&gt;本文主要关于Kerberos的简单应用。因为工作测试需要，自己装了一套集群进行了Kerberos的部署，并且与HDFS、ZK进行整合，然后将操作过程进行了整理，以便后续再查看。本文主要涉及到其与ZK的整合操做，此文为2018-06-28文章Kerberos具体实践2的后续。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h1 id=&quot;zookeeper整合kerberos&quot;&gt;Zookeeper整合Kerberos&lt;/h1&gt;
+&lt;p&gt;关于zookeeper上配置Kerberos，参考&lt;a href=&quot;https://yq.aliyun.com/articles/25626&quot;&gt;zookeeper配置Kerberos认证&lt;/a&gt;。&lt;/p&gt;
+&lt;h2 id=&quot;zookeeper-server配置&quot;&gt;Zookeeper Server配置&lt;/h2&gt;
+&lt;p&gt;若hdfs配置过程中需要配置zookeeper与Kerberos结合，则目前先需要配置server即可。&lt;/p&gt;
+&lt;h3 id=&quot;创建认证规则并生成keytabzookeeper-server&quot;&gt;创建认证规则并生成keytab（zookeeper-server）&lt;/h3&gt;
+&lt;p&gt;zk整合Kerberos需要先创建启动zk用户的认证规则以及keytab，由于本次操作中，zk和hadoop均使用hadoop用户启动，则在本次操作中，不必再需要去创建新的认证规则和keytab，直接使用原来的hdfs.keytab即可。&lt;/p&gt;
+
+&lt;p&gt;补充：&lt;br /&gt;
+若有创建需要（如需要使用zookeeper用户启动zk服务），可再继续再次参考下述操作（其实同hdfs的操作）。&lt;br /&gt;
+在node1节点，即KDC server节点上执行下面命令，在KCD server上（这里是 node1）创建zookeeper principal：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kadmin.local -q &quot;addprinc -randkey zookeeper/node1@HADOOP.COM&quot;   
+kadmin.local -q &quot;addprinc -randkey zookeeper/node2@HADOOP.COM&quot;  
+kadmin.local -q &quot;addprinc -randkey zookeeper/node3@HADOOP.COM&quot;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;执行如下命令，在当前目录中创建keytab，名为zookeeper.keytab：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kadmin.local -q &quot;xst  -k zookeeper.keytab  zookeeper/node1@HADOOP.COM &quot;
+kadmin.local -q &quot;xst  -k zookeeper.keytab  zookeeper/node2@HADOOP.COM &quot;
+kadmin.local -q &quot;xst  -k zookeeper.keytab  zookeeper/node3@HADOOP.COM &quot;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;h3 id=&quot;部署keytabzookeeper-server&quot;&gt;部署Keytab（zookeeper-server）&lt;/h3&gt;
+&lt;p&gt;拷贝node1上生成的keytab(新创建的就是zookeeper.keytab)文件到其他节点的某一目录上（如/opt/zookeeper/conf，为了在zk配置文件种找到keytab），并为其设置属主和权限400（如chown zookeeper:hadoop zookeeper.keytab ;chmod 400 *.keytab），同HDFS配置过程中的操作。&lt;br /&gt;
+此次测试中，启动zk和启动hdfs的用户都是hadoop，并且在进行hdfs配置kerberos的过程中，已经将hdfs.keytab复制到其他节点的/opt/hadoop_krb5/conf/hdfs.keytab目录下了，并且也设置了权限所以此次我不再进行操作。&lt;/p&gt;
+&lt;h3 id=&quot;修改zookeeper配置文件zookeeper-server&quot;&gt;修改zookeeper配置文件（zookeeper-server）&lt;/h3&gt;
+&lt;p&gt;在node1节点上修改/opt/zookeeper-3.4.8/conf/（zookeeper安装目录下的conf）zoo.cfg文件，添加下面内容：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;authProvider.1=org.apache.zookeeper.server.auth.SASLAuthenticationProvider
+jaasLoginRenew=3600000
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;将修改的上面文件同步到其他节点：node2、node3：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ scp /opt/zookeeper-3.4.8/conf/zoo.cfg node2:/opt/zookeeper-3.4.8/conf/zoo.cfg
+$ scp /opt/zookeeper-3.4.8/conf/zoo.cfg node3:/opt/zookeeper-3.4.8/conf/zoo.cfg
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;h3 id=&quot;创建jaas文件zookeeper-server&quot;&gt;创建jaas文件（zookeeper-server）&lt;/h3&gt;
+&lt;p&gt;在node1的配置文件目录/opt/zookeeper-3.4.8/conf/（zookeeper安装目录下的conf）创建 jaas.conf文件，内容如下：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Server {
+  com.sun.security.auth.module.Krb5LoginModule required
+  useKeyTab=true
+  keyTab=&quot;/opt/hadoop_krb5/conf/hdfs.keytab&quot;【上述操作创建出的keytab，因为本次操作中zk用hadoop用户启动的，和hdfs一样，则没用重新生产keytab，和hdfs的用一个】
+  storeKey=true
+  useTicketCache=false【这里有踩过的一个小坑：如果krb5.conf 去掉了default_ccache_name = KEYRING:persistent:%{uid}，则一定用false，要不然zk起不来】
+  principal=&quot;hadoop/node1@HADOOP.COM&quot;;
+};
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;其中，keytab填写真实的keytab的绝对路径，principal填写对应的认证的用户和机器名称。需要在 node2和node3节点也创建该文件，注意每个节点的principal有所不同。&lt;/p&gt;
+&lt;h3 id=&quot;创建javaenv文件zookeeper-server&quot;&gt;创建java.env文件（zookeeper-server）&lt;/h3&gt;
+&lt;p&gt;在node1的配置文件目录/opt/zookeeper-3.4.8/conf/（zookeeper安装目录下的conf）创建 java.env文件，内容如下：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;export JVMFLAGS=&quot;-Djava.security.auth.login.config=/opt/zookeeper-3.4.8/conf/jaas.conf&quot;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;并将该文件同步到其他节点：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ scp /opt/zookeeper-3.4.8/conf/java.env node2:/opt/zookeeper-3.4.8/conf/java.env
+$ scp /opt/zookeeper-3.4.8/conf/java.env node3:/opt/zookeeper-3.4.8/conf/java.env
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;以上Zookeeper-server配置完毕。&lt;/p&gt;
+&lt;h3 id=&quot;重新启动zookeeper&quot;&gt;重新启动zookeeper&lt;/h3&gt;
+&lt;p&gt;启动方式和平常无异，如成功使用安全方式启动，日志中看到如下日志：&lt;br /&gt;
+2017-09-18 10:23:30,067 … - successfully logged in.&lt;/p&gt;
+
+&lt;h2 id=&quot;zookeeper-client配置未测试&quot;&gt;Zookeeper Client配置（未测试）&lt;/h2&gt;
+&lt;h3 id=&quot;创建认证规则生成keytab&quot;&gt;创建认证规则生成keytab&lt;/h3&gt;
+&lt;p&gt;在node1节点，即KDC server节点上执行下面命令：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ cd /var/kerberos/krb5kdc/
+kadmin.local -q &quot;addprinc -randkey zkcli/node1@HADOOP.COM &quot;
+kadmin.local -q &quot;addprinc -randkey zkcli/node2@HADOOP.COM&quot;
+kadmin.local -q &quot;addprinc -randkey zkcli/node3@HADOOP.COM&quot;
+
+kadmin.local -q &quot;xst  -k zkcli.keytab  zkcli/node1@HADOOP.COM&quot;
+kadmin.local -q &quot;xst  -k zkcli.keytab  zkcli/node2@HADOOP.COM &quot;
+kadmin.local -q &quot;xst  -k zkcli.keytab  zkcli/node3@HADOOP.COM &quot;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;拷贝 zkcli.keytab文件到其他节点的zk配置目录：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ scp zkcli.keytab node1:/etc/zookeeper/conf
+$ scp zkcli.keytab node2:/etc/zookeeper/conf
+$ scp zkcli.keytab node3:/etc/zookeeper/conf
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;并设置属主和权限，分别在node1、node2、node3 上执行：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ ssh node1 &quot;cd /etc/zookeeper/conf/;chown zookeeper:hadoop zkcli.keytab ;chmod 400 *.keytab&quot;
+$ ssh node2 &quot;cd /etc/zookeeper/conf/;chown zookeeper:hadoop zkcli.keytab ;chmod 400 *.keytab&quot;
+$ ssh node3 &quot;cd /etc/zookeeper/conf/;chown zookeeper:hadoop zkcli.keytab ;chmod 400 *.keytab&quot;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;h3 id=&quot;创建jaas配置文件&quot;&gt;创建jaas配置文件&lt;/h3&gt;
+&lt;p&gt;在node1的zk配置文件目录创建 client-jaas.conf 文件，内容如下：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Client {
+  com.sun.security.auth.module.Krb5LoginModule required
+  useKeyTab=true
+  keyTab=&quot;/etc/zookeeper/conf/zkcli.keytab&quot;
+  storeKey=true
+  useTicketCache=false
+  principal=&quot;zkcli@HADOOP.COM&quot;;
+};
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;同步到其他client节点：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ scp client-jaas.conf node2:/etc/zookeeper/conf
+$ scp client-jaas.conf node3:/etc/zookeeper/conf
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;h3 id=&quot;创建javaenv文件&quot;&gt;创建java.env文件&lt;/h3&gt;
+&lt;p&gt;然后，在zk安装目录conf目录创建或者修改java.env，内容如下：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;export CLIENT_JVMFLAGS=&quot;-Djava.security.auth.login.config=/etc/zookeeper/conf/client-jaas.conf&quot;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;如果，zookeeper-client 和 zookeeper-server 安装在同一个节点上，则 java.env 中的 java.security.auth.login.config 参数会被覆盖，这一点从 zookeeper-client 命令启动日志可以看出来。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;并将该文件同步到其他节点：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ scp /etc/zookeeper/conf/java.env node2:/etc/zookeeper/conf/java.env
+$ scp /etc/zookeeper/conf/java.env node3:/etc/zookeeper/conf/java.env
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;h3 id=&quot;启动并验证&quot;&gt;启动并验证&lt;/h3&gt;
+&lt;p&gt;启动客户端：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ zookeeper-client -server node1:2181
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;创建一个znode 节点：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;k: node1:2181(CONNECTED) 0] create /znode1 sasl:zkcli@HADOOP.COM:cdwra
+    Created /znode1
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;验证该节点是否创建以及其 ACL：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[zk: node1:2181(CONNECTED) 1] getAcl /znode1
+    'world,'anyone
+    : cdrwa
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;以上为ZK整合Kerberos操作部分。&lt;/p&gt;
+
+&lt;hr /&gt;
+&lt;p&gt;至此，本篇内容完成。&lt;br /&gt;
+以上，此文章是关于ZK结合Kerberos的部署等内容，下篇将补充说明主从KDC的搭建。&lt;/p&gt;</content><author><name>叶子  ( ˘ ³˘)♥</name></author><category term="Kerberos" /><summary type="html">本文主要关于Kerberos的简单应用。因为工作测试需要，自己装了一套集群进行了Kerberos的部署，并且与HDFS、ZK进行整合，然后将操作过程进行了整理，以便后续再查看。本文主要涉及到其与ZK的整合操做，此文为2018-06-28文章Kerberos具体实践2的后续。 Zookeeper整合Kerberos 关于zookeeper上配置Kerberos，参考zookeeper配置Kerberos认证。 Zookeeper Server配置 若hdfs配置过程中需要配置zookeeper与Kerberos结合，则目前先需要配置server即可。 创建认证规则并生成keytab（zookeeper-server） zk整合Kerberos需要先创建启动zk用户的认证规则以及keytab，由于本次操作中，zk和hadoop均使用hadoop用户启动，则在本次操作中，不必再需要去创建新的认证规则和keytab，直接使用原来的hdfs.keytab即可。 补充： 若有创建需要（如需要使用zookeeper用户启动zk服务），可再继续再次参考下述操作（其实同hdfs的操作）。 在node1节点，即KDC server节点上执行下面命令，在KCD server上（这里是 node1）创建zookeeper principal： kadmin.local -q &quot;addprinc -randkey zookeeper/node1@HADOOP.COM&quot; kadmin.local -q &quot;addprinc -randkey zookeeper/node2@HADOOP.COM&quot; kadmin.local -q &quot;addprinc -randkey zookeeper/node3@HADOOP.COM&quot; 执行如下命令，在当前目录中创建keytab，名为zookeeper.keytab： kadmin.local -q &quot;xst -k zookeeper.keytab zookeeper/node1@HADOOP.COM &quot; kadmin.local -q &quot;xst -k zookeeper.keytab zookeeper/node2@HADOOP.COM &quot; kadmin.local -q &quot;xst -k zookeeper.keytab zookeeper/node3@HADOOP.COM &quot; 部署Keytab（zookeeper-server） 拷贝node1上生成的keytab(新创建的就是zookeeper.keytab)文件到其他节点的某一目录上（如/opt/zookeeper/conf，为了在zk配置文件种找到keytab），并为其设置属主和权限400（如chown zookeeper:hadoop zookeeper.keytab ;chmod 400 *.keytab），同HDFS配置过程中的操作。 此次测试中，启动zk和启动hdfs的用户都是hadoop，并且在进行hdfs配置kerberos的过程中，已经将hdfs.keytab复制到其他节点的/opt/hadoop_krb5/conf/hdfs.keytab目录下了，并且也设置了权限所以此次我不再进行操作。 修改zookeeper配置文件（zookeeper-server） 在node1节点上修改/opt/zookeeper-3.4.8/conf/（zookeeper安装目录下的conf）zoo.cfg文件，添加下面内容： authProvider.1=org.apache.zookeeper.server.auth.SASLAuthenticationProvider jaasLoginRenew=3600000 将修改的上面文件同步到其他节点：node2、node3： $ scp /opt/zookeeper-3.4.8/conf/zoo.cfg node2:/opt/zookeeper-3.4.8/conf/zoo.cfg $ scp /opt/zookeeper-3.4.8/conf/zoo.cfg node3:/opt/zookeeper-3.4.8/conf/zoo.cfg 创建jaas文件（zookeeper-server） 在node1的配置文件目录/opt/zookeeper-3.4.8/conf/（zookeeper安装目录下的conf）创建 jaas.conf文件，内容如下： Server { com.sun.security.auth.module.Krb5LoginModule required useKeyTab=true keyTab=&quot;/opt/hadoop_krb5/conf/hdfs.keytab&quot;【上述操作创建出的keytab，因为本次操作中zk用hadoop用户启动的，和hdfs一样，则没用重新生产keytab，和hdfs的用一个】 storeKey=true useTicketCache=false【这里有踩过的一个小坑：如果krb5.conf 去掉了default_ccache_name = KEYRING:persistent:%{uid}，则一定用false，要不然zk起不来】 principal=&quot;hadoop/node1@HADOOP.COM&quot;; }; 其中，keytab填写真实的keytab的绝对路径，principal填写对应的认证的用户和机器名称。需要在 node2和node3节点也创建该文件，注意每个节点的principal有所不同。 创建java.env文件（zookeeper-server） 在node1的配置文件目录/opt/zookeeper-3.4.8/conf/（zookeeper安装目录下的conf）创建 java.env文件，内容如下： export JVMFLAGS=&quot;-Djava.security.auth.login.config=/opt/zookeeper-3.4.8/conf/jaas.conf&quot; 并将该文件同步到其他节点： $ scp /opt/zookeeper-3.4.8/conf/java.env node2:/opt/zookeeper-3.4.8/conf/java.env $ scp /opt/zookeeper-3.4.8/conf/java.env node3:/opt/zookeeper-3.4.8/conf/java.env 以上Zookeeper-server配置完毕。 重新启动zookeeper 启动方式和平常无异，如成功使用安全方式启动，日志中看到如下日志： 2017-09-18 10:23:30,067 … - successfully logged in.</summary></entry><entry><title type="html">Kerberos具体实践4-Kerberos主从KDC部署</title><link href="http://localhost:4000/bigdata/2018/06/29/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B54-Kerberos%E4%B8%BB%E4%BB%8EKDC%E9%83%A8%E7%BD%B2/" rel="alternate" type="text/html" title="Kerberos具体实践4-Kerberos主从KDC部署" /><published>2018-06-29T00:00:00+08:00</published><updated>2018-06-29T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/06/29/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B54-Kerberos%E4%B8%BB%E4%BB%8EKDC%E9%83%A8%E7%BD%B2</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/06/29/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B54-Kerberos%E4%B8%BB%E4%BB%8EKDC%E9%83%A8%E7%BD%B2/">&lt;blockquote&gt;
   &lt;p&gt;本文主要关于Kerberos的简单应用。因为工作测试需要，自己装了一套集群进行了Kerberos的部署，并且与HDFS、ZK进行整合，然后将操作过程进行了整理，以便后续再查看。本文主要涉及Kerberos主从KDC部署，此文为2018-06-29文章Kerberos具体实践3的后续；本文为本系列的最后一篇。&lt;/p&gt;
 &lt;/blockquote&gt;
 
@@ -3428,1321 +3728,4 @@ Active: failed (Result: exit-code) since Tue 2017-09-19 15:29:26 CST; 8s ago
 
 &lt;hr /&gt;
 &lt;p&gt;至此，本篇内容完成。&lt;br /&gt;
-以上，此文章以及0505、0628三篇内容基本上是完全关于Kerberos相关知识，HDFS、ZK结合Kerberos的部署等内容，由于时间有限以及测试不够充分，仍存在很多漏洞以及待处理的问题，以后有机会再深入学习一下。&lt;/p&gt;</content><author><name>叶子  ( ˘ ³˘)♥</name></author><category term="Kerberos" /><summary type="html">本文主要关于Kerberos的简单应用。因为工作测试需要，自己装了一套集群进行了Kerberos的部署，并且与HDFS、ZK进行整合，然后将操作过程进行了整理，以便后续再查看。本文主要涉及Kerberos主从KDC部署，此文为2018-06-29文章Kerberos具体实践3的后续；本文为本系列的最后一篇。 Kerberos主从KDC部署 在进行生产环境中进行Kerberos部署时，最好配置1个master KDC以及多个slave KDC来保证Kerberos服务的可靠性。每个KDC都能够包括一个Kerberos数据库的副本。在master KDC中包含一个可写的realm数据库副本，并且他会定期同步到slave KDC中。所有数据库的更改（如更改密码）都是由master KDC负责。当主KDC不可用，slave KDCs提供Kerberos的票据授予服务，不负责数据库管理。</summary></entry><entry><title type="html">Kerberos具体实践3-Kerberos与ZK的整合操作</title><link href="http://localhost:4000/bigdata/2018/06/29/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B53-Kerberos%E4%B8%8EZK%E7%9A%84%E6%95%B4%E5%90%88%E6%93%8D%E4%BD%9C/" rel="alternate" type="text/html" title="Kerberos具体实践3-Kerberos与ZK的整合操作" /><published>2018-06-29T00:00:00+08:00</published><updated>2018-06-29T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/06/29/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B53-Kerberos%E4%B8%8EZK%E7%9A%84%E6%95%B4%E5%90%88%E6%93%8D%E4%BD%9C</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/06/29/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B53-Kerberos%E4%B8%8EZK%E7%9A%84%E6%95%B4%E5%90%88%E6%93%8D%E4%BD%9C/">&lt;blockquote&gt;
-  &lt;p&gt;本文主要关于Kerberos的简单应用。因为工作测试需要，自己装了一套集群进行了Kerberos的部署，并且与HDFS、ZK进行整合，然后将操作过程进行了整理，以便后续再查看。本文主要涉及到其与ZK的整合操做，此文为2018-06-28文章Kerberos具体实践2的后续。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h1 id=&quot;zookeeper整合kerberos&quot;&gt;Zookeeper整合Kerberos&lt;/h1&gt;
-&lt;p&gt;关于zookeeper上配置Kerberos，参考&lt;a href=&quot;https://yq.aliyun.com/articles/25626&quot;&gt;zookeeper配置Kerberos认证&lt;/a&gt;。&lt;/p&gt;
-&lt;h2 id=&quot;zookeeper-server配置&quot;&gt;Zookeeper Server配置&lt;/h2&gt;
-&lt;p&gt;若hdfs配置过程中需要配置zookeeper与Kerberos结合，则目前先需要配置server即可。&lt;/p&gt;
-&lt;h3 id=&quot;创建认证规则并生成keytabzookeeper-server&quot;&gt;创建认证规则并生成keytab（zookeeper-server）&lt;/h3&gt;
-&lt;p&gt;zk整合Kerberos需要先创建启动zk用户的认证规则以及keytab，由于本次操作中，zk和hadoop均使用hadoop用户启动，则在本次操作中，不必再需要去创建新的认证规则和keytab，直接使用原来的hdfs.keytab即可。&lt;/p&gt;
-
-&lt;p&gt;补充：&lt;br /&gt;
-若有创建需要（如需要使用zookeeper用户启动zk服务），可再继续再次参考下述操作（其实同hdfs的操作）。&lt;br /&gt;
-在node1节点，即KDC server节点上执行下面命令，在KCD server上（这里是 node1）创建zookeeper principal：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kadmin.local -q &quot;addprinc -randkey zookeeper/node1@HADOOP.COM&quot;   
-kadmin.local -q &quot;addprinc -randkey zookeeper/node2@HADOOP.COM&quot;  
-kadmin.local -q &quot;addprinc -randkey zookeeper/node3@HADOOP.COM&quot;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;执行如下命令，在当前目录中创建keytab，名为zookeeper.keytab：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kadmin.local -q &quot;xst  -k zookeeper.keytab  zookeeper/node1@HADOOP.COM &quot;
-kadmin.local -q &quot;xst  -k zookeeper.keytab  zookeeper/node2@HADOOP.COM &quot;
-kadmin.local -q &quot;xst  -k zookeeper.keytab  zookeeper/node3@HADOOP.COM &quot;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;h3 id=&quot;部署keytabzookeeper-server&quot;&gt;部署Keytab（zookeeper-server）&lt;/h3&gt;
-&lt;p&gt;拷贝node1上生成的keytab(新创建的就是zookeeper.keytab)文件到其他节点的某一目录上（如/opt/zookeeper/conf，为了在zk配置文件种找到keytab），并为其设置属主和权限400（如chown zookeeper:hadoop zookeeper.keytab ;chmod 400 *.keytab），同HDFS配置过程中的操作。&lt;br /&gt;
-此次测试中，启动zk和启动hdfs的用户都是hadoop，并且在进行hdfs配置kerberos的过程中，已经将hdfs.keytab复制到其他节点的/opt/hadoop_krb5/conf/hdfs.keytab目录下了，并且也设置了权限所以此次我不再进行操作。&lt;/p&gt;
-&lt;h3 id=&quot;修改zookeeper配置文件zookeeper-server&quot;&gt;修改zookeeper配置文件（zookeeper-server）&lt;/h3&gt;
-&lt;p&gt;在node1节点上修改/opt/zookeeper-3.4.8/conf/（zookeeper安装目录下的conf）zoo.cfg文件，添加下面内容：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;authProvider.1=org.apache.zookeeper.server.auth.SASLAuthenticationProvider
-jaasLoginRenew=3600000
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;将修改的上面文件同步到其他节点：node2、node3：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ scp /opt/zookeeper-3.4.8/conf/zoo.cfg node2:/opt/zookeeper-3.4.8/conf/zoo.cfg
-$ scp /opt/zookeeper-3.4.8/conf/zoo.cfg node3:/opt/zookeeper-3.4.8/conf/zoo.cfg
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;h3 id=&quot;创建jaas文件zookeeper-server&quot;&gt;创建jaas文件（zookeeper-server）&lt;/h3&gt;
-&lt;p&gt;在node1的配置文件目录/opt/zookeeper-3.4.8/conf/（zookeeper安装目录下的conf）创建 jaas.conf文件，内容如下：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Server {
-  com.sun.security.auth.module.Krb5LoginModule required
-  useKeyTab=true
-  keyTab=&quot;/opt/hadoop_krb5/conf/hdfs.keytab&quot;【上述操作创建出的keytab，因为本次操作中zk用hadoop用户启动的，和hdfs一样，则没用重新生产keytab，和hdfs的用一个】
-  storeKey=true
-  useTicketCache=false【这里有踩过的一个小坑：如果krb5.conf 去掉了default_ccache_name = KEYRING:persistent:%{uid}，则一定用false，要不然zk起不来】
-  principal=&quot;hadoop/node1@HADOOP.COM&quot;;
-};
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;其中，keytab填写真实的keytab的绝对路径，principal填写对应的认证的用户和机器名称。需要在 node2和node3节点也创建该文件，注意每个节点的principal有所不同。&lt;/p&gt;
-&lt;h3 id=&quot;创建javaenv文件zookeeper-server&quot;&gt;创建java.env文件（zookeeper-server）&lt;/h3&gt;
-&lt;p&gt;在node1的配置文件目录/opt/zookeeper-3.4.8/conf/（zookeeper安装目录下的conf）创建 java.env文件，内容如下：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;export JVMFLAGS=&quot;-Djava.security.auth.login.config=/opt/zookeeper-3.4.8/conf/jaas.conf&quot;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;并将该文件同步到其他节点：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ scp /opt/zookeeper-3.4.8/conf/java.env node2:/opt/zookeeper-3.4.8/conf/java.env
-$ scp /opt/zookeeper-3.4.8/conf/java.env node3:/opt/zookeeper-3.4.8/conf/java.env
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;以上Zookeeper-server配置完毕。&lt;/p&gt;
-&lt;h3 id=&quot;重新启动zookeeper&quot;&gt;重新启动zookeeper&lt;/h3&gt;
-&lt;p&gt;启动方式和平常无异，如成功使用安全方式启动，日志中看到如下日志：&lt;br /&gt;
-2017-09-18 10:23:30,067 … - successfully logged in.&lt;/p&gt;
-
-&lt;h2 id=&quot;zookeeper-client配置未测试&quot;&gt;Zookeeper Client配置（未测试）&lt;/h2&gt;
-&lt;h3 id=&quot;创建认证规则生成keytab&quot;&gt;创建认证规则生成keytab&lt;/h3&gt;
-&lt;p&gt;在node1节点，即KDC server节点上执行下面命令：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ cd /var/kerberos/krb5kdc/
-kadmin.local -q &quot;addprinc -randkey zkcli/node1@HADOOP.COM &quot;
-kadmin.local -q &quot;addprinc -randkey zkcli/node2@HADOOP.COM&quot;
-kadmin.local -q &quot;addprinc -randkey zkcli/node3@HADOOP.COM&quot;
-
-kadmin.local -q &quot;xst  -k zkcli.keytab  zkcli/node1@HADOOP.COM&quot;
-kadmin.local -q &quot;xst  -k zkcli.keytab  zkcli/node2@HADOOP.COM &quot;
-kadmin.local -q &quot;xst  -k zkcli.keytab  zkcli/node3@HADOOP.COM &quot;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;拷贝 zkcli.keytab文件到其他节点的zk配置目录：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ scp zkcli.keytab node1:/etc/zookeeper/conf
-$ scp zkcli.keytab node2:/etc/zookeeper/conf
-$ scp zkcli.keytab node3:/etc/zookeeper/conf
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;并设置属主和权限，分别在node1、node2、node3 上执行：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ ssh node1 &quot;cd /etc/zookeeper/conf/;chown zookeeper:hadoop zkcli.keytab ;chmod 400 *.keytab&quot;
-$ ssh node2 &quot;cd /etc/zookeeper/conf/;chown zookeeper:hadoop zkcli.keytab ;chmod 400 *.keytab&quot;
-$ ssh node3 &quot;cd /etc/zookeeper/conf/;chown zookeeper:hadoop zkcli.keytab ;chmod 400 *.keytab&quot;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;h3 id=&quot;创建jaas配置文件&quot;&gt;创建jaas配置文件&lt;/h3&gt;
-&lt;p&gt;在node1的zk配置文件目录创建 client-jaas.conf 文件，内容如下：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Client {
-  com.sun.security.auth.module.Krb5LoginModule required
-  useKeyTab=true
-  keyTab=&quot;/etc/zookeeper/conf/zkcli.keytab&quot;
-  storeKey=true
-  useTicketCache=false
-  principal=&quot;zkcli@HADOOP.COM&quot;;
-};
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;同步到其他client节点：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ scp client-jaas.conf node2:/etc/zookeeper/conf
-$ scp client-jaas.conf node3:/etc/zookeeper/conf
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;h3 id=&quot;创建javaenv文件&quot;&gt;创建java.env文件&lt;/h3&gt;
-&lt;p&gt;然后，在zk安装目录conf目录创建或者修改java.env，内容如下：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;export CLIENT_JVMFLAGS=&quot;-Djava.security.auth.login.config=/etc/zookeeper/conf/client-jaas.conf&quot;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;blockquote&gt;
-  &lt;p&gt;如果，zookeeper-client 和 zookeeper-server 安装在同一个节点上，则 java.env 中的 java.security.auth.login.config 参数会被覆盖，这一点从 zookeeper-client 命令启动日志可以看出来。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;并将该文件同步到其他节点：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ scp /etc/zookeeper/conf/java.env node2:/etc/zookeeper/conf/java.env
-$ scp /etc/zookeeper/conf/java.env node3:/etc/zookeeper/conf/java.env
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;h3 id=&quot;启动并验证&quot;&gt;启动并验证&lt;/h3&gt;
-&lt;p&gt;启动客户端：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ zookeeper-client -server node1:2181
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;创建一个znode 节点：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;k: node1:2181(CONNECTED) 0] create /znode1 sasl:zkcli@HADOOP.COM:cdwra
-    Created /znode1
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;验证该节点是否创建以及其 ACL：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[zk: node1:2181(CONNECTED) 1] getAcl /znode1
-    'world,'anyone
-    : cdrwa
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;以上为ZK整合Kerberos操作部分。&lt;/p&gt;
-
-&lt;hr /&gt;
-&lt;p&gt;至此，本篇内容完成。&lt;br /&gt;
-以上，此文章是关于ZK结合Kerberos的部署等内容，下篇将补充说明主从KDC的搭建。&lt;/p&gt;</content><author><name>叶子  ( ˘ ³˘)♥</name></author><category term="Kerberos" /><summary type="html">本文主要关于Kerberos的简单应用。因为工作测试需要，自己装了一套集群进行了Kerberos的部署，并且与HDFS、ZK进行整合，然后将操作过程进行了整理，以便后续再查看。本文主要涉及到其与ZK的整合操做，此文为2018-06-28文章Kerberos具体实践2的后续。 Zookeeper整合Kerberos 关于zookeeper上配置Kerberos，参考zookeeper配置Kerberos认证。 Zookeeper Server配置 若hdfs配置过程中需要配置zookeeper与Kerberos结合，则目前先需要配置server即可。 创建认证规则并生成keytab（zookeeper-server） zk整合Kerberos需要先创建启动zk用户的认证规则以及keytab，由于本次操作中，zk和hadoop均使用hadoop用户启动，则在本次操作中，不必再需要去创建新的认证规则和keytab，直接使用原来的hdfs.keytab即可。 补充： 若有创建需要（如需要使用zookeeper用户启动zk服务），可再继续再次参考下述操作（其实同hdfs的操作）。 在node1节点，即KDC server节点上执行下面命令，在KCD server上（这里是 node1）创建zookeeper principal： kadmin.local -q &quot;addprinc -randkey zookeeper/node1@HADOOP.COM&quot; kadmin.local -q &quot;addprinc -randkey zookeeper/node2@HADOOP.COM&quot; kadmin.local -q &quot;addprinc -randkey zookeeper/node3@HADOOP.COM&quot; 执行如下命令，在当前目录中创建keytab，名为zookeeper.keytab： kadmin.local -q &quot;xst -k zookeeper.keytab zookeeper/node1@HADOOP.COM &quot; kadmin.local -q &quot;xst -k zookeeper.keytab zookeeper/node2@HADOOP.COM &quot; kadmin.local -q &quot;xst -k zookeeper.keytab zookeeper/node3@HADOOP.COM &quot; 部署Keytab（zookeeper-server） 拷贝node1上生成的keytab(新创建的就是zookeeper.keytab)文件到其他节点的某一目录上（如/opt/zookeeper/conf，为了在zk配置文件种找到keytab），并为其设置属主和权限400（如chown zookeeper:hadoop zookeeper.keytab ;chmod 400 *.keytab），同HDFS配置过程中的操作。 此次测试中，启动zk和启动hdfs的用户都是hadoop，并且在进行hdfs配置kerberos的过程中，已经将hdfs.keytab复制到其他节点的/opt/hadoop_krb5/conf/hdfs.keytab目录下了，并且也设置了权限所以此次我不再进行操作。 修改zookeeper配置文件（zookeeper-server） 在node1节点上修改/opt/zookeeper-3.4.8/conf/（zookeeper安装目录下的conf）zoo.cfg文件，添加下面内容： authProvider.1=org.apache.zookeeper.server.auth.SASLAuthenticationProvider jaasLoginRenew=3600000 将修改的上面文件同步到其他节点：node2、node3： $ scp /opt/zookeeper-3.4.8/conf/zoo.cfg node2:/opt/zookeeper-3.4.8/conf/zoo.cfg $ scp /opt/zookeeper-3.4.8/conf/zoo.cfg node3:/opt/zookeeper-3.4.8/conf/zoo.cfg 创建jaas文件（zookeeper-server） 在node1的配置文件目录/opt/zookeeper-3.4.8/conf/（zookeeper安装目录下的conf）创建 jaas.conf文件，内容如下： Server { com.sun.security.auth.module.Krb5LoginModule required useKeyTab=true keyTab=&quot;/opt/hadoop_krb5/conf/hdfs.keytab&quot;【上述操作创建出的keytab，因为本次操作中zk用hadoop用户启动的，和hdfs一样，则没用重新生产keytab，和hdfs的用一个】 storeKey=true useTicketCache=false【这里有踩过的一个小坑：如果krb5.conf 去掉了default_ccache_name = KEYRING:persistent:%{uid}，则一定用false，要不然zk起不来】 principal=&quot;hadoop/node1@HADOOP.COM&quot;; }; 其中，keytab填写真实的keytab的绝对路径，principal填写对应的认证的用户和机器名称。需要在 node2和node3节点也创建该文件，注意每个节点的principal有所不同。 创建java.env文件（zookeeper-server） 在node1的配置文件目录/opt/zookeeper-3.4.8/conf/（zookeeper安装目录下的conf）创建 java.env文件，内容如下： export JVMFLAGS=&quot;-Djava.security.auth.login.config=/opt/zookeeper-3.4.8/conf/jaas.conf&quot; 并将该文件同步到其他节点： $ scp /opt/zookeeper-3.4.8/conf/java.env node2:/opt/zookeeper-3.4.8/conf/java.env $ scp /opt/zookeeper-3.4.8/conf/java.env node3:/opt/zookeeper-3.4.8/conf/java.env 以上Zookeeper-server配置完毕。 重新启动zookeeper 启动方式和平常无异，如成功使用安全方式启动，日志中看到如下日志： 2017-09-18 10:23:30,067 … - successfully logged in.</summary></entry><entry><title type="html">Kerberos具体实践2-Kerberos与HDFS的整合操作</title><link href="http://localhost:4000/bigdata/2018/06/28/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B52-Kerberos%E4%B8%8EHDFS%E7%9A%84%E6%95%B4%E5%90%88%E6%93%8D%E4%BD%9C/" rel="alternate" type="text/html" title="Kerberos具体实践2-Kerberos与HDFS的整合操作" /><published>2018-06-28T00:00:00+08:00</published><updated>2018-06-28T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/06/28/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B52-Kerberos%E4%B8%8EHDFS%E7%9A%84%E6%95%B4%E5%90%88%E6%93%8D%E4%BD%9C</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/06/28/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B52-Kerberos%E4%B8%8EHDFS%E7%9A%84%E6%95%B4%E5%90%88%E6%93%8D%E4%BD%9C/">&lt;blockquote&gt;
-  &lt;p&gt;本文主要关于Kerberos的简单应用。因为工作测试需要，自己装了一套集群进行了Kerberos的部署，并且与HDFS、ZK进行整合，然后将操作过程进行了整理，以便后续再查看。本文主要涉及到其与HDFS的整合操作，此文为2018-05-05文章Kerberos具体实践1的后续，上文说明了Kerberos集群的安装以及基本命令的使用；由于篇幅有限，下文在2018-06-29文章Kerberos具体实践3中继续说明Kerberos与ZK整合操作。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h1 id=&quot;hdfs整合kerberos部署&quot;&gt;HDFS整合Kerberos（部署）&lt;/h1&gt;
-&lt;h2 id=&quot;创建认证规则&quot;&gt;创建认证规则&lt;/h2&gt;
-&lt;p&gt;在 Kerberos 安全机制里，一个principal就是realm里的一个对象，一个principal总是和一个密钥（secret key）成对出现的。&lt;br /&gt;
-这个 principal 的对应物可以是service，可以是host，也可以是user，对于Kerberos来说，都没有区别。&lt;br /&gt;
-Kdc(Key distribute center) 知道所有principal的secret key，但每个principal对应的对象只知道自己的那个secret key。这也是“共享密钥“的由来。&lt;br /&gt;
-对于hadoop，principals的格式为username/fully.qualified.domain.name@YOUR-REALM.COM。&lt;br /&gt;
-本次测试中，直接解压安装2.6.0-cdh5.11.0，并使用hadoop用户来进行NameNode和DataNode的启动，因此为集群中每个服务器节点添加principals：hadoop、HTTP、host（后续使用）。&lt;/p&gt;
-&lt;blockquote&gt;
-  &lt;p&gt;补充：若通过yum源安装的cdh集群中，NameNode和DataNode是通过hdfs启动的，故为集群中每个服务器节点添加两个principals：hdfs、HTTP。-官网说法：The properties for each daemon (NameNode, Secondary NameNode, and DataNode) must specify both the HDFS and HTTP principals, as well as the path to the HDFS keytab file.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;在 KCD server 上（这里是 node1）创建 hadoop principal：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kadmin.local -q &quot;addprinc -randkey hadoop/node1@HADOOP.COM&quot;   
-kadmin.local -q &quot;addprinc -randkey hadoop/node2@HADOOP.COM&quot;  
-kadmin.local -q &quot;addprinc -randkey hadoop/node3@HADOOP.COM&quot;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;创建 HTTP principal：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kadmin.local -q &quot;addprinc -randkey HTTP/node1@HADOOP.COM&quot; 
-kadmin.local -q &quot;addprinc -randkey HTTP/node2@HADOOP.COM&quot;  
-kadmin.local -q &quot;addprinc -randkey HTTP/node3@HADOOP.COM&quot;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;说明：randkey 标志没有为新principal 设置密码，而是指示kadmin生成一个随机密钥。之所以在这里使用这个标志，是因为此principal不需要用户交互。它是计算机的一个服务器帐户。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;创建完成后，查看：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ kadmin.local -q &quot;listprincs&quot;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;操作结果小例子：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[root@node1 /]# kadmin.local -q &quot;addprinc -randkey hadoop/node1@HADOOP.COM&quot;
-Authenticating as principal root/admin@HADOOP.COM with password.
-WARNING: no policy specified for hadoop/node1@HADOOP.COM; defaulting to no policy
-Principal &quot;hadoop/node1@HADOOP.COM&quot; created.
-[root@node1 /]# kadmin.local -q &quot;addprinc -randkey hadoop/node2@HADOOP.COM&quot;
-Authenticating as principal root/admin@HADOOP.COM with password.
-WARNING: no policy specified for hadoop/node2@HADOOP.COM; defaulting to no policy
-Principal &quot;hadoop/node2@HADOOP.COM&quot; created.
-[root@node1 /]# kadmin.local -q &quot;addprinc -randkey hadoop/node3@HADOOP.COM&quot;
-Authenticating as principal root/admin@HADOOP.COM with password.
-WARNING: no policy specified for hadoop/node3@HADOOP.COM; defaulting to no policy
-Principal &quot;hadoop/node3@HADOOP.COM&quot; created.
-[root@node1 /]# kadmin.local -q &quot;addprinc -randkey HTTP/node1@HADOOP.COM&quot;
-Authenticating as principal root/admin@HADOOP.COM with password.
-WARNING: no policy specified for HTTP/node1@HADOOP.COM; defaulting to no policy
-Principal &quot;HTTP/node1@HADOOP.COM&quot; created.
-[root@node1 /]# kadmin.local -q &quot;addprinc -randkey HTTP/node2@HADOOP.COM&quot;
-Authenticating as principal root/admin@HADOOP.COM with password.
-WARNING: no policy specified for HTTP/node2@HADOOP.COM; defaulting to no policy
-Principal &quot;HTTP/node2@HADOOP.COM&quot; created.
-[root@node1 /]# kadmin.local -q &quot;addprinc -randkey HTTP/node3@HADOOP.COM&quot;
-Authenticating as principal root/admin@HADOOP.COM with password.
-WARNING: no policy specified for HTTP/node3@HADOOP.COM; defaulting to no policy
-Principal &quot;HTTP/node3@HADOOP.COM&quot; created. 
-[root@node1 hadoop_logs]# kadmin.local -q &quot;addprinc -randkey host/node1@HADOOP.COM&quot;
-Authenticating as principal root/admin@HADOOP.COM with password.
-WARNING: no policy specified for host/node1@HADOOP.COM; defaulting to no policy
-Principal &quot;host/node1@HADOOP.COM&quot; created.
-[root@node1 hadoop_logs]# kadmin.local -q &quot;addprinc -randkey host/node2@HADOOP.COM&quot;
-Authenticating as principal root/admin@HADOOP.COM with password.
-WARNING: no policy specified for host/node2@HADOOP.COM; defaulting to no policy
-Principal &quot;host/node2@HADOOP.COM&quot; created.
-[root@node1 hadoop_logs]# kadmin.local -q &quot;addprinc -randkey host/node3@HADOOP.COM&quot;
-Authenticating as principal root/admin@HADOOP.COM with password.
-WARNING: no policy specified for host/node3@HADOOP.COM; defaulting to no policy
-Principal &quot;host/node3@HADOOP.COM&quot; created.
-[root@node1 /]# kadmin.local -q &quot;listprincs&quot;
-Authenticating as principal root/admin@HADOOP.COM with password.
-HTTP/node1@HADOOP.COM
-HTTP/node2@HADOOP.COM
-HTTP/node3@HADOOP.COM
-K/M@HADOOP.COM
-hadoop/node1@HADOOP.COM
-hadoop/node2@HADOOP.COM
-hadoop/node3@HADOOP.COM
-host/node1@HADOOP.COM
-host/node2@HADOOP.COM
-host/node3@HADOOP.COM
-kadmin/admin@HADOOP.COM
-kadmin/changepw@HADOOP.COM
-kadmin/node1@HADOOP.COM
-kiprop/node1@HADOOP.COM
-krbtgt/HADOOP.COM@HADOOP.COM
-root/admin@HADOOP.COM
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;h2 id=&quot;生成keytab&quot;&gt;生成keytab&lt;/h2&gt;
-&lt;p&gt;keytab是包含principals和加密principal key的文件。keytab文件对于每个host是唯一的，因为key包含hostname。keytab文件用于不需要人工交互和保存纯文本密码，实现到kerberos上验证一个主机上的principal。因为服务器上可以访问keytab文件即可以以principal的身份通过 kerberos 的认证，所以，keytab文件应该被妥善保存，应该只有少数的用户可以访问。&lt;br /&gt;
-创建包含hadoop principal和HTTP principal的keytab。&lt;/p&gt;
-&lt;ol&gt;
-  &lt;li&gt;方法一：&lt;br /&gt;
-在node1节点，即KDC server节点上执行下面命令，会在当前目录下创建keytab，名字为hdfs.keytab：
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;1、kadmin.local进入kerberos shell中
-2、kadmin.local:  xst -norandkey -k hdfs.keytab hadoop/node1@HADOOP.COM hadoop/node2@HADOOP.COM hadoop/node3@HADOOP.COM HTTP/node1@HADOOP.COM HTTP/node2@HADOOP.COM HTTP/node3@HADOOP.COM
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-    &lt;p&gt;使用klist显示hdfs.keytab文件列表,查看执行结果：&lt;/p&gt;
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[root@node1 etc]# klist -ket  hdfs.keytab
-Keytab name: FILE:hdfs.keytab
-KVNO Timestamp           Principal
----- ------------------- ------------------------------------------------------
-1 09/06/2017 17:53:54 hadoop/node1@HADOOP.COM (des3-cbc-sha1)
-1 09/06/2017 17:53:54 hadoop/node1@HADOOP.COM (arcfour-hmac)
-1 09/06/2017 17:53:54 hadoop/node1@HADOOP.COM (camellia256-cts-cmac)
-1 09/06/2017 17:53:54 hadoop/node1@HADOOP.COM (camellia128-cts-cmac)
-1 09/06/2017 17:53:54 hadoop/node1@HADOOP.COM (des-hmac-sha1)
-1 09/06/2017 17:53:54 hadoop/node1@HADOOP.COM (des-cbc-md5)
-1 09/06/2017 17:53:54 hadoop/node2@HADOOP.COM (des3-cbc-sha1)
-1 09/06/2017 17:53:54 hadoop/node2@HADOOP.COM (arcfour-hmac)
-1 09/06/2017 17:53:54 hadoop/node2@HADOOP.COM (camellia256-cts-cmac)
-1 09/06/2017 17:53:54 hadoop/node2@HADOOP.COM (camellia128-cts-cmac)
-1 09/06/2017 17:53:54 hadoop/node2@HADOOP.COM (des-hmac-sha1)
-1 09/06/2017 17:53:54 hadoop/node2@HADOOP.COM (des-cbc-md5)
-1 09/06/2017 17:53:54 hadoop/node3@HADOOP.COM (des3-cbc-sha1)
-1 09/06/2017 17:53:54 hadoop/node3@HADOOP.COM (arcfour-hmac)
-1 09/06/2017 17:53:54 hadoop/node3@HADOOP.COM (camellia256-cts-cmac)
-1 09/06/2017 17:53:54 hadoop/node3@HADOOP.COM (camellia128-cts-cmac)
-1 09/06/2017 17:53:54 hadoop/node3@HADOOP.COM (des-hmac-sha1)
-1 09/06/2017 17:53:54 hadoop/node3@HADOOP.COM (des-cbc-md5)
-1 09/06/2017 17:53:54 HTTP/node1@HADOOP.COM (des3-cbc-sha1)
-1 09/06/2017 17:53:54 HTTP/node1@HADOOP.COM (arcfour-hmac)
-1 09/06/2017 17:53:54 HTTP/node1@HADOOP.COM (camellia256-cts-cmac)
-1 09/06/2017 17:53:54 HTTP/node1@HADOOP.COM (camellia128-cts-cmac)
-1 09/06/2017 17:53:54 HTTP/node1@HADOOP.COM (des-hmac-sha1)
-1 09/06/2017 17:53:54 HTTP/node1@HADOOP.COM (des-cbc-md5)
-1 09/06/2017 17:53:54 HTTP/node2@HADOOP.COM (des3-cbc-sha1)
-1 09/06/2017 17:53:54 HTTP/node2@HADOOP.COM (arcfour-hmac)
-1 09/06/2017 17:53:54 HTTP/node2@HADOOP.COM (camellia256-cts-cmac)
-1 09/06/2017 17:53:54 HTTP/node2@HADOOP.COM (camellia128-cts-cmac)
-1 09/06/2017 17:53:54 HTTP/node2@HADOOP.COM (des-hmac-sha1)
-1 09/06/2017 17:53:54 HTTP/node2@HADOOP.COM (des-cbc-md5)
-1 09/06/2017 17:53:54 HTTP/node3@HADOOP.COM (des3-cbc-sha1)
-1 09/06/2017 17:53:54 HTTP/node3@HADOOP.COM (arcfour-hmac)
-1 09/06/2017 17:53:54 HTTP/node3@HADOOP.COM (camellia256-cts-cmac)
-1 09/06/2017 17:53:54 HTTP/node3@HADOOP.COM (camellia128-cts-cmac)
-1 09/06/2017 17:53:54 HTTP/node3@HADOOP.COM (des-hmac-sha1)
-1 09/06/2017 17:53:54 HTTP/node3@HADOOP.COM (des-cbc-md5)
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-  &lt;/li&gt;
-  &lt;li&gt;方法二（未使用）：&lt;br /&gt;
-在node1节点，即KDC server节点上执行下面命令，分别创建keytab，名字为hdfs.keytab：
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ cd /var/kerberos/krb5kdc/  
-$ kadmin.local -q &quot;xst  -k hdfs-unmerged.keytab hadoop/node1@HADOOP.COM&quot;  
-$ kadmin.local -q &quot;xst  -k hdfs-unmerged.keytab hadoop/node2@HADOOP.COM&quot;  
-$ kadmin.local -q &quot;xst  -k hdfs-unmerged.keytab hadoop/node3@HADOOP.COM&quot;  
-$ kadmin.local -q &quot;xst  -k HTTP.keytab  HTTP/node1@HADOOP.COM&quot;  
-$ kadmin.local -q &quot;xst  -k HTTP.keytab  HTTP/node2@HADOOP.COM&quot;  
-$ kadmin.local -q &quot;xst  -k HTTP.keytab  HTTP/node3@HADOOP.COM&quot;  
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-    &lt;p&gt;这样，就会在/var/kerberos/krb5kdc/（当前）目录下生成hdfs-unmerged.keytab和HTTP.keytab两个文件，接下来使用ktutil合并者两个文件为hdfs.keytab。&lt;/p&gt;
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ cd /var/kerberos/krb5kdc/   
-$ ktutil  
-ktutil: rkt hdfs-unmerged.keytab  
-ktutil: rkt HTTP.keytab  
-ktutil: wkt hdfs.keytab
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-    &lt;p&gt;使用klist显示hdfs.keytab文件列表：&lt;/p&gt;
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ klist -ket  hdfs.keytab
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-  &lt;/li&gt;
-  &lt;li&gt;测试：&lt;br /&gt;
-验证是否正确合并了key，使用合并后的keytab，分别使用hadoop和HTTP principals来获取证书。
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ kinit -k -t hdfs.keytab hadoop/node1@HADOOP.COM
-$ kinit -k -t hdfs.keytab HTTP/node1@HADOOP.COM
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-    &lt;p&gt;如果出现错误：kinit: Key table entry not found while getting initial credentials，则上面的（生成）合并有问题，重新执行前面的操作。&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h2 id=&quot;部署kerberos-keytabhdfs&quot;&gt;部署Kerberos Keytab（hdfs）&lt;/h2&gt;
-&lt;p&gt;拷贝生成的hdfs.keytab文件到其他节点的/etc/hadoop/conf目录【可以自己定义目录，后续需要在hdfs配置文件中使用此目录】&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ cd /var/kerberos/krb5kdc/  【刚刚生成keytab文件所在目录】
-$ scp hdfs.keytab node1:/etc/hadoop/conf  
-$ scp hdfs.keytab node2:/etc/hadoop/conf  
-$ scp hdfs.keytab node3:/etc/hadoop/conf
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;并设置权限，分别在node1、node2、node3上执行更改文件属主和权限命令：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ ssh node1 &quot;chown hadoop:hadoop /etc/hadoop/conf/hdfs.keytab ;chmod 400 /etc/hadoop/conf/hdfs.keytab&quot;
-$ ssh node2 &quot;chown hadoop:hadoop /etc/hadoop/conf/hdfs.keytab ;chmod 400 /etc/hadoop/conf/hdfs.keytab&quot;
-$ ssh node3 &quot;chown hadoop:hadoop /etc/hadoop/conf/hdfs.keytab ;chmod 400 /etc/hadoop/conf/hdfs.keytab&quot;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;blockquote&gt;
-  &lt;p&gt;注意：由于keytab相当于有了永久凭证，不需要提供密码(如果修改kdc中的principal的密码，则该keytab就会失效)，所以其他用户如果对该文件有读权限，就可以冒充 keytab中指定的用户身份访问hadoop，所以keytab文件需要确保只对owner有读权限(0400)&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h2 id=&quot;hdfs配置修改&quot;&gt;HDFS配置修改&lt;/h2&gt;
-&lt;p&gt;关于HDFS集群的部署配置就不在此文中说明，以下直接进行说明Kerberos整合HDFS之时所做的修改操作。&lt;/p&gt;
-&lt;h3 id=&quot;修改core-sitexml配置文件&quot;&gt;修改core-site.xml配置文件&lt;/h3&gt;
-&lt;p&gt;在集群中所有节点的core-site.xml文件中添加下面的配置:&lt;/p&gt;
-&lt;div class=&quot;language-xml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;hadoop.security.authentication&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;kerberos&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;hadoop.security.authorization&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;true&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;h3 id=&quot;修改hdfs-sitexml配置文件&quot;&gt;修改hdfs-site.xml配置文件&lt;/h3&gt;
-&lt;p&gt;在集群中所有节点的hdfs-site.xml文件中添加下面的配置：&lt;/p&gt;
-&lt;div class=&quot;language-xml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;&amp;lt;!-- General HDFS security config --&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.block.access.token.enable&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;true&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-
-&lt;span class=&quot;c&quot;&gt;&amp;lt;!-- NameNode security config --&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.namenode.keytab.file&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;/opt/hadoop_krb5/conf/hdfs.keytab&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;&amp;lt;!-- HDFS keytab的目录 --&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.namenode.kerberos.principal&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;hadoop/_HOST@HADOOP.COM&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.namenode.kerberos.internal.spnego.principal&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;HTTP/_HOST@HADOOP.COM&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-
-&lt;span class=&quot;c&quot;&gt;&amp;lt;!-- DataNode security config --&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.datanode.data.dir.perm&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;700&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.datanode.address&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;0.0.0.0:61004&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.datanode.http.address&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;0.0.0.0:61006&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.datanode.keytab.file&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;/opt/hadoop_krb5/conf/hdfs.keytab&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;&amp;lt;!-- HDFS keytab的目录 --&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.datanode.kerberos.principal&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;hadoop/_HOST@HADOOP.COM&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.datanode.kerberos.https.principal&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;HTTP/_HOST@HADOOP.COM&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-
-&lt;span class=&quot;c&quot;&gt;&amp;lt;!-- 开启SSL(jsvc时可不配置；可选，详见下属总结以及启动datanode部分) --&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.http.policy&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;HTTPS_ONLY&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;&amp;lt;!-- SASL 模式--&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.data.transfer.protection&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;integrity&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-
-&lt;span class=&quot;c&quot;&gt;&amp;lt;!-- Web Authentication config --&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.webhdfs.enabled&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;true&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.web.authentication.kerberos.keytab&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;/opt/hadoop_krb5/conf/hdfs.keytab&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;&amp;lt;!-- HDFS keytab的目录 --&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.web.authentication.kerberos.principal&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;HTTP/_HOST@HADOOP.COM&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-
-&lt;span class=&quot;c&quot;&gt;&amp;lt;!--- HDFS QJM HA：如果HDFS配置了QJM HA，则需要添加；另外，你还要在zookeeper上配置kerberos（详见后续文章说明） --&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.journalnode.keytab.file&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;/opt/hadoop_krb5/conf/hdfs.keytab&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.journalnode.kerberos.principal&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;hadoop/_HOST@HADOOP.COM&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.journalnode.kerberos.internal.spnego.principal&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;HTTP/_HOST@HADOOP.COM&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;h3 id=&quot;修改hadoop-envsh配置文件&quot;&gt;修改hadoop-env.sh配置文件&lt;/h3&gt;
-&lt;p&gt;在hadoop-env.sh文件中，需要修改HADOOP_SECURE_DN_USER的值，其依据datanode启动方式不同，有不同的设置。&lt;br /&gt;
-注意的关键点如下：&lt;/p&gt;
-&lt;ol&gt;
-  &lt;li&gt;jsvc模式启动datanode：HADOOP_SECURE_DN_USER有值&lt;/li&gt;
-  &lt;li&gt;SASL模式启动datanode：HADOOP_SECURE_DN_USER没值，要注释掉。&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;#export HADOOP_SECURE_DN_USER=${HADOOP_SECURE_DN_USER}
-#export HADOOP_SECURE_DN_USER=hadoop
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;具体配置方式，见下述启动datanode的部分，以不同的启动方式来详细说明。&lt;/p&gt;
-
-&lt;p&gt;配置中有几点要注意的：&lt;/p&gt;
-&lt;ol&gt;
-  &lt;li&gt;如果不进行SSL配置，则hadoop需要使用jsvc来启动（如下条解释）。&lt;/li&gt;
-  &lt;li&gt;dfs.datanode.address、dfs.datanode.http.address表示data transceiver RPC server所绑定的hostname或IP地址，此部分配置与datanode的启动方式有关（本条内容目前是靠个人理解，由于目前还是菜鸟学习阶段，所以理解可能问题，请大家指出并告诉我，谢谢啦～我的邮箱leafming@foxmail.com），这部分的端口值有两种设置情况；
-    &lt;ul&gt;
-      &lt;li&gt;一定小于1024-jsvc:如果开启security，并且使用jsvc模式启动datanode（不配置SSL），dfs.datanode.address、dfs.datanode.http.address的端口一定要小于1024（privileged端口），否则的话启动datanode时候会报Cannot start secure cluster without privileged resources错误。CDH官网说明如下（详见&lt;a href=&quot;https://www.cloudera.com/documentation/enterprise/5-11-x/topics/cdh_sg_secure_hdfs_config.html#concept_nsy_21z_xn&quot;&gt;Configure Secure HDFS&lt;/a&gt;）：
-        &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; The dfs.datanode.address and dfs.datanode.http.address port numbers for the DataNode must be below 1024,because this provides part of the security mechanism to make it impossible for a user to run a map task which impersonates a DataNode. 
- The port numbers for the NameNode and Secondary NameNode can be anything you want, but the default port numbers are good ones to use.
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;        &lt;/div&gt;
-      &lt;/li&gt;
-      &lt;li&gt;一定大于1024-SASL:如果使用在2.6之前的版本，安全模式的hadoop只能使用jsvc，即先以root用户来启动datanode，然后再切到普通用户。而在2.6.0之后的版本，SASL可以用来验证数据传输。在使用SASL的配置下，不再需要root用jsvc来启动安全模式的集群，并且也不在需要使用特权端口。如果启用SASL模式，需要在hdfs-site.xml中设置dfs.data.transfer.protection，并且dfs.datanode.address的端口要大于1024（non-privileged端口），并且设置dfs.http.policy为HTTPS_ONLY，而且保证HADOOP_SECURE_DN_USER环境变量值没有设置。一定要注意的是，dfs.datanode.address若设置成了特权端口，则SASL无法使用，这是向后兼容性原因所必需的。官网说明如下&lt;a href=&quot;http://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/SecureMode.html&quot;&gt;Hadoop in Secure Mode-Secure DataNode&lt;/a&gt; ：
-        &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; As of version 2.6.0, SASL can be used to authenticate the data transfer protocol. 
- In this configuration, it is no longer required for secured clusters to start the DataNode as root using jsvc and bind to privileged ports. To enable SASL on data transfer protocol, set dfs.data.transfer.
- protection in hdfs-site.xml, set a non-privileged port for dfs.datanode.address, set dfs.http.policy to HTTPS_ONLY and make sure the HADOOP_SECURE_DN_USER environment variable is not defined. 
- Note that it is not possible to use SASL on data transfer protocol if dfs.datanode.address is set to a privileged port. This is required for backwards-compatibility reasons.
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;        &lt;/div&gt;
-      &lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;principal中的instance部分可以使用_HOST标记，系统会自动替换它为全称域名。&lt;/li&gt;
-  &lt;li&gt;如果开启了security, hadoop会对hdfs block data(由dfs.data.dir指定)做permission check，方式用户的代码不是调用hdfs api而是直接本地读block data，这样就绕过了kerberos和文件权限验证，管理员可以通过设置dfs.datanode.data.dir.perm 来修改datanode 文件权限，这里我们设置为700。&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;本次集群配置示例：&lt;/p&gt;
-
-&lt;div class=&quot;language-xml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;core-site.xml  
------------------------------------------------------------------
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;configuration&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;fs.defaultFS&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;hdfs://ns1&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;ha.zookeeper.quorum&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;node1:2181,node2:2181,node3:2181&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;io.compression.codecs&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;org.apache.hadoop.io.compress.SnappyCodec&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;hadoop.tmp.dir&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;/opt/hadoop-dir&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;hadoop.security.authentication&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;kerberos&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;hadoop.security.authorization&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;true&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/configuration&amp;gt;&lt;/span&gt;
------------------------------------------------------------------
-hdfs-site.xml
------------------------------------------------------------------
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;configuration&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;&amp;lt;!-- General HDFS security config --&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.block.access.token.enable&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;true&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.nameservices&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;ns1&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.ha.namenodes.ns1&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;node1,node2&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.namenode.rpc-address.ns1.node1&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;node1:8020&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.namenode.rpc-address.ns1.node2&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;node2:8020&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.namenode.http-address.ns1.node1&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;node1:8570&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.namenode.http-address.ns1.node2&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;node2:8570&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;&amp;lt;!-- NameNode security config --&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.namenode.keytab.file&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;/opt/hadoop_krb5/conf/hdfs.keytab&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;&amp;lt;!-- path to the HDFS keytab --&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.namenode.kerberos.principal&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;hadoop/_HOST@HADOOP.COM&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.namenode.kerberos.internal.spnego.principal&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;HTTP/_HOST@HADOOP.COM&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;&amp;lt;!-- DataNode security config --&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.datanode.data.dir.perm&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;700&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.datanode.address&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;0.0.0.0:61004&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.datanode.http.address&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;0.0.0.0:61006&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.datanode.keytab.file&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;/opt/hadoop_krb5/conf/hdfs.keytab&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;&amp;lt;!-- path to the HDFS keytab --&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.datanode.kerberos.principal&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;hadoop/_HOST@HADOOP.COM&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.datanode.kerberos.https.principal&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;HTTP/_HOST@HADOOP.COM&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.http.policy&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;HTTPS_ONLY&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.data.transfer.protection&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;integrity&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;&amp;lt;!-- Web Authentication config --&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.webhdfs.enabled&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;true&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.web.authentication.kerberos.keytab&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;/opt/hadoop_krb5/conf/hdfs.keytab&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;&amp;lt;!-- path to the HTTP keytab --&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.web.authentication.kerberos.principal&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;HTTP/_HOST@HADOOP.COM&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;&amp;lt;!-- HDFS QJM HA--&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.journalnode.keytab.file&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;/opt/hadoop_krb5/conf/hdfs.keytab&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.journalnode.kerberos.principal&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;hadoop/_HOST@HADOOP.COM&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.journalnode.kerberos.internal.spnego.principal&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;HTTP/_HOST@HADOOP.COM&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.namenode.shared.edits.dir&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;qjournal://node1:8485;node2:8485;node3:8485/ns1&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.journalnode.edits.dir&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;/opt/hadoop-dir/journal&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.ha.fencing.methods&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;sshfence&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.ha.fencing.ssh.private-key-files&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;/home/hadoop/.ssh/id_rsa&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.permissions.enabled&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;true&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.namenode.acls.enabled&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;true&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.permissions.superusergroup&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;cgroup&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.replication&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;3&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;final&amp;gt;&lt;/span&gt;true&lt;span class=&quot;nt&quot;&gt;&amp;lt;/final&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.namenode.name.dir&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;file:///opt/hadoop-dir/hadoop_data/nn&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.datanode.data.dir&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;file:///opt/hadoop-dir/hadoop_data/dn&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;ha.zookeeper.session-timeout.ms&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;5000&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.ha.automatic-failover.enabled&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;true&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.client.failover.proxy.provider.ns1&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;  
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.socket.timeout&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;90000&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;dfs.balance.bandwidthPerSec&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;10485760&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/configuration&amp;gt;&lt;/span&gt;
------------------------------------------------------------------
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;h2 id=&quot;检查集群上的hdfs和本地文件的权限未尝试hdfs配置kerberos认证-文章中写需要此操作&quot;&gt;检查集群上的HDFS和本地文件的权限（未尝试，&lt;a href=&quot;https://yq.aliyun.com/articles/25636?spm=5176.100240.searchblog.8.wbY2wv&quot;&gt;HDFS配置Kerberos认证&lt;/a&gt; 文章中写需要此操作）&lt;/h2&gt;
-&lt;p&gt;请参考&lt;a href=&quot;https://www.cloudera.com/documentation/enterprise/latest/topics/cdh_sg_users_groups_verify.html?spm=5176.100239.blogcont25636.6.wkeCKj&quot;&gt;Verify User Accounts and Groups in CDH 5 Due to Security&lt;/a&gt;或者&lt;a href=&quot;http://hadoop.apache.org/docs/r2.5.2/hadoop-project-dist/hadoop-common/SecureMode.html?spm=5176.100239.blogcont25636.7.wkeCKj&quot;&gt;Hadoop in Secure Mode&lt;/a&gt;。&lt;/p&gt;
-
-&lt;h1 id=&quot;hdfs整合kerberos启动&quot;&gt;HDFS整合Kerberos（启动）&lt;/h1&gt;
-&lt;p&gt;启动之前，请确认JCE jar已经替换，即若master_key_type和supported_enctypes使用aes256-cts（klist -e 命令查看采用了什么encryption），则需要替换JCE jar，请参考前面的说明。否则可能出现问题，可参考&lt;a href=&quot;https://www.cloudera.com/documentation/enterprise/5-11-x/topics/cm_sg_sec_troubleshooting.html#topic_17_1_5&quot;&gt;The NameNode starts but clients cannot connect to it and error message contains enctype code 18&lt;/a&gt;。
-而本次操作中，没有使用aes256-cts，所以不用进行替换。&lt;/p&gt;
-
-&lt;h2 id=&quot;kerberoskdc已经启动&quot;&gt;KerberosKDC已经启动&lt;/h2&gt;
-&lt;h2 id=&quot;启动namenode可不单独做这个操作直接配置好之后启动但可优先测试&quot;&gt;启动NameNode（可不单独做这个操作，直接配置好之后启动，但可优先测试）&lt;/h2&gt;
-&lt;h3 id=&quot;启动操作&quot;&gt;启动操作&lt;/h3&gt;
-&lt;p&gt;上述更改配置文件的时候，已经停掉了全部hdfs服务，现在进行启动操作。&lt;br /&gt;
-在每个节点上获取root用户的ticket，这里root为之前创建的root/admin的密码。&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ ssh cdh1 &quot;echo root@1234|kinit root/admin&quot;
-$ ssh cdh2 &quot;echo root@1234|kinit root/admin&quot;
-$ ssh cdh3 &quot;echo root@1234|kinit root/admin&quot;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;关闭selinux&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;setenforce 0
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;获取node1的启动namenode的ticket：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kinit -k -t /opt/hadoop_krb5/conf/hdfs.keytab hadoop/node1@HADOOP.COM
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;如果出现下面异常kinit: Password incorrect while getting initial credentials，则重新导出keytab再试试。&lt;/p&gt;
-
-&lt;p&gt;然后启动服务，观察日志： 
-在node1启动namenode&lt;br /&gt;
-hadoop-daemon.sh start namenode&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;待全部配置好之后，hdfs ha启动可参看&lt;a href=&quot;http://www.cnblogs.com/raphael5200/p/5154325.html&quot;&gt;配置HDFS HA(高可用)&lt;/a&gt;&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h3 id=&quot;测试启动&quot;&gt;测试启动&lt;/h3&gt;
-&lt;p&gt;在本次操作中，未直接进行测试，是在namenode和datanode全部启动之后才进行测试，但是，验证NameNode是否启动可参照下属操作：&lt;/p&gt;
-&lt;ol&gt;
-  &lt;li&gt;打开 web 界面查看启动状态&lt;/li&gt;
-  &lt;li&gt;运行下面命令查看 hdfs（hadoop fs -ls /）：
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; $ hadoop fs -ls /
- Found 4 items
- drwxrwxrwx   - yarn hadoop          0 2014-06-26 15:24 /logroot
- drwxrwxrwt   - hdfs hadoop          0 2014-11-04 10:44 /tmp
- drwxr-xr-x   - hdfs hadoop          0 2014-08-10 10:53 /user
- drwxr-xr-x   - hdfs hadoop          0 2013-05-20 22:52 /var
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-  &lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h3 id=&quot;问题总结&quot;&gt;问题总结&lt;/h3&gt;
-&lt;p&gt;采用此种方式过程中，可能遇到以下问题运行问题：&lt;/p&gt;
-&lt;ol&gt;
-  &lt;li&gt;一个用户如果在你的凭据缓存中没有有效的kerberos ticket，执行上面命令将会失败，将会出现下面的错误：
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;     11/01/04 12:08:12 WARN ipc.Client: Exception encountered while connecting to the server : javax.security.sasl.SaslException:
-     GSS initiate failed [Caused by GSSException: No valid credentials provided (Mechanism level: Failed to find any Kerberos tgt)]
-     Bad connection to FS. command aborted. exception: Call to nn-host/10.0.0.2:8020 failed on local exception: java.io.IOException:
-     javax.security.sasl.SaslException: GSS initiate failed [Caused by GSSException: No valid credentials provided (Mechanism level: Failed to find any Kerberos tgt)]
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-    &lt;p&gt;解决方法：可通过klist来查看缓存状态，或重新kinit更新缓存。&lt;/p&gt;
-    &lt;blockquote&gt;
-      &lt;p&gt;此问题官网说明参考&lt;a href=&quot;https://www.cloudera.com/documentation/enterprise/5-11-x/topics/cm_sg_sec_troubleshooting.html#topic_17_1_0&quot;&gt;Running any Hadoop command fails after enabling security.&lt;/a&gt;&lt;/p&gt;
-    &lt;/blockquote&gt;
-  &lt;/li&gt;
-  &lt;li&gt;但是，如果使用的是MIT kerberos 1.8.1或更高版本、并且Oracle JDK 6 Update 26或更低版本，即使成功的使用kinit获取了ticket，java仍然无法读取kerberos票据缓存，可能出现如下错误：
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;     11/01/04 12:08:12 WARN ipc.Client: Exception encountered while connecting to the server : javax.security.sasl.SaslException:
-     GSS initiate failed [Caused by GSSException: No valid credentials provided (Mechanism level: Failed to find any Kerberos tgt)]
-     Bad connection to FS. command aborted. exception: Call to nn-host/10.0.0.2:8020 failed on local exception: java.io.IOException:
-     javax.security.sasl.SaslException: GSS initiate failed [Caused by GSSException: No valid credentials provided (Mechanism level: Failed to find any Kerberos tgt)]
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-    &lt;p&gt;问题原因：这个问题是因为MIT kerberos 1.8.1或更高版本在写凭证缓存的时候做了一个更改（change参考&lt;a href=&quot;http://krbdev.mit.edu/rt/Ticket/Display.html?id=6206&quot;&gt;MIT Kerberos Change&lt;/a&gt;），如果使用是Oracle JDK 6 Update 26或更低版本，会遇到一个bug（bug参考&lt;a href=&quot;http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6979329&quot;&gt;Report of bug in Oracle JDK 6 Update 26 and lower&lt;/a&gt;），这个bug导致了在MIT kerberos 1.8.1或更高版中，java无法去读取Kerberos的票据缓存。而需要额外说明的是，Kerberos 1.8.1在Ubuntu Lucid或更高版本、 Debian Squeeze或更高版本中是默认Kerberos，会出现这个问题；但是在RHEL或CentOS中,默认的Kerberos是较老的版本，所以目前不会出现此问题。&lt;br /&gt;
-解决方法：在使用kinit获取ticket之后使用&lt;strong&gt;&lt;em&gt;kinit -R&lt;/em&gt;&lt;/strong&gt;来renew ticket。这样，将重写票据缓存中的ticket为java可读的格式，如下：&lt;/p&gt;
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;     $ klist
-     klist: No credentials cache found (ticket cache FILE:/tmp/krb5cc_1000)
-     $ hadoop fs -ls
-     11/01/04 13:15:51 WARN ipc.Client: Exception encountered while connecting to the server : javax.security.sasl.SaslException:
-     GSS initiate failed [Caused by GSSException: No valid credentials provided (Mechanism level: Failed to find any Kerberos tgt)]
-     Bad connection to FS. command aborted. exception: Call to nn-host/10.0.0.2:8020 failed on local exception: java.io.IOException:
-     javax.security.sasl.SaslException: GSS initiate failed [Caused by GSSException: No valid credentials provided (Mechanism level: Failed to find any Kerberos tgt)]
-     $ kinit
-     Password for atm@YOUR-REALM.COM: 
-     $ klist
-     Ticket cache: FILE:/tmp/krb5cc_1000
-     Default principal: atm@YOUR-REALM.COM
-        
-     Valid starting     Expires            Service principal
-     01/04/11 13:19:31  01/04/11 23:19:31  krbtgt/YOUR-REALM.COM@YOUR-REALM.COM
-        
-     renew until 01/05/11 13:19:30
-     $ hadoop fs -ls
-     11/01/04 13:15:59 WARN ipc.Client: Exception encountered while connecting to the server : javax.security.sasl.SaslException:
-     GSS initiate failed [Caused by GSSException: No valid credentials provided (Mechanism level: Failed to find any Kerberos tgt)]
-     Bad connection to FS. command aborted. exception: Call to nn-host/10.0.0.2:8020 failed on local exception: java.io.IOException:
-     javax.security.sasl.SaslException: GSS initiate failed [Caused by GSSException: No valid credentials provided (Mechanism level: Failed to find any Kerberos tgt)]
-     $ kinit -R
-     $ hadoop fs -ls
-     Found 6 items
-     drwx------   - atm atm          0 2011-01-02 16:16 /user/atm/.staging
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-  &lt;/li&gt;
-  &lt;li&gt;在上述问题2中，也有kinit -R 问题：&lt;br /&gt;
-     但是，需要注意的是使用2这种方法，要求的是ticket是可renew的。而能否获取renewable tickets依赖于KDC的设置和每一个principal的设置（包括realm中有问题的principal和TGT service端的principal）。&lt;br /&gt;
-     如果，一个ticker不可renew，那么它的”valid starting”和”renew until”的值是相同的时间。这时，使用kinit -R就会遇到下面的问题：
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;     kinit: Ticket expired while renewing credentials
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-    &lt;blockquote&gt;
-      &lt;p&gt;此问题官网说明参考&lt;a href=&quot;https://www.cloudera.com/documentation/enterprise/5-11-x/topics/cm_sg_sec_troubleshooting.html#topic_17_1_1&quot;&gt;Java is unable to read the Kerberos credentials cache created by versions of MIT Kerberos 1.8.1 or higher.&lt;/a&gt;&lt;/p&gt;
-    &lt;/blockquote&gt;
-
-    &lt;p&gt;所以为了获取可renew的ticket，可尝试使用以下方法-未彻底测试，若有问题，还需要大家自行解决下，并希望大家告诉我一下啦～（以下解决方法部分参考其他文章，&lt;a href=&quot;http://blog.csdn.net/wulantian/article/details/42173095&quot;&gt;CDH的Kerberos认证配置&lt;/a&gt;，时间过去挺久了，有些遗忘，待有时间再重新测试下）：&lt;br /&gt;
-a.在kdc.conf中添加默认flag&lt;/p&gt;
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;     default_principal_flags = +forwardable,+renewable
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-    &lt;p&gt;但是实际没有起作用，因为查看资料，默认的principal_flags就包含了renewable，所以问题不是出在这里。另外需要说明一点，default_principal_flags只对这个flags生效以后创建的principal生效，之前创建的不生效，需要使用modprinc来使之前的principal生效。&lt;br /&gt;
-b.在kdc.conf中添加，并加大该参数：&lt;/p&gt;
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;     max_renewable_life = 10d
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-    &lt;p&gt;修改之后重启kdc，重新kinit，再重新执行kinit -R则可以正常renew了。&lt;br /&gt;
-为了进行验证，再次将参数修改为“max_renewable_life = 0s”，再重新kinit后执行kinit -R则再次不能renew，则说明是否可以获取renew的ticket中，默认是可以获取renew的ticket的，但是，可以renw的最长时间是0s，所以造成无法renew，解决的办法是在kdc.conf中增大该参数。&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;另外补充：&lt;br /&gt;
-1」关于krb5.conf中的renew_lifetime = 7d参数，该参数设置该服务器上的使用kinit -R时renew的时间。&lt;br /&gt;
-2」可以通过modprinc来修改max_renewable_life的值，使用modprinc修改的值比kdc.conf中的配置有更高的优先级，例如，使用modprinc设置了为7天，kdc.conf中设置了为10天，使用getprinc可以看出，实际生效的是7天。需要注意的是，既要修改krbtgt/for_hadoop@for_hadoop，也要修改类似于hdfs/hadoop.local@for_hadoop这样的prinicials。使用modprinc来修改max_renewable_life，即kadmin.local进入kerberos的shell之后，执行：&lt;/p&gt;
-  &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;modprinc -maxrenewlife 7days krbtgt/for_hadoop@for_hadoop  
-getprinc krbtgt/for_hadoop@for_hadoop
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;  &lt;/div&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;到这里，kinit -R的问题解决，可以成功的执行hadoop fs -ls了。&lt;br /&gt;
-其他问题参考官网&lt;a href=&quot;https://www.cloudera.com/documentation/enterprise/5-11-x/topics/cm_sg_sec_troubleshooting.html#topic_17_1_0&quot;&gt;Troubleshooting Authentication Issues&lt;/a&gt;。&lt;/p&gt;
-
-&lt;h2 id=&quot;启动datanode&quot;&gt;启动datanode&lt;/h2&gt;
-&lt;p&gt;根据hdfs配置的区别，有两种启动datanode的方式，一种是使用jscv，一种是开启SASL。&lt;/p&gt;
-&lt;h3 id=&quot;方式一jsvc启动datanode-目前此种方式测试有些问题能成功启动并正常使用但是启动后通过jps查看发现datanode处有进程号但无进程名字datanode原因未知待解决&quot;&gt;方式一：jsvc启动datanode-目前此种方式测试有些问题，能成功启动并正常使用，但是启动后通过jps查看，发现datanode处有进程号，但无进程名字“datanode”，原因未知，待解决。&lt;/h3&gt;
-&lt;p&gt;如果没有配置TLS/SSL for HDFS（hdfs-site.xml里的dfs.http.policy），则datanode需要通过JSVC启动（只能root用户）。&lt;/p&gt;
-
-&lt;p&gt;关于Datanode+jsvc：&lt;br /&gt;
-在2.6版本前，启用hadoop安全模式，因为DataNode的数据传输协议没有使用HadoopRPC框架，DataNodes必须使用被dfs.datanode.address和dfs.datanode.http.address指定的特权端口来认证他们自己，该认证使基于假设攻击者无法获取在DataNode主机上的root特权。启动datanode的时候，必须用root用户，而当你使用root执行hdfs datanode命令时，服务器进程首先绑定特权端口，随后销毁特权并使用被HADOOP_SECURE_DN_USER指定的用户账号运行。这个启动进程使用被安装在JSVC_HOME的jsvc program。因此必须在启动项中hadoop-env.sh指定HADOOP_SECURE_DN_USER和JSVC_HOME做为环境变量。&lt;/p&gt;
-
-&lt;p&gt;jsvc模式启动datanode关键点先说明：&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;hdfs-site.xml中没有开启TLS/SSL HDFS配置；&lt;/li&gt;
-  &lt;li&gt;hdfs-site.xml中dfs.datanode.address、dfs.datanode.http.address的端口一定小于1024（特权端口）；&lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;hadoop-env.sh设置HADOOP_SECURE_DN_USER为实际启动用户；&lt;/p&gt;
-
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;  export HADOOP_SECURE_DN_USER=hadoop
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;安装jsvc，在hdfs-site.xml下加入安装目录JSVC_HOME，jsvc相关jar包替换；&lt;/p&gt;
-
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;  export JSVC_HOME=/opt/hadoop/sbin/Linux/bigtop-jsvc-1.0.10-cdh5.11.0
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-  &lt;/li&gt;
-  &lt;li&gt;启动服务前，先获取ticket再运行相关命令，要使用root用户启动datanode。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h4 id=&quot;ijsvc环境部署hdfs集群的所有节点都要进行此操作&quot;&gt;i.jsvc环境部署（hdfs集群的所有节点都要进行此操作）&lt;/h4&gt;
-&lt;p&gt;使用jsvc模式，hdfs-site.xml中去掉ssl配置，并且相关端口号使用特权端口，之后需要部署jsvc环境。
-因为系统里未安装jsvc，则首先进行安装操作，安装参考&lt;a href=&quot;http://blog.csdn.net/shuchangwen/article/details/45242549&quot;&gt;jscv安装&lt;/a&gt;。&lt;/p&gt;
-&lt;ol&gt;
-  &lt;li&gt;下载安装包
-因为我的hdoop版本是2.6.0-cdh5.11.0，因此我在&lt;a href=&quot;http://archive.cloudera.com/cdh5/cdh/5/&quot;&gt;CDH组件下载&lt;/a&gt;处下载了bigtop-jsvc-1.0.10-cdh5.11.0.tar.gz。
-    &lt;blockquote&gt;
-      &lt;p&gt;补充：有些文章说明，apache hadoop可去&lt;a href=&quot;http://archive.apache.org/dist/commons/daemon/binaries/&quot;&gt;apache网站&lt;/a&gt;下载源代码和bin包。并且，关于JSVC，默认指向hadoop安装目录的libexec下，但libexec下并没有jsvc文件（hadoop是直接下载的tar.gz包，不是rpm安装），如下载commons-daemon-1.0.15-src.tar.gz及commons-daemon-1.0.15-bin.tar.gz，先解压src包后进入src/native/unix目录依次(可能需要先yum install gcc make sdk autoconf，再执行)执行./configure命令，make命令，这样会在当前目录下生成一个叫jsvc的文件，之后把它拷贝到hadoop目录下的libexec下，或更改环境变量如3。&lt;/p&gt;
-    &lt;/blockquote&gt;
-  &lt;/li&gt;
-  &lt;li&gt;安装操作&lt;br /&gt;
-把安装包放到了HADOOP_HOME家目录”/sbin/Linux/”目录下，直接解压即可。&lt;br /&gt;
-解压成bigtop-jsvc-1.0.10-cdh5.11.0后，进入到$HADOOP_HOME/sbin/Linux/bigtop-jsvc-1.0.10-cdh5.11.0目录下，可以看到jsvc，使用“./jsvc -help”命令测试jsvc能否使用（注意修改整个文件的权限drwxr-xr-x. 5 hadoop root   4096 Sep  8 13:54 bigtop-jsvc-1.0.10-cdh5.11.0）。&lt;/li&gt;
-  &lt;li&gt;配置环境变量&lt;br /&gt;
-在hadoop-env.sh文件中加入以下内容：
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;export HADOOP_SECURE_DN_USER=hadoop
-export JSVC_HOME=/opt/hadoop/sbin/Linux/bigtop-jsvc-1.0.10-cdh5.11.0
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-    &lt;blockquote&gt;
-      &lt;p&gt;说明：设置了HADOOP_SECURE_DN_USER的环境变量后，start-dfs.sh的启动脚本将会自动跳过DATANODE的启动。&lt;/p&gt;
-    &lt;/blockquote&gt;
-  &lt;/li&gt;
-  &lt;li&gt;替换jar包&lt;br /&gt;
-之前是没有进行替换jar包的操作，之后启动过程中出现错误，之后查阅资料得知，JSVC运行还需要一个commons-daemon-xxx.jar包，因此发现需要进行jar包替换，通过查阅资料得知，需要替换$HADOOP_HOME/share/hadoop/hdfs/lib下的commons-daemon-xxx.jar。&lt;br /&gt;
-因为我下载的是bigtop-jsvc-1.0.10-cdh5.11.0.tar.gz，而在HADOOP_HOME家目录的/share/hadoop/hdfs/lib下的是commons-daemon-1.0.13.jar，因此从&lt;a href=&quot;http://archive.apache.org/dist/commons/daemon/binaries/&quot;&gt;commons／daemon&lt;/a&gt;下下载了commons-daemon-1.0.10.jar，然后把得到的commons-daemon-1.0.10.jar文件拷贝到hadoop安装目录下share/hadoop/hdfs/lib下（有文章说明要同时删除自带版本的commons-daemon-xxx.jar包，但我没有删除也可以使用）并更改了权限和其它内容保持一致(如-rwxr-xr-x. 1 hadoop root    24242 Sep  8 14:13 commons-daemon-1.0.10.jar)。&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;接1补充：如果下载的是apache commons，即可解压bin包，然后把得到的commons-daemon-**.jar文件拷贝到hadoop安装目录下share/hadoop/hdfs/lib下，同时删除自带版本的commons-daemon-xxx.jar包。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;将上述操作在集群中的所有节点重复一遍（node1、node2、node3）。&lt;br /&gt;
-至此，jsvc的安装结束，注意hdfs的所有节点都要进行以上安装操作。&lt;/p&gt;
-&lt;h4 id=&quot;ii启动集群datanode&quot;&gt;ii.启动（集群）datanode&lt;/h4&gt;
-&lt;h5 id=&quot;启动操作-1&quot;&gt;启动操作&lt;/h5&gt;
-&lt;p&gt;设置了Security后，NameNode、QJM、ZKFC可以通过start-dfs.sh启动，DataNode需要使用（jsvc）root权限启动。&lt;br /&gt;
-并且因为设置了HADOOP_SECURE_DN_USER的环境变量后，执行start-dfs.sh的启动脚本将会自动跳过DATANODE的启动。&lt;br /&gt;
-所以使用jsvc模式，启动集群的时候需要两个步骤：&lt;/p&gt;
-&lt;ol&gt;
-  &lt;li&gt;启动NameNode、QJM、ZKFC（详细参考上述启动namenode）（若不是第一次启动，第一次配置好了hadoop的启动需要参考&lt;a href=&quot;http://www.cnblogs.com/raphael5200/p/5154325.html&quot;&gt;配置HDFS HA(高可用)&lt;/a&gt; ）
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;#每台机器上（kinit启动的用户）
-kinit -k -t /opt/hadoop_krb5/conf/hdfs.keytab hadoop/node1@HADOOP.COM
-#node1上
-start-dfs.sh
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-    &lt;p&gt;使用start-dfs.sh之后查看QJM的日志和ZKFC的日志（QJM的报错不会有明显的提示）检查有无exception；如果启动不成功则仍需进行排查（keytab、zk的kerberos等）。&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;启动Datanode &lt;br /&gt;
-因为Datanode需要通过jsvc启动进程，当你使用root执行启动脚本（如hdfs datanode）命令时，服务器进程首先绑定特权端口，随后销毁特权并使用被HADOOP_SECURE_DN_USER指定的用户账号运行。&lt;br /&gt;
-所以先需要在集群中的每台机器上都获取原启动用户（hadoop）ticket（现在登陆的是root用户,时间有点长了，有些遗忘好像也需要kinitroot的），然后再启动服务。&lt;br /&gt;
-kinit并启动服务：
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; # ssh node1 &quot;kinit -k -t /opt/hadoop_krb5/conf/hdfs.keytab hadoop/node1@HADOOP.COM; ./opt/hadoop/sbin/hadoop-daemon.sh start datanode&quot;
- # ssh node2 &quot;kinit -k -t /opt/hadoop_krb5/conf/hdfs.keytab hadoop/node2@HADOOP.COM; ./opt/hadoop/sbin/hadoop-daemon.sh start datanode&quot;
- # ssh node3 &quot;kinit -k -t /opt/hadoop_krb5/conf/hdfs.keytab hadoop/node3@HADOOP.COM; ./opt/hadoop/sbin/hadoop-daemon.sh start datanode&quot;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-    &lt;p&gt;补充，或在kinit后每台机器上使用命令启动：&lt;/p&gt;
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; HADOOP_DATANODE_USER=hadoop sudo -E /opt/hadoop/bin/hdfs datanode
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-    &lt;p&gt;或：&lt;/p&gt;
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; [root@node1 ~]# kinit -k -t /opt/hadoop_krb5/conf/hdfs.keytab hadoop/node1@HADOOP.COM
- [root@node1 ~]# start-secure-dns.sh
- node3: starting datanode, logging to /app/dcos/hadoop_logs//hadoop-hadoop-datanode-node3.out
- node1: starting datanode, logging to /app/dcos/hadoop_logs//hadoop-hadoop-datanode-node1.out
- node2: starting datanode, logging to /app/dcos/hadoop_logs//hadoop-hadoop-datanode-node2.out
-    
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-  &lt;/li&gt;
-  &lt;li&gt;验证datanode启动情况：观看node1上NameNode日志，出现下面日志表示DataNode启动成功：
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;2017-09-11 10:06:27,667 INFO org.apache.hadoop.security.UserGroupInformation: Login successful for user hadoop/node1@HADOOP.COM using keytab file /opt/hadoop_krb5/conf/hdfs.keytab
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-  &lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h5 id=&quot;遇到问题&quot;&gt;遇到问题&lt;/h5&gt;
-&lt;p&gt;通过此方法启动datanode之后，通过jps查看，发现进程名字无法显示，但是hadoop集群运行正常。&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[root@node1 sbin]# jps
-6912 QuorumPeerMain
-8785 NameNode
-9251 DFSZKFailoverController
-27156 Jps
-10456
-19929 Main
-9033 JournalNode
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;排查问题补充相关：&lt;br /&gt;
-jps(Java Virtual Machine Process Status Tool)是提供的一个显示当前所有java进程pid的命令，而jvm运行时会生成一个目录hsperfdata_$USER(其中user是启动java进程的用户)，默认的是生成在 java.io.tmpdir目录下，在linux中默认是/tmp，目录下会有些pid文件,存放jvm进程信息可以利用strings查看里面的文件内容，一般就是jvm的进程信息而已。&lt;br /&gt;
-以上问题是只有进程号，没有进程名字，就思考是不是pid文件问题，于是去/tmp/hsperfdata_hadoop/和/tmp/hsperfdata_root/下看看是否有相关进程信息，发现datanode虽然是用jsvc方式用root用户启动的，而“10456”进程在/tmp/hsperfdata_hadoop/下。&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[root@node1 tmp]# cd hsperfdata_
-hsperfdata_apple1/  hsperfdata_apple2/  hsperfdata_hadoop/  hsperfdata_root/    hsperfdata_sitech1/ hsperfdata_sitech2/
-[root@node1 tmp]# cd hsperfdata_hadoop/
-[root@node1 hsperfdata_hadoop]# ls
-10456  6912  8785  9033  9251
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;之后就去尝试使用SASL方式启动datanode了，这个问题就没有继续解决。怀疑是不是上面部署步骤出现问题了，有时间回来再看看是什么问题，再进行修改@TODO，希望大家有消息告诉我下，非常感谢！邮箱：leafming@foxmail.com。&lt;/p&gt;
-&lt;blockquote&gt;
-  &lt;p&gt;此文“&lt;a href=&quot;http://blog.csdn.net/xiao_jun_0820/article/details/39375819&quot;&gt;Hadoop的kerberos的实践部署&lt;/a&gt;”和“&lt;a href=&quot;http://blog.csdn.net/wulantian/article/details/42173095&quot;&gt;CDH的Kerberos认证&lt;/a&gt;”内有关于datanode使用jsvc启动内容，但未完全参照。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;补充其他问题（好像这个问题没啥关系，不是这么解决，就先放这放着吧）：有人说，有时候端口问题服务无法正常启动，如：“WARN org.apache.hadoop.hdfs.server.datanode.DataNode: Problem connecting to server: node2/10.211.55.11:8020”，使用“netstat -an|grep 8020”命令查看端口状态，如果不正常，映射为127.0.0.1:8020，则可尝试修改/etc/hosts文件中，去掉“127.0.0.1 localhost”，添加自己ip和主机名的映射，重新启动。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h5 id=&quot;小总结&quot;&gt;小总结&lt;/h5&gt;
-&lt;p&gt;加强理解，再次重复总结：jsvc模式启动datanode关键点：&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;hdfs-site.xml中没有开启TLS/SSL HDFS配置；&lt;/li&gt;
-  &lt;li&gt;hdfs-site.xml中dfs.datanode.address、dfs.datanode.http.address的端口一定小于1024（特权端口）；&lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;hadoop-env.sh设置HADOOP_SECURE_DN_USER为实际启动用户；&lt;/p&gt;
-
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;  export HADOOP_SECURE_DN_USER=hadoop
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;安装jsvc，在hdfs-site.xml下加入安装目录JSVC_HOME，jsvc相关jar包替换；&lt;/p&gt;
-
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;  export JSVC_HOME=/opt/hadoop/sbin/Linux/bigtop-jsvc-1.0.10-cdh5.11.0
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-  &lt;/li&gt;
-  &lt;li&gt;启动服务前，先获取ticket再运行相关命令，要使用root用户启动datanode，其它正常用hadoop用户即可。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;方式二hfds中开启sasl整体配置&quot;&gt;方式二：Hfds中开启SASL整体配置&lt;/h3&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;过渡说明：关于迁移一个使用root验证的hdfs集群为SASL方式，官方网站（&lt;a href=&quot;http://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/SecureMode.html&quot;&gt;Hadoop in Secure Mode-Secure DataNode&lt;/a&gt; ）上有如下说明：&lt;/p&gt;
-
-  &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;In order to migrate an existing cluster that used root authentication to start using SASL instead, first ensure that version 2.6.0 or later has been deployed to all cluster nodes as well as any external applications that need to connect to the cluster. Only versions 2.6.0 and later of the HDFS client can connect to a DataNode that uses SASL for authentication of data transfer protocol, so it is vital that all callers have the correct version before migrating. After version 2.6.0 or later has been deployed everywhere, update configuration of any external applications to enable SASL. If an HDFS client is enabled for SASL, then it can connect successfully to a DataNode running with either root authentication or SASL authentication. Changing configuration for all clients guarantees that subsequent configuration changes on DataNodes will not disrupt the applications. Finally, each individual DataNode can be migrated by changing its configuration and restarting. It is acceptable to have a mix of some DataNodes running with root authentication and some DataNodes running with SASL authentication temporarily during this migration period, because an HDFS client enabled for SASL can connect to both.
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;  &lt;/div&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;方式一介绍了使用jsvc启动datanode（稍有问题），下面开始介绍使用SASL的方式。&lt;/p&gt;
-&lt;blockquote&gt;
-  &lt;p&gt;有文章写了sasl in hdfs的配置方式相关操作，参考&lt;a href=&quot;http://blog.csdn.net/dxl342/article/details/55510659&quot;&gt;HDFS使用Kerberos&lt;/a&gt;。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;关于SASL模式的配置关键主要有以下几点，文章上面配置hadoop部分也有部分说明：&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;hdfs-site.xml中开启TLS/SSL HDFS配置；&lt;/li&gt;
-  &lt;li&gt;hdfs-site.xml中dfs.datanode.address、dfs.datanode.http.address的端口一定大于1024（非特权端口）；&lt;/li&gt;
-  &lt;li&gt;hadoop-env.sh中的HADOOP_SECURE_DN_USER内容一定为空，并且和jsvc模式不同，不需要进行jsvc的环境部署；&lt;/li&gt;
-  &lt;li&gt;https配置；&lt;/li&gt;
-  &lt;li&gt;正常启动hdfs集群。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h4 id=&quot;ihdfs配置1基础配置&quot;&gt;i.hdfs配置（1基础配置）&lt;/h4&gt;
-&lt;p&gt;虽然上面配置地方已经提过了，不过这次还是再重复写一遍吧，保持操作完整性嘛，大家配置过的可以去检查一次。&lt;/p&gt;
-&lt;ol&gt;
-  &lt;li&gt;hdfs-site.xml中开启TLS/SSL HDFS配置，即在hdfs-site.xml中定义dfs.http.policy，指定要在HDFS的守护进程启动HTTPS服务器。增加如下内容：
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; &amp;lt;!-- 开启SSL(jsvc时可不配置；可选，详见下属总结以及启动datanode部分) --&amp;gt;
- &amp;lt;property&amp;gt;
-  	&amp;lt;name&amp;gt;dfs.http.policy&amp;lt;/name&amp;gt;
-  	&amp;lt;value&amp;gt;HTTPS_ONLY&amp;lt;/value&amp;gt;
- &amp;lt;/property&amp;gt;
- &amp;lt;!-- SASL 模式--&amp;gt;
- &amp;lt;property&amp;gt;
-  	&amp;lt;name&amp;gt;dfs.data.transfer.protection&amp;lt;/name&amp;gt;
- 	 &amp;lt;value&amp;gt;integrity&amp;lt;/value&amp;gt;
- &amp;lt;/property&amp;gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-    &lt;p&gt;说明，这里可以使用三个参数：  &lt;br /&gt;
-HTTP_ONLY: Only HTTP server is started&lt;br /&gt;
-HTTPS_ONLY: Only HTTPS server is started&lt;br /&gt;
-HTTP_AND_HTTPS: Both HTTP and HTTPS server are started  &lt;br /&gt;
-值得一提的是，如果dfs.http.policy设置了https_only，则普通的WebHDFS不再可用。您将需要使用WebHDFS基于HTTPS，在这种结构中，它能保护你通过WebHDFS的数据。&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;检查hdfs-site.xml中dfs.datanode.address、dfs.datanode.http.address的端口一定大于1024（非特权端口）；hadoop-env.sh中的HADOOP_SECURE_DN_USER内容一定为空。&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h4 id=&quot;iihttps配置&quot;&gt;ii.https配置&lt;/h4&gt;
-&lt;p&gt;经过以上操作后，尝试启动hdfs，会发现namenode报错后退出，如下：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;2017-09-13 14:12:37,273 INFO org.apache.hadoop.http.HttpServer2: HttpServer.start() threw a non Bind IOException
-java.io.FileNotFoundException: /home/dtdream/.keystore (No such file or directory)
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;发现没有keystore文件，这个问题跟hadoop、Kerberos没什么关系，纯粹是https的配置了。&lt;br /&gt;
-简单说明https相关原理：https要求集群中有一个CA，它会生成ca_key和ca_cert，想要加入这个集群的节点，需要拿到这2个文件，然后经过一连串的动作生成keystore，并在hadoop的ssl-server.xml和ssl-client.xml中指定这个keystore的路径和密码，这样各个节点间就可以使用https进行通信了。
-因此若要继续使用此模式，后续需要进行hdfs中的https配置。详细hdfs的https配置，可参考&lt;a href=&quot;https://zh.hortonworks.com/blog/deploying-https-hdfs/&quot;&gt;DEPLOYING HTTPS IN HDFS&lt;/a&gt;，下面直接帖命令简单说明下过程。&lt;/p&gt;
-
-&lt;p&gt;注：在每台（node1、node2、node3）机器上都创建了/opt/ca 这个目录，存放ca相关文件，以下命令均在集群中各个机器的此目录下执行。&lt;/p&gt;
-&lt;ol&gt;
-  &lt;li&gt;生成每个机器的密钥和证书&lt;br /&gt;
-首先需要在集群里面的每个机器上创建keyhecertificate，可以使用keytool命令来创建，如：
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ keytool -keystore {keystore} -alias localhost -validity {validity} -genkey
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-    &lt;p&gt;即通过此命令定义两个关键参数：&lt;br /&gt;
-keystore：keystore文件负责存储certificate，里面包括certificate的私钥，因此需要好好保存；&lt;br /&gt;
-validity：定义certificate的有效时间。&lt;br /&gt;
-keytool命令会设置certificate的一些相关细节，如CN、OU、O、L、ST、C；其中CN要和节点全域名（FQDN）保持一致，通常情况下，在有部署DNS的情况下，客户端将cn与DNS域名进行比较，以确保它确实连接到所需服务器，而不是恶意服务器。&lt;br /&gt;
-此操作命令示例（注意密码）：&lt;/p&gt;
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;#node1  ／opt／ca目录下
-keytool -keystore keystore -alias node1 -validity 9999 -genkey -keyalg RSA -keysize 2048 -dname &quot;CN=node1, OU=security, O=hadoop, L=beijing, ST=beijing, C=CN&quot;  
-#node2  ／opt／ca目录下
-keytool -keystore keystore -alias node2 -validity 9999 -genkey -keyalg RSA -keysize 2048 -dname &quot;CN=node1, OU=security, O=hadoop, L=beijing, ST=beijing, C=CN&quot;  
-#node3  ／opt／ca目录下
-keytool -keystore keystore -alias node3 -validity 9999 -genkey -keyalg RSA -keysize 2048 -dname &quot;CN=node1, OU=security, O=hadoop, L=beijing, ST=beijing, C=CN&quot;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-    &lt;p&gt;执行完上述命令，会在当前目录下生成keystore文件。&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;创建自己的CA  &lt;br /&gt;
-经过第一步之后，集群的每个机器中有个自己的公私密钥对以及一个标识机器的证书。但是，证书是没有注册的，这意味着攻击者可以创建这样的证书冒充任何机器。&lt;br /&gt;
-因此，为了防止伪造证书，要为注册签名集群中的每台机器的证书。证书颁发机构（CA）负责签署证书。CA的工作就像一个政府签发护照，政府印章（标志）每个护照，使护照变得难以伪造。其他政府核实这些邮票以确保护照是真实的。类似地，CA在证书上签名，加密保证了签名证书难以伪造。因此，只要CA是一个真正可信的权威，客户就保证他们连接到真正的机器。&lt;br /&gt;
-下面，使用openssl命令去生成一个新的CA证书，生成的CA仅仅是一个公私密钥对和证书，可以用它签署其他证书。
-我们这里将node1作为CA，在node1上执行如下命令（注意密码）：
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;#node1  ／opt／ca目录下
-openssl req -new -x509 -keyout test_ca_key -out test_ca_cert -days 9999 -subj '/C=CN/ST=beijing/L=beijing/O=hadoop/OU=security/CN=node1'
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-    &lt;p&gt;说明：这里cn是CA服务器的地址。&lt;br /&gt;
-执行完以上命令，会在当前目录下生成test_ca_cert、test_ca_key文件。&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;添加CA到客户机器的信任库&lt;br /&gt;
-在生成了CA之后，需要添加CA到每个客户端的信任库中，使客户可以信任这个CA，使用命令：
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ keytool -keystore {truststore} -alias CARoot -import -file {ca-cert}
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-    &lt;p&gt;此步骤操作命令示例： 
-即，首先在node1上，将上面生成的test_ca_key和test_ca_cert拷贝到集群中的所有机器上。&lt;/p&gt;
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;#node1  ／opt／ca目录下
-scp test_ca_cert node2:/opt/ca/  
-scp test_ca_cert node3:/opt/ca/  
-scp test_ca_key node3:/opt/ca/  
-scp test_ca_key node2:/opt/ca/
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-    &lt;p&gt;在集群中每台机器上执行如下命令（注意密码）：&lt;/p&gt;
-    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;#node1  ／opt／ca目录下  
-keytool -keystore truststore -alias CARoot -import -file test_ca_cert
-#node2  ／opt／ca目录下  
-keytool -keystore truststore -alias CARoot -import -file test_ca_cert
-#node3  ／opt／ca目录下  
-keytool -keystore truststore -alias CARoot -import -file test_ca_cert
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-    &lt;p&gt;执行完以上命令，会在当前目录下生成truststore文件。&lt;br /&gt;
-在步骤1中的ketstore存储的是每一台机器自己的身份，而客户机的truststore存储的是客户端信任的所有证书。导入证书到一个truststore中意味着信任那个证书签名的其它所有证书。如以上所述，信任政府（CA）也意味着信任它签发的所有护照（证书）。这个属性称为信任链，它在大型Hadoop集群上部署HTTPS时特别有用。你可以在集群中用一个CA签名所有认证，然后每个机器就能使用一个相同信任了CA的truststore，通过这种方式，所有的机器可以验证所有其他机器。&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;签名证书&lt;br /&gt;
-下一步就是要使用步骤2生成的CA来签名步骤1中生成的所有证书。
-    &lt;ol&gt;
-      &lt;li&gt;首先，你需要从密钥库中导出的证书，使用如下命令：
-        &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; $ keytool -keystore -alias localhost -certreq -file {cert-file}
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;        &lt;/div&gt;
-        &lt;p&gt;即在node1、node2、node3上执行（注意密码）：&lt;/p&gt;
-
-        &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; #node1  ／opt／ca目录下
- keytool -certreq -alias node1 -keystore keystore -file cert  
- #node2  ／opt／ca目录下
- keytool -certreq -alias node2 -keystore keystore -file cert
- #node3  ／opt／ca目录下
- keytool -certreq -alias node3 -keystore keystore -file cert
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;        &lt;/div&gt;
-        &lt;p&gt;执行完以上命令，会在当前目录下生成cert文件。&lt;/p&gt;
-      &lt;/li&gt;
-      &lt;li&gt;之后，使用CA进行签名，使用如下命令：
-        &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; $ openssl x509 -req -CA {ca-cert} -CAkey {ca-key} -in {cert-file} -out {cert-signed} -days {validity} -CAcreateserial -passin pass:{ca-password}
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;        &lt;/div&gt;
-        &lt;p&gt;即在node1、node2、node3上执行（注意密码）：&lt;/p&gt;
-        &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; #node1  ／opt／ca目录下
- openssl x509 -req -CA test_ca_cert -CAkey test_ca_key -in cert -out cert_signed -days 9999 -CAcreateserial -passin pass:hadoop@1234
- #这个pass是CA的密码，即Then sign it with the CA。
- #node2  ／opt／ca目录下
- openssl x509 -req -CA test_ca_cert -CAkey test_ca_key -in cert -out cert_signed -days 9999 -CAcreateserial -passin pass:hadoop@1234
- #node3  ／opt／ca目录下
- openssl x509 -req -CA test_ca_cert -CAkey test_ca_key -in cert -out cert_signed -days 9999 -CAcreateserial -passin pass:hadoop@1234
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;        &lt;/div&gt;
-        &lt;p&gt;执行完以上命令，会在当前目录下生成cert_signed文件。&lt;/p&gt;
-      &lt;/li&gt;
-      &lt;li&gt;最后，将CA正式和被签名的证书都导入keystore中，使用如下命令：
-        &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; $ keytool -keystore -alias CARoot -import -file {ca-cert}
- $ keytool -keystore -alias localhost -import -file {cert-signed}
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;        &lt;/div&gt;
-        &lt;p&gt;即在node1、node2、node3上执行（注意密码）：&lt;/p&gt;
-
-        &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; #node1  ／opt／ca目录下
- keytool -keystore keystore -alias CARoot -import -file test_ca_cert
- keytool -keystore keystore -alias node1 -import -file cert_signed
- #node2  ／opt／ca目录下
- keytool -keystore keystore -alias CARoot -import -file test_ca_cert
- keytool -keystore keystore -alias node2 -import -file cert_signed
- #node3  ／opt／ca目录下
- keytool -keystore keystore -alias CARoot -import -file test_ca_cert
- keytool -keystore keystore -alias node3 -import -file cert_signed
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;        &lt;/div&gt;
-      &lt;/li&gt;
-      &lt;li&gt;补充：以上命令参数说明：&lt;br /&gt;
- keystore:keystore的位置&lt;br /&gt;
- ca-cert:CA证书&lt;br /&gt;
- ca-key:CA私钥&lt;br /&gt;
- ca-password:CA密码&lt;br /&gt;
- cert-file:导出的服务器的未签名证书&lt;br /&gt;
- cert-signed:服务器的签名的证书&lt;/li&gt;
-    &lt;/ol&gt;
-  &lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h4 id=&quot;iiihdfs配置2整合https&quot;&gt;iii.hdfs配置（2整合https）&lt;/h4&gt;
-&lt;p&gt;最后需要去配置HDFS中的HTTPs。&lt;br /&gt;
-其次，需要配置在$HADOOP_HOME/etc/hadoop目录下的ssl-server.xml和ssl-client.xml，告诉HDFS的密钥库和信任存储区。&lt;br /&gt;
-在所有节点上均进行此配置，现在node1上配置好，之后拷贝到其他节点（因为文件设置的都是在一样的路径）。&lt;br /&gt;
-说明：这里没来得及深究，有些配置可以省略。以后又时间再补充。@TODO&lt;/p&gt;
-&lt;ol&gt;
-  &lt;li&gt;ssl-client.xml&lt;br /&gt;
-本次操作配置文件示例：
-    &lt;div class=&quot;language-xml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; &lt;span class=&quot;nt&quot;&gt;&amp;lt;configuration&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;ssl.client.truststore.location&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;/opt/ca/truststore&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;description&amp;gt;&lt;/span&gt;Truststore to be used by clients like distcp. Must be specified.
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;/description&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;ssl.client.truststore.password&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;hadoop@1234&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;description&amp;gt;&lt;/span&gt;Optional. Default value is &quot;&quot;.
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;/description&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;ssl.client.truststore.type&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;jks&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;description&amp;gt;&lt;/span&gt;Optional. The keystore file format, default value is &quot;jks&quot;.
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;/description&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;ssl.client.truststore.reload.interval&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;10000&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;description&amp;gt;&lt;/span&gt;Truststore reload check interval, in milliseconds.
-   Default value is 10000 (10 seconds).
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;/description&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;ssl.client.keystore.location&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;/opt/ca/keystore&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;description&amp;gt;&lt;/span&gt;Keystore to be used by clients like distcp. Must be specified.
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;/description&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;ssl.client.keystore.password&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;hadoop@1234&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;description&amp;gt;&lt;/span&gt;Optional. Default value is &quot;&quot;.
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;/description&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;ssl.client.keystore.keypassword&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;hadoop@1234&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;description&amp;gt;&lt;/span&gt;Optional. Default value is &quot;&quot;.
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;/description&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;ssl.client.keystore.type&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;jks&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;description&amp;gt;&lt;/span&gt;Optional. The keystore file format, default value is &quot;jks&quot;.
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;/description&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;/configuration&amp;gt;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-  &lt;/li&gt;
-  &lt;li&gt;ssl-server.xml&lt;br /&gt;
-本次操作配置文件示例：
-    &lt;div class=&quot;language-xml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; &lt;span class=&quot;nt&quot;&gt;&amp;lt;configuration&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;ssl.server.truststore.location&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;/opt/ca/truststore&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;description&amp;gt;&lt;/span&gt;Truststore to be used by NN and DN. Must be specified.
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;/description&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;ssl.server.truststore.password&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;hadoop@1234&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;description&amp;gt;&lt;/span&gt;Optional. Default value is &quot;&quot;.
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;/description&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;ssl.server.truststore.type&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;jks&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;description&amp;gt;&lt;/span&gt;Optional. The keystore file format, default value is &quot;jks&quot;.
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;/description&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;ssl.server.truststore.reload.interval&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;10000&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;description&amp;gt;&lt;/span&gt;Truststore reload check interval, in milliseconds.
-   Default value is 10000 (10 seconds).
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;/description&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;ssl.server.keystore.location&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;/opt/ca/keystore&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;description&amp;gt;&lt;/span&gt;Keystore to be used by NN and DN. Must be specified.
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;/description&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;ssl.server.keystore.password&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;hadoop@1234&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;description&amp;gt;&lt;/span&gt;Must be specified.
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;/description&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;ssl.server.keystore.keypassword&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;hadoop@1234&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;description&amp;gt;&lt;/span&gt;Must be specified.
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;/description&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;ssl.server.keystore.type&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;jks&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;description&amp;gt;&lt;/span&gt;Optional. The keystore file format, default value is &quot;jks&quot;.
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;/description&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;property&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;ssl.server.exclude.cipher.list&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;value&amp;gt;&lt;/span&gt;TLS_ECDHE_RSA_WITH_RC4_128_SHA,SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA,SSL_RSA_WITH_DES_CBC_SHA,SSL_DHE_RSA_WITH_DES_CBC_SHA,SSL_RSA_EXPORT_WITH_RC4_40_MD5,SSL_RSA_EXPORT_WITH_DES40_CBC_SHA,SSL_RSA_WITH_RC4_128_MD5&lt;span class=&quot;nt&quot;&gt;&amp;lt;/value&amp;gt;&lt;/span&gt;
-   &lt;span class=&quot;nt&quot;&gt;&amp;lt;description&amp;gt;&lt;/span&gt;Optional. The weak security cipher suites that you want excluded from SSL communication.&lt;span class=&quot;nt&quot;&gt;&amp;lt;/description&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;/property&amp;gt;&lt;/span&gt;
- &lt;span class=&quot;nt&quot;&gt;&amp;lt;/configuration&amp;gt;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
-    &lt;p&gt;以上，关于Hfds中开启SASL整体配置说明完毕。&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;下面总结一下都做了什么：&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;hdfs-site.xml中开启TLS/SSL HDFS配置；&lt;/li&gt;
-  &lt;li&gt;hdfs-site.xml中dfs.datanode.address、dfs.datanode.http.address的端口一定大于1024（非特权端口）；&lt;/li&gt;
-  &lt;li&gt;hadoop-env.sh中的HADOOP_SECURE_DN_USER内容一定为空，并且和jsvc模式不同，不需要进行jsvc的环境部署；&lt;/li&gt;
-  &lt;li&gt;配置https：生成每个机器的密钥和证书；创建自己的CA；添加CA到客户机器的信任库；签名证书；&lt;/li&gt;
-  &lt;li&gt;hdfs中整合https：配置ssl-server.xml和ssl-client.xml。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h4 id=&quot;iv测试启动集群&quot;&gt;iv.测试启动（集群）&lt;/h4&gt;
-&lt;p&gt;以上，关于hdfs中开启SASL的整体配置完毕，下面即可直接进行集群的启动。&lt;br /&gt;
-补充：此处作为补充完整描述下全新集群的启动过程，通常情况下，直接启动即可。&lt;/p&gt;
-&lt;ol&gt;
-  &lt;li&gt;全新HA集群启动过程：
-    &lt;ol&gt;
-      &lt;li&gt;kinit验证&lt;/li&gt;
-      &lt;li&gt;
-        &lt;p&gt;分别启动zookeeper&lt;/p&gt;
-
-        &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; zkServer.sh start
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;        &lt;/div&gt;
-      &lt;/li&gt;
-      &lt;li&gt;
-        &lt;p&gt;启动三台JournalNode：node1、node2、node3&lt;/p&gt;
-
-        &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; hadoop-daemon.sh start journalnode
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;        &lt;/div&gt;
-      &lt;/li&gt;
-      &lt;li&gt;在其中一个NameNode上格式化hadoop.tmp.dir并初始化(格式化完成之后，将会在&lt;script type=&quot;math/tex&quot;&gt;\$\{dfs.namenode.name.dir\}/current&lt;/script&gt;目录下生成元数据，&lt;script type=&quot;math/tex&quot;&gt;\$\{dfs.namenode.name.dir\}&lt;/script&gt;是在hdfs-site.xml中配置的，默认值是&lt;script type=&quot;math/tex&quot;&gt;file://\$\{hadoop.tmp.dir\}/dfs/name&lt;/script&gt;，dfs.namenode.name.dir属性可配多个目录，如 /data1/dfs/name，/data2/dfs/name，/data3/dfs/name等。各个目录存储的文件结构和内容都完全一样，相当于备份，这样做的好处是当其中一个目录损坏了，也不会影响到Hadoop的元数据，特别是当其中一个目录是NFS（网络文件系统 Network File System，NFS）之上，即使你这台机器损坏了，元数据也得到保存；&lt;script type=&quot;math/tex&quot;&gt;\$\{hadoop.tmp.dir\}&lt;/script&gt;是在core-si te.xml文件内配置的）
-        &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; #node1
- hdfs namenode -format
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;        &lt;/div&gt;
-      &lt;/li&gt;
-      &lt;li&gt;把格式化后的元数据拷备到另一台NameNode节点上
-        &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; #node1
- $ scp -r ${hadoop.tmp.dir} root@node2:${hadoop.tmp.dir}
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;        &lt;/div&gt;
-      &lt;/li&gt;
-      &lt;li&gt;
-        &lt;p&gt;启动NameNode&lt;/p&gt;
-
-        &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; #node1
- hadoop-daemon.sh start namenode
- #node2
- hdfs namenode -bootstrapStandby（Y/N？）
- hadoop-daemon.sh start namenode
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;        &lt;/div&gt;
-      &lt;/li&gt;
-      &lt;li&gt;
-        &lt;p&gt;初始化zkfc&lt;/p&gt;
-
-        &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; #Node1:
- hdfs zkfc -formatZK
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;        &lt;/div&gt;
-      &lt;/li&gt;
-      &lt;li&gt;
-        &lt;p&gt;全面停止并全面启动&lt;/p&gt;
-
-        &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; #Node1:
- stop-dfs.sh
- start-dfs.sh
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;        &lt;/div&gt;
-      &lt;/li&gt;
-    &lt;/ol&gt;
-  &lt;/li&gt;
-  &lt;li&gt;因为启动过程中用到了hadoopHA，因此，可测试namenode的HA切换。
-    &lt;ol&gt;
-      &lt;li&gt;
-        &lt;p&gt;用命令查看namenode的状态（两台namenode，在hdfs-si te.xml中配置的名字和主机名保持了一直，也是node1，所以这里测试写node1）：&lt;/p&gt;
-
-        &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; hdfs haadmin -getServiceState node1
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;        &lt;/div&gt;
-      &lt;/li&gt;
-      &lt;li&gt;
-        &lt;p&gt;通过使用上述命令，有时候出现两台namenode都是standby的情况，则可以使用如下命令进行强制切换：&lt;/p&gt;
-
-        &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; hdfs haadmin -transitionToActive --forcemanual node1
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;        &lt;/div&gt;
-      &lt;/li&gt;
-      &lt;li&gt;
-        &lt;p&gt;再次使用上述命令查看切换状态。&lt;/p&gt;
-      &lt;/li&gt;
-    &lt;/ol&gt;
-  &lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;hr /&gt;
-&lt;p&gt;至此，本篇内容完成。以上内容基本上是完全关于HDFS中的Kerberos部署，HDFS结合Kerberos的整体部署完毕，若配置中使用了HA，则需要进行下文ZK配置之后才能完成完整部署。&lt;/p&gt;</content><author><name>叶子  ( ˘ ³˘)♥</name></author><category term="Kerberos" /><summary type="html">本文主要关于Kerberos的简单应用。因为工作测试需要，自己装了一套集群进行了Kerberos的部署，并且与HDFS、ZK进行整合，然后将操作过程进行了整理，以便后续再查看。本文主要涉及到其与HDFS的整合操作，此文为2018-05-05文章Kerberos具体实践1的后续，上文说明了Kerberos集群的安装以及基本命令的使用；由于篇幅有限，下文在2018-06-29文章Kerberos具体实践3中继续说明Kerberos与ZK整合操作。</summary></entry></feed>
+以上，此文章以及0505、0628三篇内容基本上是完全关于Kerberos相关知识，HDFS、ZK结合Kerberos的部署等内容，由于时间有限以及测试不够充分，仍存在很多漏洞以及待处理的问题，以后有机会再深入学习一下。&lt;/p&gt;</content><author><name>叶子  ( ˘ ³˘)♥</name></author><category term="Kerberos" /><summary type="html">本文主要关于Kerberos的简单应用。因为工作测试需要，自己装了一套集群进行了Kerberos的部署，并且与HDFS、ZK进行整合，然后将操作过程进行了整理，以便后续再查看。本文主要涉及Kerberos主从KDC部署，此文为2018-06-29文章Kerberos具体实践3的后续；本文为本系列的最后一篇。 Kerberos主从KDC部署 在进行生产环境中进行Kerberos部署时，最好配置1个master KDC以及多个slave KDC来保证Kerberos服务的可靠性。每个KDC都能够包括一个Kerberos数据库的副本。在master KDC中包含一个可写的realm数据库副本，并且他会定期同步到slave KDC中。所有数据库的更改（如更改密码）都是由master KDC负责。当主KDC不可用，slave KDCs提供Kerberos的票据授予服务，不负责数据库管理。</summary></entry></feed>

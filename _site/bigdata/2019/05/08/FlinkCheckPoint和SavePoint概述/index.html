@@ -111,20 +111,18 @@
 
 
 
-<meta name="description" content="本文关于Flink的一些基础概念。">
+<meta name="description" content="本文主要关于Flink中CheckPoint和SavePoint相关概念，基于Flink1.7.1版本。">
 <meta name="keywords" content="Flink">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Flink基础概念">
-<meta property="og:url" content="http://localhost:4000/bigdata/2018/09/05/Flink%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/">
+<meta property="og:title" content="Flink中CheckPoint和SavePoint相关概念">
+<meta property="og:url" content="http://localhost:4000/bigdata/2019/05/08/FlinkCheckPoint%E5%92%8CSavePoint%E6%A6%82%E8%BF%B0/">
 <meta property="og:site_name" content="iLeaf">
-<meta property="og:description" content="本文关于Flink的一些基础概念。">
+<meta property="og:description" content="本文主要关于Flink中CheckPoint和SavePoint相关概念，基于Flink1.7.1版本。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="https://ci.apache.org/projects/flink/flink-docs-release-1.6/fig/parallel_dataflow.svg">
-<meta property="og:updated_time" content="2018-10-08T00:00:00+08:00">
+<meta property="og:updated_time" content="2019-05-08T00:00:00+08:00">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Flink基础概念">
-<meta name="twitter:description" content="本文关于Flink的一些基础概念。">
-<meta name="twitter:image" content="https://ci.apache.org/projects/flink/flink-docs-release-1.6/fig/parallel_dataflow.svg">
+<meta name="twitter:title" content="Flink中CheckPoint和SavePoint相关概念">
+<meta name="twitter:description" content="本文主要关于Flink中CheckPoint和SavePoint相关概念，基于Flink1.7.1版本。">
 
 
 <script type="text/javascript" id="hexo.configurations">
@@ -157,7 +155,7 @@
 
 
 
-  <title>Flink基础概念 | iLeaf</title>
+  <title>Flink中CheckPoint和SavePoint相关概念 | iLeaf</title>
   
 
 
@@ -339,7 +337,7 @@
   
 
   <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://localhost:4000/bigdata/2018/09/05/Flink%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/bigdata/2019/05/08/FlinkCheckPoint%E5%92%8CSavePoint%E6%A6%82%E8%BF%B0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="叶子  ( ˘ ³˘)♥">
@@ -359,7 +357,7 @@
           <h1 class="post-title" itemprop="name headline">
           
           
-            Flink基础概念
+            Flink中CheckPoint和SavePoint相关概念
           
         </h1>
         
@@ -373,8 +371,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-05T00:00:00+08:00">
-                2018-09-05
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-05-08T00:00:00+08:00">
+                2019-05-08
               </time>
             
 
@@ -389,8 +387,8 @@
               
                 <span class="post-meta-item-text">更新于</span>
               
-              <time title="更新于" itemprop="dateModified" datetime="2018-10-08">
-                2018-10-08
+              <time title="更新于" itemprop="dateModified" datetime="2019-05-08">
+                2019-05-08
               </time>
             
           </span>
@@ -426,7 +424,7 @@
 
           
           
-             <span id="/bigdata/2018/09/05/Flink%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/" class="leancloud_visitors" data-flag-title="Flink基础概念">
+             <span id="/bigdata/2019/05/08/FlinkCheckPoint%E5%92%8CSavePoint%E6%A6%82%E8%BF%B0/" class="leancloud_visitors" data-flag-title="Flink中CheckPoint和SavePoint相关概念">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -445,7 +443,7 @@
           
             
                 <div class="post-description">
-                    本文关于Flink的一些基础概念。
+                    本文主要关于Flink中CheckPoint和SavePoint相关概念，基于Flink1.7.1版本。
                 </div>
             
           
@@ -461,84 +459,177 @@
 
       
         <blockquote>
-  <p>项目说要做创新活动，所以需要把原来的流处理从Spark替换成Flink。嗯，学习Flink！本文所用flink版本为1.6。</p>
+  <p>本文主要关于Flink中CheckPoint和SavePoint相关概念，基于Flink1.7.1。</p>
 </blockquote>
 
-<h1 id="flink基础概念">Flink基础概念</h1>
-<h2 id="程序和数据流-programs-and-dataflows">程序和数据流-Programs and Dataflows</h2>
-<p>官网地址：<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.6/concepts/programming-model.html#programs-and-dataflows">Programs and Dataflows</a>。</p>
+<h1 id="基础概念一览-checkpoint和savepoint的区别">基础概念一览-CheckPoint和SavePoint的区别</h1>
+<h3 id="使用场景">使用场景</h3>
+<p>Checkpoint仅用于恢复意外失败的作业（走flink的job默认恢复机制）。<br />
+SavePoint用于用户计划的、手动的备份和恢复（代码版本更新、更改并行度、jog graph、2个程序同时运行red/blue deployment）。</p>
+<h3 id="保留时间">保留时间</h3>
+<p>Checkpoint默认情况下是作业终止会被删除可配置保留）；Savepoint作业终止后继续存在。</p>
+<h3 id="设计目标">设计目标</h3>
+<p>Checkpoint设计目标：轻量级创建；快速恢复。<br />
+SavePoint：生成和恢复成本更高，关注可移植性和对先前提到的作业更改的支持。</p>
+<h3 id="维护">维护</h3>
+<p>Checkpoint由flink自动维护（ created, owned, and released by Flink），Savepoint需用户维护（ created, owned, and released by user）。</p>
+<h3 id="其他">其他</h3>
+<p>存储的数据格式与state backend密切相关；使用RocksDB state backend，Checkpoint支持增量存储（轻量）；Savepoint是全量Snapshot。</p>
 
+<h1 id="checkpoint">Checkpoint</h1>
+<h2 id="checkpoint配置例子">Checkpoint配置例子</h2>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">val</span> <span class="n">env</span><span class="k">:</span> <span class="kt">StreamExecutionEnvironment</span> <span class="o">=</span> <span class="k">if</span> <span class="o">(</span><span class="n">mode</span> <span class="o">==</span> <span class="s">"local"</span><span class="o">)</span> <span class="o">{</span>
+  <span class="nc">StreamExecutionEnvironment</span><span class="o">.</span><span class="n">createLocalEnvironment</span><span class="o">()</span>
+<span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+  <span class="nc">StreamExecutionEnvironment</span><span class="o">.</span><span class="n">getExecutionEnvironment</span>
+<span class="o">}</span>
+<span class="k">var</span> <span class="n">stateBackend</span><span class="k">:</span> <span class="kt">RocksDBStateBackend</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">RocksDBStateBackend</span><span class="o">(</span><span class="n">checkpointDir</span><span class="o">,</span> <span class="kc">false</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">rocksdbConf</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Configuration</span>
+<span class="n">rocksdbConf</span><span class="o">.</span><span class="n">setString</span><span class="o">(</span><span class="nc">RocksDBOptions</span><span class="o">.</span><span class="nc">TIMER_SERVICE_FACTORY</span><span class="o">,</span> <span class="nc">RocksDBStateBackend</span><span class="o">.</span><span class="nc">PriorityQueueStateType</span><span class="o">.</span><span class="nc">ROCKSDB</span><span class="o">.</span><span class="n">toString</span><span class="o">)</span>
+<span class="n">stateBackend</span><span class="o">.</span><span class="n">setPredefinedOptions</span><span class="o">(</span><span class="nc">PredefinedOptions</span><span class="o">.</span><span class="nc">SPINNING_DISK_OPTIMIZED_HIGH_MEM</span><span class="o">)</span>
+<span class="n">stateBackend</span> <span class="k">=</span> <span class="n">stateBackend</span><span class="o">.</span><span class="n">configure</span><span class="o">(</span><span class="n">rocksdbConf</span><span class="o">)</span>
+<span class="n">env</span><span class="o">.</span><span class="n">setStateBackend</span><span class="o">(</span><span class="n">stateBackend</span><span class="o">)</span>
+<span class="n">env</span><span class="o">.</span><span class="n">enableCheckpointing</span><span class="o">(</span><span class="n">triggerInterval</span> <span class="o">*</span> <span class="mi">1000</span><span class="o">)</span>
+<span class="n">env</span><span class="o">.</span><span class="n">getCheckpointConfig</span><span class="o">.</span><span class="n">setCheckpointingMode</span><span class="o">(</span><span class="nc">CheckpointingMode</span><span class="o">.</span><span class="nc">AT_LEAST_ONCE</span><span class="o">)</span>
+<span class="n">env</span><span class="o">.</span><span class="n">getCheckpointConfig</span><span class="o">.</span><span class="n">enableExternalizedCheckpoints</span><span class="o">(</span><span class="nc">ExternalizedCheckpointCleanup</span><span class="o">.</span><span class="nc">DELETE_ON_CANCELLATION</span><span class="o">)</span>
+<span class="n">env</span><span class="o">.</span><span class="n">getCheckpointConfig</span><span class="o">.</span><span class="n">setMinPauseBetweenCheckpoints</span><span class="o">(</span><span class="mi">3000</span><span class="o">)</span>
+<span class="n">env</span><span class="o">.</span><span class="n">getCheckpointConfig</span><span class="o">.</span><span class="n">setMaxConcurrentCheckpoints</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span>
+</code></pre></div></div>
+<p><strong>说明</strong>:<br />
+通过env.setStateBackend(stateBackend)，设置使用的state backend。<br />
+通过env.enableCheckpointing开启checkpoint并设置时间间隔为triggerInterval * 1000。<br />
+通过ExternalizedCheckpointCleanup配置checkpoints在job取消的时候是否清除：ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION表示一旦Flink处理程序被cancel后，会保留Checkpoint数据，以便后续需要的话根据实际需要恢复到指定的Checkpoint处理，需要手动清除checkpoint。ExternalizedCheckpointCleanup.DELETE_ON_CANCELLATION表示默认的，当job停止后删除checkpoint数据。</p>
+
+<p><strong>其他配置</strong>:<br />
+默认情况下，如果设置了Checkpoint选项，则Flink只保留最近成功生成的1个Checkpoint，由于Flink的job恢复机制只需要使用最新一个有效的checkpoint，因此在新的checkpoint生成后就可以安全移除其余旧的checkpoint了，当Flink程序失败时，可以从最近的这个Checkpoint来进行恢复。<br />
+如果需要保留多个Checkpoint，需要在Flink的配置文件conf/flink-conf.yaml中，添加如下配置，指定最多需要保存Checkpoint的个数，这样在HDFS的相应文件夹下面会产生多个checkpoint文件：</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>state.checkpoints.num-retained: 20
+</code></pre></div></div>
+
+<h2 id="从checkpoint恢复">从checkpoint恢复</h2>
+<p>checkpoint由元数据文件、额外的数据文件（与state backend相关）组成。在保留checkpoint的情况下，使用命令:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ bin/flink run -s :checkpointMetaDataPath [:runArgs]
+</code></pre></div></div>
+<p>从checkpoint的元数据文件进行数据恢复，注意若元数据文件中信息不够，那么jobmanager就需要使用相关的数据文件来恢复作业。<br />
+例如：bin/flink run -s hdfs://checkpoint目录/JobID/chk-21(checkpint点)/_metadata 其他运行命令，成功启动的job对应的Checkpoint编号会从该次运行基于的编号继续连续生成：chk-22、chk-23、chk-24等。</p>
+
+<h1 id="savepoint">SavePoint</h1>
+<p>avepoint使用Flink的Checkpoint机制创建流作业的全量（非增量）状态快照，包含Streaming程序的状态，并且将checkpoint数据和元数据写出到外部文件系统。</p>
+<h2 id="算子uid">算子UID</h2>
+<p>Flink程序中包含两种状态数据，一种是用户定义的状态（User-defined State），他们是基于Flink的Transformation函数来创建或者修改得到的状态数据；另一种是系统状态（System State），他们是指作为Operator计算一部分的数据Buffer等状态数据，比如在使用Window Function时，在Window内部缓存Streaming数据记录。为了能够在创建Savepoint过程中，唯一识别对应的Operator的状态数据，Flink提供了API来为程序中每个Operator设置ID，这样可以在后续更新/升级程序的时候，可以在Savepoint数据中基于Operator ID来与对应的状态信息进行匹配，从而实现恢复。<br />
+当然，如果我们不指定Operator ID，Flink也会我们自动生成对应的Operator状态ID。自动生成的ID依赖于程序的结构，并且非常容易受到程序变化的影响。因此，强烈推荐手动指定ID。手动为每个Operator设置ID，即使未来Flink应用程序可能会改动很大，比如替换原来的Operator实现、增加新的Operator、删除Operator等等，至少我们有可能与Savepoint中存储的Operator状态对应上。另外，保存的Savepoint状态数据，毕竟是基于当时程序及其内存数据结构生成的，所以如果未来Flink程序改动比较大，尤其是对应的需要操作的内存数据结构都变化了，可能根本就无法从原来旧的Savepoint正确地恢复。<br />
+<strong>官网设置例子</strong>：</p>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nc">DataStream</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">&gt;</span> <span class="n">stream</span> <span class="k">=</span> <span class="n">env</span><span class="o">.</span>
+  <span class="c1">// Stateful source (e.g. Kafka) with ID
+</span>  <span class="o">.</span><span class="n">addSource</span><span class="o">(</span><span class="k">new</span> <span class="nc">StatefulSource</span><span class="o">())</span>
+  <span class="o">.</span><span class="n">uid</span><span class="o">(</span><span class="s">"source-id"</span><span class="o">)</span> <span class="c1">// ID for the source operator
+</span>  <span class="o">.</span><span class="n">shuffle</span><span class="o">()</span>
+  <span class="c1">// Stateful mapper with ID
+</span>  <span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="k">new</span> <span class="nc">StatefulMapper</span><span class="o">())</span>
+  <span class="o">.</span><span class="n">uid</span><span class="o">(</span><span class="s">"mapper-id"</span><span class="o">)</span> <span class="c1">// ID for the mapper
+</span>  <span class="c1">// Stateless printing sink
+</span>  <span class="o">.</span><span class="n">print</span><span class="o">();</span> <span class="c1">// Auto-generated ID
+</span></code></pre></div></div>
+<h2 id="savepoint-state">SavePoint state</h2>
+<p>可以将savepoint想象成为保存了每个有状态的算子的“算子ID-&gt;状态”映射的集合。<br />
+Operator ID | State<br />
+————+————————<br />
+source-id   | State of StatefulSource<br />
+mapper-id   | State of StatefulMapper<br />
+在上述示例中，print结果表是无状态的，因此不是savepoint状态的一部分。默认情况下，我们试图将savepoint的每条数据，都映射到新的程序中。</p>
+
+<h2 id="savepoint操作">SavePoint操作</h2>
+<p>可以通过命令行操作SavePoint，Flink版本&gt;=1.2.0可以使用 webui 从savepoint恢复作业 。</p>
+<h3 id="创建一个savepoint">创建一个Savepoint</h3>
+<p>创建一个Savepoint，需要指定对应Savepoint基础目录，此job对应的新的savepoint目录将在其内被创建并存储数据和元数据。<br />
+有两种方式来指定Savepoint目录:</p>
 <ol>
-  <li>Flink基本构建块：
-    <ul>
-      <li>Streams-中间结果</li>
-      <li>Transformations-以一个或多个stream作为输入的某种operation,输出一个或多个result stream。</li>
-    </ul>
-  </li>
-  <li>运行的程序-映射成-Streaming Dataflows<br />
-Dataflow：由一组stream和transformation Operators组成。由一个或多个Source开始，一个或多个Sink结束。Dataflow类似与DAG。<br />
-当编写好的一个Flink程序运行的时候，会被映射成Streaming Dataflow。程序中写的transformation和dataflow中的operator关系一般1:1，也可能1:n。</li>
+  <li>配置Savepoint的默认路径，在Flink的配置文件conf/flink-conf.yaml中，添加如下配置：state.savepoints.dir:hdfs://hdfscluster/flink-savepoints</li>
+  <li>在手动执行savepoint命令的时候，指定Savepoint存储目录，命令格式如下所示：bin/flink savepoint :jobId [:targetDirectory]</li>
 </ol>
 
-<h2 id="并行数据流-parallel-dataflows">并行数据流-Parallel Dataflows</h2>
-<p>官网地址：<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.6/concepts/programming-model.html#parallel-dataflows">Parallel Dataflows</a>。</p>
+<p>如果你既不配置默认目标目录，也不指定自定义目标目录，触发savepoint将失败。<br />
+注意： 目标目录位置必须可以被JobManager和TaskManager访问，比如位于分布式文件系统中。<br />
+<strong>例子</strong>：<br />
+例如，正在运行的Flink Job对应的ID为，使用默认state.savepoints.dir配置指定的Savepoint目录，执行如下命令:bin/flink savepoint 40be7c0160b73041dbceafc6256cb37d,可以看到，在目录hdfs://hdfscluster/flink-savepoints/savepoint-40be7c-8201276a3c10下面生成了ID为40be7c0160b73041dbceafc6256cb37d的Job的Savepoint数据。<br />
+为正在运行的Flink Job指定一个目录存储Savepoint数据，执行如下命令:bin/flink savepoint 40be7c0160b73041dbceafc6256cb37d hdfs://hdfscluster/tmp/flink/savepoints,可以看到，在目录 hdfs://hdfscluster/tmp/flink/savepoints/savepoint-40be7c-c19253t1b376下面生成了ID为40be7c0160b73041dbceafc6256cb37d的Job的Savepoint数据。</p>
+<h4 id="yarn环境中触发savepoint">YARN环境中触发Savepoint</h4>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ bin/flink savepoint :jobId [:targetDirectory] -yid :yarnAppId  
+</code></pre></div></div>
+<p>这将为ID为:yarnAppId的YARN应用中，为ID为:jobId的作业触发一份savepoint，并返回savepoint的路径。</p>
+<h4 id="取消作业时触发savepoint">取消作业时触发savepoint</h4>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ bin/flink cancel -s [:targetDirectory] :jobId  
+</code></pre></div></div>
+<p>这将为ID为:jobId的作业自动触发一份savepoint，并取消作业。此外，你可以指定目标目录用于保存savepoint。此目录需要可以被JobManager和TaskManager访问。</p>
 
-<ol>
-  <li>程序在Flink内部的执行具有并行、分布式的特性：
-    <ul>
-      <li>stream-被分割成stream partition：一个Stream可以被分成多个Stream分区（Stream Partitions）。</li>
-      <li>operator-被分割成operator subtask：一个Operator可以被分成多个Operator Subtask，每一个Operator Subtask是在不同的线程中独立执行的。</li>
-    </ul>
+<h3 id="savepoint目录结构">savepoint目录结构</h3>
+<p>以FsStateBackend或RocksDBStateBackend为例：</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code># Savepoint target directory
+# savepoint目标目录
+/savepoints/
+# Savepoint directory
+# savepoint目录
+/savepoints/savepoint-:shortjobid-:savepointid/
+# Savepoint file contains the checkpoint meta data
+# savepoint元数据文件
+/savepoints/savepoint-:shortjobid-:savepointid/_metadata
+# Savepoint state
+# savepoint状态
+/savepoints/savepoint-:shortjobid-:savepointid/...
+</code></pre></div></div>
+<p><strong>注意</strong>： 虽然看起来savepoint可能被移动，但是由于_metadata文件中的绝对路径，目前这是不可能的。如果你使用MemoryStateBackend，元数据和savepoint状态将被存储于_metadata文件。因为它是自完备的，你可以移动此文件并从任何位置恢复。<br />
+<strong>例子</strong>：</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>hdfs dfs -ls /flink-1.5.3/flink-savepoints/savepoint-11bbc5-bd967f90709b
+Found 5 items
+-rw-r--r--   3 hadoop supergroup       4935 2018-09-02 01:21 /flink-1.5.3/flink-savepoints/savepoint-11bbc5-bd967f90709b/50231e5f-1d05-435f-b288-06d5946407d6
+-rw-r--r--   3 hadoop supergroup       4599 2018-09-02 01:21 /flink-1.5.3/flink-savepoints/savepoint-11bbc5-bd967f90709b/7a025ad8-207c-47b6-9cab-c13938939159
+-rw-r--r--   3 hadoop supergroup       4976 2018-09-02 01:21 /flink-1.5.3/flink-savepoints/savepoint-11bbc5-bd967f90709b/_metadata
+-rw-r--r--   3 hadoop supergroup       4348 2018-09-02 01:21 /flink-1.5.3/flink-savepoints/savepoint-11bbc5-bd967f90709b/bd9b0849-aad2-4dd4-a5e0-89297718a13c
+-rw-r--r--   3 hadoop supergroup       4724 2018-09-02 01:21 /flink-1.5.3/flink-savepoints/savepoint-11bbc5-bd967f90709b/be8c1370-d10c-476f-bfe1-dd0c0e7d498a
+</code></pre></div></div>
+<p>如上面列出的HDFS路径中，11bbc5是Flink Job ID字符串前6个字符，后面bd967f90709b是随机生成的字符串，然后savepoint-11bbc5-bd967f90709b作为存储此次Savepoint数据的根目录，最后savepoint-11bbc5-bd967f90709b目录下面_metadata文件包含了Savepoint的元数据信息，其中序列化包含了savepoint-11bbc5-bd967f90709b目录下面其它文件的路径，这些文件内容都是序列化的状态信息。</p>
 
-    <p>一个Operator的并行度=Operator Subtask的个数<br />
- 一个Stream的并行度=生成它的Operator的并行度（The parallelism of a stream is always that of its producing operator.）<br />
- 一个程序中，不同的operator可能具有不同的并行度。</p>
-  </li>
-  <li>数据传输形式<br />
-Stream在operator之间传输数据的形式可以是one-to-one(forwarding)的模式也可以是redistributing的模式。<br />
-官网示例图：<br />
-<img src="https://ci.apache.org/projects/flink/flink-docs-release-1.6/fig/parallel_dataflow.svg" alt="数据流" />
-    <ul>
-      <li>One-to-one模式：One-to-one streams保持着分区以及元素的顺序。比如从Source[1]到map()[1]，它保持了Source的分区特性（Partitioning）和分区内元素处理的有序性，也就是说map()[1]的Subtask看到数据流中记录的顺序，与Source[1]中看到的记录顺序是一致的。</li>
-      <li>Redistribution模式：Redistributing streams 的分区会发生改变，改变了输入数据流的分区。比如从map()[1]、map()[2]到keyBy()/window()/apply()[1]、keyBy()/window()/apply()[2]，每个上游的operator subtask向下游的多个不同的subtasks发送数据，这与选择的transformation有关（比如说keyBy() （基于hash码重分区），broadcast()或者rebalance()（随机redistribution））。在一个redistribution的交换中，只有每一对的发送、接收subtask间的elements顺序才会被维持（比如说，subtask[1] of map() and subtask[2] of keyBy/window）。So in this example, the ordering within each key is preserved, but the parallelism does introduce non-determinism regarding the order in which the aggregated results for different keys arrive at the sink。</li>
-    </ul>
+<h3 id="从savepoint恢复">从savepoint恢复</h3>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ bin/flink run -s :savepointPath [:runArgs]
+</code></pre></div></div>
+<p>这将提交作业并从指定的savepoint目录恢复作业。你可以指定savepoint的目录或_metadata 文件路径。</p>
+<h4 id="允许不恢复状态-allowing-non-restored-state">允许不恢复状态-Allowing Non-Restored State</h4>
+<p>默认情况下，恢复操作将试图将savepoint中所有状态条目映射到你计划恢复的程序中。如果你删除了一个算子，通过–allowNonRestoredState(简写：-n)参数，将允许忽略某个不能映射到新程序的状态：</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ bin/flink run -s :savepointPath -n [:runArgs]
+</code></pre></div></div>
 
-    <p>并且在本例中，Source Operator对应2个Subtask，所以并行度为2，而Sink Operator的Subtask只有1个，故而并行度为1。</p>
-  </li>
-</ol>
+<h3 id="删除savepoint">删除savepoint</h3>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ bin/flink savepoint -d :savepointPath
+</code></pre></div></div>
+<p>这将删除存储于:savepointPath的savepoint。<br />
+注意，同样可以通过常规的文件系统操作手动的删除savepoint，而不影响其他的savepoint或checkpoint（回想下每个savepoint都是自完备的）。在FLink 1.2版本之前，执行以上savepoint命令曾是一个更繁琐的任务。</p>
 
-<h2 id="窗口-windows">窗口-Windows</h2>
-<p>官网地址：<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.6/concepts/programming-model.html#windows">Windows</a>。<br />
-窗口可以是时间驱动的（比如，每30秒）也可以是数据驱动的（比如，每100个元素）。通常我们将窗口划分为：tumbing windows(不重叠)，sliding windows（有重叠）和session windows(有空隙的活动)。</p>
-<h2 id="时间-time">时间-Time</h2>
-<p>官网地址：<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.6/concepts/programming-model.html#time">Time</a>。</p>
-<ul>
-  <li>Event Time：事件的创建时间，通常通过事件中的一个时间戳来描述。</li>
-  <li>Ingestion time：事件进入Flink 数据流的source的时间。</li>
-  <li>Processing Time：Processing Time表示某个Operator对事件进行处理时的本地系统时间（是在TaskManager节点上）。</li>
-</ul>
+<h2 id="savepoint-faq">SavePoint FAQ</h2>
+<h3 id="是否需要为我作业中的所有算子都分配id">是否需要为我作业中的所有算子都分配ID？</h3>
+<p>根据经验，是的。严格来说，在作业中通过uid方法仅仅为那些有状态的算子分配ID更高效。savepoint仅仅包含这些算子的状态，而无状态算子则不是savepoint的一部分。<br />
+在实践中，推荐为所有算子分配ID，因为某些Flink的内置算子如窗口同样是有状态的，但是哪些算子实际上是有状态的、哪些是没有状态的却并不明显。如果你非常确定某个算子是无状态的，你可以省略uid方法。</p>
+<h3 id="如果在我的作业中增加一个需要状态的新算子将会发生什么">如果在我的作业中增加一个需要状态的新算子将会发生什么？</h3>
+<p>当你在作业中增加一个新算子，它将被初始化为无任何状态。savepoint包含每个有状态算子的状态。无状态算子不是savepoint的一部分。新算子表现为类似于无状态算子。</p>
+<h3 id="如果从作业中删除一个有状态算子将会发生什么">如果从作业中删除一个有状态算子将会发生什么？</h3>
+<p>默认情况下，从savepoint恢复时作业时，将试图匹配savepoint中所有operatorid和state条目。如果你的新作业将某个有状态的算子删除了，那么从savepoint恢复作业会失败。<br />
+你可以通过使用–allowNonRestoredState (简写：-n)参数运行命令来允许这种情况下对作业恢复状态。<br />
+$ bin/flink run -s :savepointPath -n [:runArgs]</p>
+<h3 id="如果在我的作业中重排序reorder有状态的算子将会发生什么">如果在我的作业中重排序（reorder）有状态的算子将会发生什么？</h3>
+<p>如果你为这些算子分配了ID，它们将正常的被恢复。<br />
+如果你没有分配ID，在重排序后，有状态算子自动生成的ID很可能改变。这将可能导致你无法从之前的savepoint中恢复。</p>
+<h3 id="如果在我的作业中增加删除或重排序无状态的算子将会发生什么">如果在我的作业中增加、删除或重排序无状态的算子将会发生什么？</h3>
+<p>如果你为有状态算子分配了ID，在savepoint恢复时无状态算子将不受影响。<br />
+如果你没有分配ID，在重排序后，这些有状态算子自动生成的ID很可能改变。这将可能导致你无法从之前的savepoint中恢复。</p>
+<h3 id="在恢复时当我改变程序的并发时将会发生什么">在恢复时当我改变程序的并发时将会发生什么？</h3>
+<p>如果savepoint是在Flink 1.2.0及以上版本触发的，并且没有使用deprecated state API如Checkpointed，你可以指定新的并发并从savepoint恢复程序。<br />
+如果作业要从低于flink 1.2.0版本触发的savepoint中恢复，或使用了已经deprecated APIs，则在改并发之前，必须将作业和savepoint迁移到Flink 1.2.0及以上版本。<br />
+更新详见<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.8/ops/upgrading.html">Upgrading Applications and Flink Versions</a>。</p>
+<h3 id="我可以在稳定存储上移动保存点文件吗">我可以在稳定存储上移动保存点文件吗？</h3>
+<p>这个问题的快速答案目前是“否”，因为元数据文件出于技术原因将稳定存储中的文件作为绝对路径引用。详细回答答案是：如果出于某种原因必须移动文件，有两种可能的解决方法。首先，更简单但可能更危险，您可以使用编辑器在元数据文件中查找旧路径，并将其替换为新路径。其次，可以使用 class SavepointV2Serializer作为以编程方式读取、操作和用新路径重写元数据文件的起点。</p>
 
-<h2 id="有状态的数据操作-stateful-operations">有状态的数据操作-Stateful Operations</h2>
-<p>官网地址：<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.6/concepts/programming-model.html#stateful-operations">Stateful Operations</a>。<br />
-在流处理中，有些操作仅仅在某一时间针对单一事件（如事件转换map），有些操作需要记住多个事件的信息并进行处理（window operators），则后面这些操作称为有状态的操作。<br />
-有状态的操作，其状态被维护的地方，可以将其看作是一个内嵌的key/value存储器。这些状态信息会跟数据流一起分区并且分布存储，并且可以通过有状态的数据操作来访问。因此这些key/value的状态信息仅在keyed streams（通过keyBy() 函数处理过）中才能访问到，并且只能根据当前事件的key来访问其值。数据流按照key排列能保证所有的状态更新都是本地操作，保证一致性且无事务问题。同时这种排列方式使Flink能够透明的再分发状态信息和调整数据流分区。<br />
-关于Flink有状态的流的工作，可以详细参考文章：<a href="https://www.jianshu.com/p/e9a330399b30">Flink 有状态的流的工作-Working with state</a>。</p>
-
-<h2 id="容错的checkpoint-checkpoints-for-fault-tolerance">容错的Checkpoint-Checkpoints for Fault Tolerance</h2>
-<p>官网地址：<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.6/concepts/programming-model.html#checkpoints-for-fault-tolerance">Checkpoints for Fault Tolerance</a>。<br />
-Flink 通过流回放（stream replay）和设置检查点（checkpointing）的方式实现容错。<br />
-一个checkpoint关联了输入流中的某个记录和相应状态operators。数据流（a streaming dataflow）可以从checkpoint中进行恢复，通过恢复Operators的状态以及从该checkpoint重放事件，其保证一致性（exactly-once 的处理语义）。 <br />
-Checkpoint的间隔关系到执行时的容错性和恢复时间，也决定了需要被重放的事件数。</p>
-
-<h2 id="流上的批处理-batch-on-streaming">流上的批处理-Batch on Streaming</h2>
-<p>官网地址：<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.6/concepts/programming-model.html#batch-on-streaming">Batch on Streaming</a>。<br />
-Flink把批处理作为特殊的流处理程序来执行，将其看作有界的流（有限数量的元素）。<br />
-DataSet在内部被当作一个流数据，因此上面的适用于流处理的这些概念在批处理中同样适用，除了一些小的不同：</p>
-<ul>
-  <li>容错机制不同：批处理的容错机制不使用checkpoints，恢复机制是通过完整的流重放来实现。这是因为inputs是有界的，它将开销更多地引入到恢复操作上，但另一方面也使得运行时的常规流程代价更低，因为它规避了检查点机制。</li>
-  <li>有状态的Operations数据结构不同：DataSet API的有状态操作API使用简单的内存和堆外内存（in-memory/out-of-core）的数据结构，而不是key/value的索引。</li>
-  <li>DataSet API中引入一种独特的同步的迭代操作（superstep-based），这个仅应用于有界数据流。详见<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.6/dev/batch/iterations.html#iterations">Iterations</a>。</li>
-</ul>
+<p>本文参考:<br />
+<a href="https://www.jianshu.com/p/8e74c7cdd463">flink使用checkpoint等知识</a><br />
+<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.8/ops/state/savepoints.html">flink官网以及相关官网翻译</a></p>
 
 <hr />
 <p>至此，本篇内容完成。</p>
@@ -571,7 +662,7 @@ DataSet在内部被当作一个流数据，因此上面的适用于流处理的�
     </li>
     <li class="post-copyright-link">
       <strong>本文链接：</strong>
-      <a href="http://localhost:4000/bigdata/2018/09/05/Flink%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/" title="Flink基础概念">Flink基础概念</a>
+      <a href="http://localhost:4000/bigdata/2019/05/08/FlinkCheckPoint%E5%92%8CSavePoint%E6%A6%82%E8%BF%B0/" title="Flink中CheckPoint和SavePoint相关概念">Flink中CheckPoint和SavePoint相关概念</a>
     </li>
     <li class="post-copyright-license">
       <strong>版权声明： </strong>
@@ -604,18 +695,14 @@ DataSet在内部被当作一个流数据，因此上面的适用于流处理的�
         <div class="post-nav" id="post-nav-id">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/bigdata/2018/10/09/Flink%E5%9F%BA%E7%A1%80%E8%BF%90%E8%A1%8C%E6%97%B6%E7%8E%AF%E5%A2%83/" rel="next" title="Flink基础运行时环境">
-                <i class="fa fa-chevron-left"></i> Flink基础运行时环境
-              </a>
-            
           </div>
 
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/bigdata/2018/07/02/Spark-Streaming-%E5%86%99%E5%85%A5%E6%95%B0%E6%8D%AE%E5%88%B0%E6%96%87%E4%BB%B6-%E5%85%B3%E9%94%AE%E4%B8%BASpark%E6%A0%B9%E6%8D%AE%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9%E8%BE%93%E5%87%BA%E5%88%B0%E4%B8%8D%E5%90%8C%E8%87%AA%E5%AE%9A%E4%B9%89%E5%90%8D%E7%A7%B0%E6%96%87%E4%BB%B6-saveAsHadoopFile%E4%BB%A5%E5%8F%8A%E8%87%AA%E5%AE%9A%E4%B9%89MultipleOutputFormat/" rel="prev" title="Spark(Streaming)写入数据到文件-关键为根据数据内容输出到不同自定义名称文件(saveAsHadoopFile以及自定义MultipleOutputFormat)">
-                Spark(Streaming)写入数据到文件-关键为根据数据内容输出到不同自定义名称文件(saveAsHadoopFile以及自定义MultipleOutputFormat) <i class="fa fa-chevron-right"></i>
+              <a href="/bigdata/2019/02/17/Flink%E8%BF%90%E8%A1%8C%E6%97%B6%E8%84%91%E5%9B%BE%E6%A2%B3%E7%90%86/" rel="prev" title="Flink分布式运行时知识梳理脑图">
+                Flink分布式运行时知识梳理脑图 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -782,7 +869,7 @@ DataSet在内部被当作一个流数据，因此上面的适用于流处理的�
             
               <div class="post-toc-content">
     <ol class=nav>
-      <li class="nav-item nav-level-1"> <a class="nav-link" href="#flink基础概念"> <span class="nav-number">1</span> <span class="nav-text">Flink基础概念</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#程序和数据流-programs-and-dataflows"> <span class="nav-number">1.1</span> <span class="nav-text">程序和数据流-Programs and Dataflows</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#并行数据流-parallel-dataflows"> <span class="nav-number">1.2</span> <span class="nav-text">并行数据流-Parallel Dataflows</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#窗口-windows"> <span class="nav-number">1.3</span> <span class="nav-text">窗口-Windows</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#时间-time"> <span class="nav-number">1.4</span> <span class="nav-text">时间-Time</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#有状态的数据操作-stateful-operations"> <span class="nav-number">1.5</span> <span class="nav-text">有状态的数据操作-Stateful Operations</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#容错的checkpoint-checkpoints-for-fault-tolerance"> <span class="nav-number">1.6</span> <span class="nav-text">容错的Checkpoint-Checkpoints for Fault Tolerance</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#流上的批处理-batch-on-streaming"> <span class="nav-number">1.7</span> <span class="nav-text">流上的批处理-Batch on Streaming</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child">
+      <li class="nav-item nav-level-1"> <a class="nav-link" href="#基础概念一览-checkpoint和savepoint的区别"> <span class="nav-number">1</span> <span class="nav-text">基础概念一览-CheckPoint和SavePoint的区别</span> </a> <ol class="nav-child"> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#使用场景"> <span class="nav-number">1.0.1</span> <span class="nav-text">使用场景</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#保留时间"> <span class="nav-number">1.0.2</span> <span class="nav-text">保留时间</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#设计目标"> <span class="nav-number">1.0.3</span> <span class="nav-text">设计目标</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#维护"> <span class="nav-number">1.0.4</span> <span class="nav-text">维护</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#其他"> <span class="nav-number">1.0.5</span> <span class="nav-text">其他</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#checkpoint"> <span class="nav-number">2</span> <span class="nav-text">Checkpoint</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#checkpoint配置例子"> <span class="nav-number">2.1</span> <span class="nav-text">Checkpoint配置例子</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#从checkpoint恢复"> <span class="nav-number">2.2</span> <span class="nav-text">从checkpoint恢复</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#savepoint"> <span class="nav-number">3</span> <span class="nav-text">SavePoint</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#算子uid"> <span class="nav-number">3.1</span> <span class="nav-text">算子UID</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#savepoint-state"> <span class="nav-number">3.2</span> <span class="nav-text">SavePoint state</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#savepoint操作"> <span class="nav-number">3.3</span> <span class="nav-text">SavePoint操作</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#创建一个savepoint"> <span class="nav-number">3.3.1</span> <span class="nav-text">创建一个Savepoint</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-4"> <a class="nav-link" href="#yarn环境中触发savepoint"> <span class="nav-number">3.3.1.1</span> <span class="nav-text">YARN环境中触发Savepoint</span> </a> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li> <li class="nav-item nav-level-4"> <a class="nav-link" href="#取消作业时触发savepoint"> <span class="nav-number">3.3.1.2</span> <span class="nav-text">取消作业时触发savepoint</span> </a> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#savepoint目录结构"> <span class="nav-number">3.3.2</span> <span class="nav-text">savepoint目录结构</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#从savepoint恢复"> <span class="nav-number">3.3.3</span> <span class="nav-text">从savepoint恢复</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-4"> <a class="nav-link" href="#允许不恢复状态-allowing-non-restored-state"> <span class="nav-number">3.3.3.1</span> <span class="nav-text">允许不恢复状态-Allowing Non-Restored State</span> </a> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#删除savepoint"> <span class="nav-number">3.3.4</span> <span class="nav-text">删除savepoint</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#savepoint-faq"> <span class="nav-number">3.4</span> <span class="nav-text">SavePoint FAQ</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#是否需要为我作业中的所有算子都分配id"> <span class="nav-number">3.4.1</span> <span class="nav-text">是否需要为我作业中的所有算子都分配ID？</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#如果在我的作业中增加一个需要状态的新算子将会发生什么"> <span class="nav-number">3.4.2</span> <span class="nav-text">如果在我的作业中增加一个需要状态的新算子将会发生什么？</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#如果从作业中删除一个有状态算子将会发生什么"> <span class="nav-number">3.4.3</span> <span class="nav-text">如果从作业中删除一个有状态算子将会发生什么？</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#如果在我的作业中重排序reorder有状态的算子将会发生什么"> <span class="nav-number">3.4.4</span> <span class="nav-text">如果在我的作业中重排序（reorder）有状态的算子将会发生什么？</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#如果在我的作业中增加删除或重排序无状态的算子将会发生什么"> <span class="nav-number">3.4.5</span> <span class="nav-text">如果在我的作业中增加、删除或重排序无状态的算子将会发生什么？</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#在恢复时当我改变程序的并发时将会发生什么"> <span class="nav-number">3.4.6</span> <span class="nav-text">在恢复时当我改变程序的并发时将会发生什么？</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#我可以在稳定存储上移动保存点文件吗"> <span class="nav-number">3.4.7</span> <span class="nav-text">我可以在稳定存储上移动保存点文件吗？</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child">
     </ol>
   </div>
             
