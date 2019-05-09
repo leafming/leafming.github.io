@@ -1,18 +1,18 @@
 ---
 layout: post
-title: "Flink中CheckPoint和SavePoint相关概念"
+title: "Flink中Checkpoint和Savepoint相关概念"
 date: 2019-05-08
 updated: 2019-05-08
-description: 本文主要关于Flink中CheckPoint和SavePoint相关概念，基于Flink1.7.1版本。
+description: 本文主要关于Flink中Checkpoint和Savepoint相关概念，基于Flink1.7.1版本。
 categories:
 - BigData
 tags:
 - Flink
 ---
-> 本文主要关于Flink中CheckPoint和SavePoint相关概念，基于Flink1.7.1。  
+> 本文主要关于Flink中Checkpoint和Savepoint相关概念，基于Flink1.7.1。  
   
-# 基础概念一览-CheckPoint和SavePoint的区别  
-对于Flink容错保障中，CheckPoint和SavePoint是两个关键的概念，注意区分和应用。  
+# 基础概念一览-Checkpoint和Savepoint的区别  
+对于Flink容错保障中，Checkpoint和Savepoint是两个关键的概念，注意区分和应用。  
 ### 使用场景  
 Checkpoint仅用于恢复意外失败的作业（走flink的job默认恢复机制）。  
 SavePoint用于用户计划的、手动的备份和恢复（代码版本更新、更改并行度、jog graph、2个程序同时运行red/blue deployment）。  
@@ -84,7 +84,7 @@ DataStream<String> stream = env.
   // Stateless printing sink
   .print(); // Auto-generated ID
 ```  
-## SavePoint state  
+## Savepoint state  
 可以将savepoint想象成为保存了每个有状态的算子的“算子ID->状态”映射的集合。  
 Operator ID | State  
 ------------+------------------------  
@@ -92,8 +92,8 @@ source-id   | State of StatefulSource
 mapper-id   | State of StatefulMapper  
 在上述示例中，print结果表是无状态的，因此不是savepoint状态的一部分。默认情况下，我们试图将savepoint的每条数据，都映射到新的程序中。  
   
-## SavePoint操作  
-可以通过命令行操作SavePoint，Flink版本>=1.2.0可以使用 webui 从savepoint恢复作业 。  
+## Savepoint操作  
+可以通过命令行操作Savepoint，Flink版本>=1.2.0可以使用 webui 从savepoint恢复作业 。  
 ### 创建一个Savepoint  
 创建一个Savepoint，需要指定对应Savepoint基础目录，此job对应的新的savepoint目录将在其内被创建并存储数据和元数据。  
 有两种方式来指定Savepoint目录:  
@@ -163,7 +163,7 @@ $ bin/flink savepoint -d :savepointPath
 这将删除存储于:savepointPath的savepoint。  
 注意，同样可以通过常规的文件系统操作手动的删除savepoint，而不影响其他的savepoint或checkpoint（回想下每个savepoint都是自完备的）。在FLink 1.2版本之前，执行以上savepoint命令曾是一个更繁琐的任务。  
   
-## SavePoint FAQ  
+## Savepoint FAQ  
 ### 是否需要为我作业中的所有算子都分配ID？  
 根据经验，是的。严格来说，在作业中通过uid方法仅仅为那些有状态的算子分配ID更高效。savepoint仅仅包含这些算子的状态，而无状态算子则不是savepoint的一部分。  
 在实践中，推荐为所有算子分配ID，因为某些Flink的内置算子如窗口同样是有状态的，但是哪些算子实际上是有状态的、哪些是没有状态的却并不明显。如果你非常确定某个算子是无状态的，你可以省略uid方法。  
