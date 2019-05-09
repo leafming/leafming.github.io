@@ -12,6 +12,7 @@ tags:
 > 本文主要关于Flink中CheckPoint和SavePoint相关概念，基于Flink1.7.1。  
   
 # 基础概念一览-CheckPoint和SavePoint的区别  
+对于Flink容错保障中，CheckPoint和SavePoint是两个关键的概念，注意区分和应用。  
 ### 使用场景  
 Checkpoint仅用于恢复意外失败的作业（走flink的job默认恢复机制）。  
 SavePoint用于用户计划的、手动的备份和恢复（代码版本更新、更改并行度、jog graph、2个程序同时运行red/blue deployment）。  
