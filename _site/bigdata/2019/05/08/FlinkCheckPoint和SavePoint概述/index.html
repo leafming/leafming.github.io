@@ -111,18 +111,18 @@
 
 
 
-<meta name="description" content="本文主要关于Flink中CheckPoint和SavePoint相关概念，基于Flink1.7.1版本。">
+<meta name="description" content="本文主要关于Flink中Checkpoint和Savepoint相关概念，基于Flink1.7.1版本。">
 <meta name="keywords" content="Flink">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Flink中CheckPoint和SavePoint相关概念">
+<meta property="og:title" content="Flink中Checkpoint和Savepoint相关概念">
 <meta property="og:url" content="http://localhost:4000/bigdata/2019/05/08/FlinkCheckPoint%E5%92%8CSavePoint%E6%A6%82%E8%BF%B0/">
 <meta property="og:site_name" content="iLeaf">
-<meta property="og:description" content="本文主要关于Flink中CheckPoint和SavePoint相关概念，基于Flink1.7.1版本。">
+<meta property="og:description" content="本文主要关于Flink中Checkpoint和Savepoint相关概念，基于Flink1.7.1版本。">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:updated_time" content="2019-05-08T00:00:00+08:00">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Flink中CheckPoint和SavePoint相关概念">
-<meta name="twitter:description" content="本文主要关于Flink中CheckPoint和SavePoint相关概念，基于Flink1.7.1版本。">
+<meta name="twitter:title" content="Flink中Checkpoint和Savepoint相关概念">
+<meta name="twitter:description" content="本文主要关于Flink中Checkpoint和Savepoint相关概念，基于Flink1.7.1版本。">
 
 
 <script type="text/javascript" id="hexo.configurations">
@@ -155,7 +155,7 @@
 
 
 
-  <title>Flink中CheckPoint和SavePoint相关概念 | iLeaf</title>
+  <title>Flink中Checkpoint和Savepoint相关概念 | iLeaf</title>
   
 
 
@@ -357,7 +357,7 @@
           <h1 class="post-title" itemprop="name headline">
           
           
-            Flink中CheckPoint和SavePoint相关概念
+            Flink中Checkpoint和Savepoint相关概念
           
         </h1>
         
@@ -424,7 +424,7 @@
 
           
           
-             <span id="/bigdata/2019/05/08/FlinkCheckPoint%E5%92%8CSavePoint%E6%A6%82%E8%BF%B0/" class="leancloud_visitors" data-flag-title="Flink中CheckPoint和SavePoint相关概念">
+             <span id="/bigdata/2019/05/08/FlinkCheckPoint%E5%92%8CSavePoint%E6%A6%82%E8%BF%B0/" class="leancloud_visitors" data-flag-title="Flink中Checkpoint和Savepoint相关概念">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -443,7 +443,7 @@
           
             
                 <div class="post-description">
-                    本文主要关于Flink中CheckPoint和SavePoint相关概念，基于Flink1.7.1版本。
+                    本文主要关于Flink中Checkpoint和Savepoint相关概念，基于Flink1.7.1版本。
                 </div>
             
           
@@ -459,10 +459,11 @@
 
       
         <blockquote>
-  <p>本文主要关于Flink中CheckPoint和SavePoint相关概念，基于Flink1.7.1。</p>
+  <p>本文主要关于Flink中Checkpoint和Savepoint相关概念，基于Flink1.7.1。</p>
 </blockquote>
 
-<h1 id="基础概念一览-checkpoint和savepoint的区别">基础概念一览-CheckPoint和SavePoint的区别</h1>
+<h1 id="基础概念一览-checkpoint和savepoint的区别">基础概念一览-Checkpoint和Savepoint的区别</h1>
+<p>对于Flink容错保障中，Checkpoint和Savepoint是两个关键的概念，注意区分和应用。</p>
 <h3 id="使用场景">使用场景</h3>
 <p>Checkpoint仅用于恢复意外失败的作业（走flink的job默认恢复机制）。<br />
 SavePoint用于用户计划的、手动的备份和恢复（代码版本更新、更改并行度、jog graph、2个程序同时运行red/blue deployment）。</p>
@@ -530,7 +531,7 @@ SavePoint：生成和恢复成本更高，关注可移植性和对先前提到�
 </span>  <span class="c1">// Stateless printing sink
 </span>  <span class="o">.</span><span class="n">print</span><span class="o">();</span> <span class="c1">// Auto-generated ID
 </span></code></pre></div></div>
-<h2 id="savepoint-state">SavePoint state</h2>
+<h2 id="savepoint-state">Savepoint state</h2>
 <p>可以将savepoint想象成为保存了每个有状态的算子的“算子ID-&gt;状态”映射的集合。<br />
 Operator ID | State<br />
 ————+————————<br />
@@ -538,8 +539,8 @@ source-id   | State of StatefulSource<br />
 mapper-id   | State of StatefulMapper<br />
 在上述示例中，print结果表是无状态的，因此不是savepoint状态的一部分。默认情况下，我们试图将savepoint的每条数据，都映射到新的程序中。</p>
 
-<h2 id="savepoint操作">SavePoint操作</h2>
-<p>可以通过命令行操作SavePoint，Flink版本&gt;=1.2.0可以使用 webui 从savepoint恢复作业 。</p>
+<h2 id="savepoint操作">Savepoint操作</h2>
+<p>可以通过命令行操作Savepoint，Flink版本&gt;=1.2.0可以使用 webui 从savepoint恢复作业 。</p>
 <h3 id="创建一个savepoint">创建一个Savepoint</h3>
 <p>创建一个Savepoint，需要指定对应Savepoint基础目录，此job对应的新的savepoint目录将在其内被创建并存储数据和元数据。<br />
 有两种方式来指定Savepoint目录:</p>
@@ -604,7 +605,7 @@ Found 5 items
 <p>这将删除存储于:savepointPath的savepoint。<br />
 注意，同样可以通过常规的文件系统操作手动的删除savepoint，而不影响其他的savepoint或checkpoint（回想下每个savepoint都是自完备的）。在FLink 1.2版本之前，执行以上savepoint命令曾是一个更繁琐的任务。</p>
 
-<h2 id="savepoint-faq">SavePoint FAQ</h2>
+<h2 id="savepoint-faq">Savepoint FAQ</h2>
 <h3 id="是否需要为我作业中的所有算子都分配id">是否需要为我作业中的所有算子都分配ID？</h3>
 <p>根据经验，是的。严格来说，在作业中通过uid方法仅仅为那些有状态的算子分配ID更高效。savepoint仅仅包含这些算子的状态，而无状态算子则不是savepoint的一部分。<br />
 在实践中，推荐为所有算子分配ID，因为某些Flink的内置算子如窗口同样是有状态的，但是哪些算子实际上是有状态的、哪些是没有状态的却并不明显。如果你非常确定某个算子是无状态的，你可以省略uid方法。</p>
@@ -662,7 +663,7 @@ $ bin/flink run -s :savepointPath -n [:runArgs]</p>
     </li>
     <li class="post-copyright-link">
       <strong>本文链接：</strong>
-      <a href="http://localhost:4000/bigdata/2019/05/08/FlinkCheckPoint%E5%92%8CSavePoint%E6%A6%82%E8%BF%B0/" title="Flink中CheckPoint和SavePoint相关概念">Flink中CheckPoint和SavePoint相关概念</a>
+      <a href="http://localhost:4000/bigdata/2019/05/08/FlinkCheckPoint%E5%92%8CSavePoint%E6%A6%82%E8%BF%B0/" title="Flink中Checkpoint和Savepoint相关概念">Flink中Checkpoint和Savepoint相关概念</a>
     </li>
     <li class="post-copyright-license">
       <strong>版权声明： </strong>
@@ -694,6 +695,10 @@ $ bin/flink run -s :savepointPath -n [:runArgs]</p>
       
         <div class="post-nav" id="post-nav-id">
           <div class="post-nav-next post-nav-item">
+            
+              <a href="/bigdata/2019/05/16/%E8%AE%B0%E4%B8%80%E6%AC%A1FlinkCheckpoint%E8%B6%85%E6%97%B6%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5%E8%BF%87%E7%A8%8B/" rel="next" title="记一次Flink Checkpoint超时问题排查">
+                <i class="fa fa-chevron-left"></i> 记一次Flink Checkpoint超时问题排查
+              </a>
             
           </div>
 
@@ -783,7 +788,7 @@ $ bin/flink run -s :savepointPath -n [:runArgs]</p>
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">17</span>
+                <span class="site-state-item-count">18</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -869,7 +874,7 @@ $ bin/flink run -s :savepointPath -n [:runArgs]</p>
             
               <div class="post-toc-content">
     <ol class=nav>
-      <li class="nav-item nav-level-1"> <a class="nav-link" href="#基础概念一览-checkpoint和savepoint的区别"> <span class="nav-number">1</span> <span class="nav-text">基础概念一览-CheckPoint和SavePoint的区别</span> </a> <ol class="nav-child"> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#使用场景"> <span class="nav-number">1.0.1</span> <span class="nav-text">使用场景</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#保留时间"> <span class="nav-number">1.0.2</span> <span class="nav-text">保留时间</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#设计目标"> <span class="nav-number">1.0.3</span> <span class="nav-text">设计目标</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#维护"> <span class="nav-number">1.0.4</span> <span class="nav-text">维护</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#其他"> <span class="nav-number">1.0.5</span> <span class="nav-text">其他</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#checkpoint"> <span class="nav-number">2</span> <span class="nav-text">Checkpoint</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#checkpoint配置例子"> <span class="nav-number">2.1</span> <span class="nav-text">Checkpoint配置例子</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#从checkpoint恢复"> <span class="nav-number">2.2</span> <span class="nav-text">从checkpoint恢复</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#savepoint"> <span class="nav-number">3</span> <span class="nav-text">SavePoint</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#算子uid"> <span class="nav-number">3.1</span> <span class="nav-text">算子UID</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#savepoint-state"> <span class="nav-number">3.2</span> <span class="nav-text">SavePoint state</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#savepoint操作"> <span class="nav-number">3.3</span> <span class="nav-text">SavePoint操作</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#创建一个savepoint"> <span class="nav-number">3.3.1</span> <span class="nav-text">创建一个Savepoint</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-4"> <a class="nav-link" href="#yarn环境中触发savepoint"> <span class="nav-number">3.3.1.1</span> <span class="nav-text">YARN环境中触发Savepoint</span> </a> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li> <li class="nav-item nav-level-4"> <a class="nav-link" href="#取消作业时触发savepoint"> <span class="nav-number">3.3.1.2</span> <span class="nav-text">取消作业时触发savepoint</span> </a> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#savepoint目录结构"> <span class="nav-number">3.3.2</span> <span class="nav-text">savepoint目录结构</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#从savepoint恢复"> <span class="nav-number">3.3.3</span> <span class="nav-text">从savepoint恢复</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-4"> <a class="nav-link" href="#允许不恢复状态-allowing-non-restored-state"> <span class="nav-number">3.3.3.1</span> <span class="nav-text">允许不恢复状态-Allowing Non-Restored State</span> </a> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#删除savepoint"> <span class="nav-number">3.3.4</span> <span class="nav-text">删除savepoint</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#savepoint-faq"> <span class="nav-number">3.4</span> <span class="nav-text">SavePoint FAQ</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#是否需要为我作业中的所有算子都分配id"> <span class="nav-number">3.4.1</span> <span class="nav-text">是否需要为我作业中的所有算子都分配ID？</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#如果在我的作业中增加一个需要状态的新算子将会发生什么"> <span class="nav-number">3.4.2</span> <span class="nav-text">如果在我的作业中增加一个需要状态的新算子将会发生什么？</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#如果从作业中删除一个有状态算子将会发生什么"> <span class="nav-number">3.4.3</span> <span class="nav-text">如果从作业中删除一个有状态算子将会发生什么？</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#如果在我的作业中重排序reorder有状态的算子将会发生什么"> <span class="nav-number">3.4.4</span> <span class="nav-text">如果在我的作业中重排序（reorder）有状态的算子将会发生什么？</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#如果在我的作业中增加删除或重排序无状态的算子将会发生什么"> <span class="nav-number">3.4.5</span> <span class="nav-text">如果在我的作业中增加、删除或重排序无状态的算子将会发生什么？</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#在恢复时当我改变程序的并发时将会发生什么"> <span class="nav-number">3.4.6</span> <span class="nav-text">在恢复时当我改变程序的并发时将会发生什么？</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#我可以在稳定存储上移动保存点文件吗"> <span class="nav-number">3.4.7</span> <span class="nav-text">我可以在稳定存储上移动保存点文件吗？</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child">
+      <li class="nav-item nav-level-1"> <a class="nav-link" href="#基础概念一览-checkpoint和savepoint的区别"> <span class="nav-number">1</span> <span class="nav-text">基础概念一览-Checkpoint和Savepoint的区别</span> </a> <ol class="nav-child"> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#使用场景"> <span class="nav-number">1.0.1</span> <span class="nav-text">使用场景</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#保留时间"> <span class="nav-number">1.0.2</span> <span class="nav-text">保留时间</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#设计目标"> <span class="nav-number">1.0.3</span> <span class="nav-text">设计目标</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#维护"> <span class="nav-number">1.0.4</span> <span class="nav-text">维护</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#其他"> <span class="nav-number">1.0.5</span> <span class="nav-text">其他</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#checkpoint"> <span class="nav-number">2</span> <span class="nav-text">Checkpoint</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#checkpoint配置例子"> <span class="nav-number">2.1</span> <span class="nav-text">Checkpoint配置例子</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#从checkpoint恢复"> <span class="nav-number">2.2</span> <span class="nav-text">从checkpoint恢复</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#savepoint"> <span class="nav-number">3</span> <span class="nav-text">SavePoint</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#算子uid"> <span class="nav-number">3.1</span> <span class="nav-text">算子UID</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#savepoint-state"> <span class="nav-number">3.2</span> <span class="nav-text">Savepoint state</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#savepoint操作"> <span class="nav-number">3.3</span> <span class="nav-text">Savepoint操作</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#创建一个savepoint"> <span class="nav-number">3.3.1</span> <span class="nav-text">创建一个Savepoint</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-4"> <a class="nav-link" href="#yarn环境中触发savepoint"> <span class="nav-number">3.3.1.1</span> <span class="nav-text">YARN环境中触发Savepoint</span> </a> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li> <li class="nav-item nav-level-4"> <a class="nav-link" href="#取消作业时触发savepoint"> <span class="nav-number">3.3.1.2</span> <span class="nav-text">取消作业时触发savepoint</span> </a> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#savepoint目录结构"> <span class="nav-number">3.3.2</span> <span class="nav-text">savepoint目录结构</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#从savepoint恢复"> <span class="nav-number">3.3.3</span> <span class="nav-text">从savepoint恢复</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-4"> <a class="nav-link" href="#允许不恢复状态-allowing-non-restored-state"> <span class="nav-number">3.3.3.1</span> <span class="nav-text">允许不恢复状态-Allowing Non-Restored State</span> </a> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#删除savepoint"> <span class="nav-number">3.3.4</span> <span class="nav-text">删除savepoint</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#savepoint-faq"> <span class="nav-number">3.4</span> <span class="nav-text">Savepoint FAQ</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#是否需要为我作业中的所有算子都分配id"> <span class="nav-number">3.4.1</span> <span class="nav-text">是否需要为我作业中的所有算子都分配ID？</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#如果在我的作业中增加一个需要状态的新算子将会发生什么"> <span class="nav-number">3.4.2</span> <span class="nav-text">如果在我的作业中增加一个需要状态的新算子将会发生什么？</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#如果从作业中删除一个有状态算子将会发生什么"> <span class="nav-number">3.4.3</span> <span class="nav-text">如果从作业中删除一个有状态算子将会发生什么？</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#如果在我的作业中重排序reorder有状态的算子将会发生什么"> <span class="nav-number">3.4.4</span> <span class="nav-text">如果在我的作业中重排序（reorder）有状态的算子将会发生什么？</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#如果在我的作业中增加删除或重排序无状态的算子将会发生什么"> <span class="nav-number">3.4.5</span> <span class="nav-text">如果在我的作业中增加、删除或重排序无状态的算子将会发生什么？</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#在恢复时当我改变程序的并发时将会发生什么"> <span class="nav-number">3.4.6</span> <span class="nav-text">在恢复时当我改变程序的并发时将会发生什么？</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#我可以在稳定存储上移动保存点文件吗"> <span class="nav-number">3.4.7</span> <span class="nav-text">我可以在稳定存储上移动保存点文件吗？</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child">
     </ol>
   </div>
             
