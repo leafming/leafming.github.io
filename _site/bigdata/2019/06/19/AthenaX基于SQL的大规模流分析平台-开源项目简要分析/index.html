@@ -111,29 +111,20 @@
 
 
 
-<meta name="description" content="本文关于Flink的运行时环境，结合Apache Flink 1.6 版本官方文档进行整理。">
+<meta name="description" content="本文主要关于Uber开源的AthenaX基于SQL的大规模流分析平台的项目简要分析。">
 <meta name="keywords" content="Flink">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Flink基础运行时环境">
-<meta property="og:url" content="http://localhost:4000/bigdata/2018/10/09/Flink%E5%9F%BA%E7%A1%80%E8%BF%90%E8%A1%8C%E6%97%B6%E7%8E%AF%E5%A2%83/">
+<meta property="og:title" content="AthenaX基于SQL的大规模流分析平台-开源项目简要分析">
+<meta property="og:url" content="http://localhost:4000/bigdata/2019/06/19/AthenaX%E5%9F%BA%E4%BA%8ESQL%E7%9A%84%E5%A4%A7%E8%A7%84%E6%A8%A1%E6%B5%81%E5%88%86%E6%9E%90%E5%B9%B3%E5%8F%B0-%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/">
 <meta property="og:site_name" content="iLeaf">
-<meta property="og:description" content="本文关于Flink的运行时环境，结合Apache Flink 1.6 版本官方文档进行整理。">
+<meta property="og:description" content="本文主要关于Uber开源的AthenaX基于SQL的大规模流分析平台的项目简要分析。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="https://ci.apache.org/projects/flink/flink-docs-release-1.6/fig/tasks_chains.svg">
-<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/flink/2018-10-09-FlinkOperatorChains形成.png?raw=true">
-<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/flink/2018-10-09-FlinkChains原理.png?raw=true">
-<meta property="og:image" content="https://ci.apache.org/projects/flink/flink-docs-release-1.6/fig/processes.svg">
-<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/flink/2018-10-09-FlinkSlot分布例子.png?raw=true">
-<meta property="og:image" content="https://ci.apache.org/projects/flink/flink-docs-release-1.6/fig/slots.svg">
-<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/flink/2018-10-09-slot共享示例.png?raw=true">
-<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/flink/2018-10-10-slot共享机制实现例子图.png?raw=true">
-<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/flink/2018-10-10-slot和并行度关系.png?raw=true">
-<meta property="og:image" content="https://ci.apache.org/projects/flink/flink-docs-release-1.6/fig/checkpoints.svg">
-<meta property="og:updated_time" content="2018-10-10T00:00:00+08:00">
+<meta property="og:image" content="https://github.com/leafming/bak/blob/master/images/flink/2019-06-19-AthenaX架构.png?raw=true">
+<meta property="og:updated_time" content="2019-06-19T00:00:00+08:00">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Flink基础运行时环境">
-<meta name="twitter:description" content="本文关于Flink的运行时环境，结合Apache Flink 1.6 版本官方文档进行整理。">
-<meta name="twitter:image" content="https://ci.apache.org/projects/flink/flink-docs-release-1.6/fig/tasks_chains.svg">
+<meta name="twitter:title" content="AthenaX基于SQL的大规模流分析平台-开源项目简要分析">
+<meta name="twitter:description" content="本文主要关于Uber开源的AthenaX基于SQL的大规模流分析平台的项目简要分析。">
+<meta name="twitter:image" content="https://github.com/leafming/bak/blob/master/images/flink/2019-06-19-AthenaX架构.png?raw=true">
 
 
 <script type="text/javascript" id="hexo.configurations">
@@ -166,7 +157,7 @@
 
 
 
-  <title>Flink基础运行时环境 | iLeaf</title>
+  <title>AthenaX基于SQL的大规模流分析平台-开源项目简要分析 | iLeaf</title>
   
 
 
@@ -348,7 +339,7 @@
   
 
   <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://localhost:4000/bigdata/2018/10/09/Flink%E5%9F%BA%E7%A1%80%E8%BF%90%E8%A1%8C%E6%97%B6%E7%8E%AF%E5%A2%83/">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/bigdata/2019/06/19/AthenaX%E5%9F%BA%E4%BA%8ESQL%E7%9A%84%E5%A4%A7%E8%A7%84%E6%A8%A1%E6%B5%81%E5%88%86%E6%9E%90%E5%B9%B3%E5%8F%B0-%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="叶子  ( ˘ ³˘)♥">
@@ -368,7 +359,7 @@
           <h1 class="post-title" itemprop="name headline">
           
           
-            Flink基础运行时环境
+            AthenaX基于SQL的大规模流分析平台-开源项目简要分析
           
         </h1>
         
@@ -382,8 +373,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-10-09T00:00:00+08:00">
-                2018-10-09
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-19T00:00:00+08:00">
+                2019-06-19
               </time>
             
 
@@ -398,8 +389,8 @@
               
                 <span class="post-meta-item-text">更新于</span>
               
-              <time title="更新于" itemprop="dateModified" datetime="2018-10-10">
-                2018-10-10
+              <time title="更新于" itemprop="dateModified" datetime="2019-06-19">
+                2019-06-19
               </time>
             
           </span>
@@ -435,7 +426,7 @@
 
           
           
-             <span id="/bigdata/2018/10/09/Flink%E5%9F%BA%E7%A1%80%E8%BF%90%E8%A1%8C%E6%97%B6%E7%8E%AF%E5%A2%83/" class="leancloud_visitors" data-flag-title="Flink基础运行时环境">
+             <span id="/bigdata/2019/06/19/AthenaX%E5%9F%BA%E4%BA%8ESQL%E7%9A%84%E5%A4%A7%E8%A7%84%E6%A8%A1%E6%B5%81%E5%88%86%E6%9E%90%E5%B9%B3%E5%8F%B0-%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/" class="leancloud_visitors" data-flag-title="AthenaX基于SQL的大规模流分析平台-开源项目简要分析">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -454,7 +445,7 @@
           
             
                 <div class="post-description">
-                    本文关于Flink的运行时环境，结合Apache Flink 1.6 版本官方文档进行整理。
+                    本文主要关于Uber开源的AthenaX基于SQL的大规模流分析平台的项目简要分析。
                 </div>
             
           
@@ -470,193 +461,219 @@
 
       
         <blockquote>
-  <p>本文所用flink版本为1.6，官方文档链接<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.6/concepts/runtime.html">Apache Flink 1.6</a>，本文所参考的文档均在正文中每个部分直接详细指出了，就不再汇总了。</p>
+  <p>文主要关于Uber开源的AthenaX基于SQL的大规模流分析平台的简单整理。想要学习一下基于SQL流处理平台的思路，将看到的博客和文章简单整理了一下。</p>
 </blockquote>
 
-<h1 id="flink运行时环境">Flink运行时环境</h1>
-<h2 id="tasks和operator-chains">Tasks和Operator Chains</h2>
-<ol>
-  <li>基础说明<br />
-在实际的分布式计算环境中，Flink会将多个运算子任务（ operator subtasks）链接一起（chains）形成分布式计算任务（tasks）。每个任务（task）在一个线程中执行。<br />
-优点：将运算符（operators）链接成计算任务（tasks）中，形成Operator Chains对于系统性能的提升有很大的帮助：
-    <ul>
-      <li>降低了线程间的切换</li>
-      <li>减少了数据在与缓冲区的开销</li>
-      <li>减少消息的序列化/反序列化</li>
-      <li>在降低延时的同时减少了系统的总体吞吐量</li>
-    </ul>
+<h1 id="主要参考">主要参考</h1>
+<p>这次把主要参考文章列在了最前面，主要是基本上此文就是在前人的基础上整理在了一起，此文原创很少，参考链接如下:<br />
+前人博客-Uber Athenax项目核心技术点剖析：<a href="https://blog.csdn.net/yanghua_kobe/article/details/78573578">https://blog.csdn.net/yanghua_kobe/article/details/78573578</a><br />
+介绍文章-Introducing AthenaX, Uber Engineering’s Open Source Streaming Analytics Platform：<a href="https://eng.uber.com/athenax/">https://eng.uber.com/athenax/</a><br />
+官网说明：<a href="https://athenax.readthedocs.io/en/latest/">https://athenax.readthedocs.io/en/latest/</a><br />
+博客-如何构建一个flink sql平台:<a href="https://my.oschina.net/qiangzigege/blog/2252975">https://my.oschina.net/qiangzigege/blog/2252975</a></p>
 
-    <p>我们可以对这种chain操作进行配置，具体内容请参考<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.6/dev/stream/operators/#task-chaining-and-resource-groups">chaining docs</a>。<br />
-如下图是官网所示的数据流图包含五个子任务，也就是说其中有五个并行线程：<br />
-<img src="https://ci.apache.org/projects/flink/flink-docs-release-1.6/fig/tasks_chains.svg" alt="Tasks and Operator Chains" /></p>
-  </li>
-  <li>形成Operator Chains的条件：<br />
-上述描述了Tasks和Operator Chains的概念，下面以经典的WordCount为例，看下Operator Chains的形成。此部分结合<a href="http://wuchong.me/blog/2016/05/09/flink-internals-understanding-execution-resources/">Flink 原理与实现：理解 Flink 中的计算资源</a>整理。<br />
-下面这幅图，展示了Source并行度为1，FlatMap、KeyAggregation、Sink并行度均为2，最终以5个并行的线程来执行的优化过程。<br />
-<img src="https://github.com/leafming/bak/blob/master/images/flink/2018-10-09-FlinkOperatorChains形成.png?raw=true" alt="flinkOperatorChains形成" /><br />
-上图中将KeyAggregation和Sink两个operator进行了合并，因为这两个合并后并不会改变整体的拓扑结构。但是，并不是任意两个 operator 就能 chain 一起的。还是需要一定的条件：
-    <ul>
-      <li>没有禁用Chain</li>
-      <li>上下游算子并行度一致</li>
-      <li>下游算子的入度为1（也就是说下游节点没有来自其他节点的输入）</li>
-      <li>上下游算子都在同一个slot group中（文章后续会解释slot group）</li>
-      <li>上下游算子之间没有shuffle（两个算子间数据分区方式是forward）</li>
-      <li>下游的chain策略为ALWAYS（可以与上下游链接，map、flatmap、filter等默认是ALWAYS）</li>
-      <li>上游的chain策略为ALWAYS或HEAD（只能与下游链接，不能与上游链接，Source默认是HEAD）</li>
-    </ul>
-
-    <p>Operator chain的行为可以通过编程API中进行指定。可以通过在DataStream的operator后面（如someStream.map(..))调用startNewChain()来指示从该operator开始一个新的chain（与前面截断，不会被chain到前面）。或者调用disableChaining()来指示该operator不参与chaining（不会与前后的operator chain一起）。在底层，这两个方法都是通过调整operator的 chain 策略（HEAD、NEVER）来实现的。另外，也可以通过调用StreamExecutionEnvironment.disableOperatorChaining()来全局禁用chaining。参考官网API<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.6/dev/stream/operators/#task-chaining-and-resource-groups">Task chaining and resource groups</a>。</p>
-  </li>
-  <li>原理与实现（转）<br />
-转载自<a href="https://yq.aliyun.com/articles/64819#">Flink 原理与实现：理解 Flink 中的计算资源</a>，此文应该是基于flink1.3，可以参考。<br />
-那么 Flink 是如何将多个 operators chain在一起的呢？chain在一起的operators是如何作为一个整体被执行的呢？它们之间的数据流又是如何避免了序列化/反序列化以及网络传输的呢？下图展示了operators chain的内部实现：<br />
-<img src="https://github.com/leafming/bak/blob/master/images/flink/2018-10-09-FlinkChains原理.png?raw=true" alt="2018-10-09-FlinkChains原理" /><br />
-如上图所示，Flink内部是通过OperatorChain这个类来将多个operator链在一起形成一个新的operator。OperatorChain形成的框框就像一个黑盒，Flink 无需知道黑盒中有多少个ChainOperator、数据在chain内部是怎么流动的，只需要将input数据交给 HeadOperator 就可以了，这就使得OperatorChain在行为上与普通的operator无差别，上面的OperaotrChain就可以看做是一个入度为1，出度为2的operator。所以在实现中，对外可见的只有HeadOperator，以及与外部连通的实线输出，这些输出对应了JobGraph中的JobEdge，在底层通过RecordWriterOutput来实现。另外，框中的虚线是operator chain内部的数据流，这个流内的数据不会经过序列化/反序列化、网络传输，而是直接将消息对象传递给下游的 ChainOperator 处理，这是性能提升的关键点，在底层是通过 ChainingOutput 实现的，源码如下方所示：<br />
-注：HeadOperator和ChainOperator并不是具体的数据结构，前者指代chain中的第一个operator，后者指代chain中其余的operator，它们实际上都是StreamOperator。
-    <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">private</span> <span class="n">static</span> <span class="k">class</span> <span class="nc">ChainingOutput</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="n">implements</span> <span class="nc">Output</span><span class="o">&lt;</span><span class="nc">StreamRecord</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;&gt;</span> <span class="o">{</span>
- <span class="c1">// 注册的下游operator
-</span> <span class="k">protected</span> <span class="k">final</span> <span class="nc">OneInputStreamOperator</span><span class="o">&lt;</span><span class="n">T</span><span class="o">,</span> <span class="o">?&gt;</span> <span class="n">operator</span><span class="o">;</span>
- <span class="n">public</span> <span class="nc">ChainingOutput</span><span class="o">(</span><span class="nc">OneInputStreamOperator</span><span class="o">&lt;</span><span class="n">T</span><span class="o">,</span> <span class="o">?&gt;</span> <span class="n">operator</span><span class="o">)</span> <span class="o">{</span>
-     <span class="k">this</span><span class="o">.</span><span class="n">operator</span> <span class="k">=</span> <span class="n">operator</span><span class="o">;</span>
- <span class="o">}</span>
- <span class="nd">@Override</span>
- <span class="c1">// 发送消息方法的实现，直接将消息对象传递给operator处理，不经过序列化/反序列化、网络传输
-</span> <span class="n">public</span> <span class="n">void</span> <span class="n">collect</span><span class="o">(</span><span class="nc">StreamRecord</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="n">record</span><span class="o">)</span> <span class="o">{</span>
-     <span class="k">try</span> <span class="o">{</span>
-         <span class="n">operator</span><span class="o">.</span><span class="n">setKeyContextElement1</span><span class="o">(</span><span class="n">record</span><span class="o">);</span>
-         <span class="c1">// 下游operator直接处理消息对象
-</span>         <span class="n">operator</span><span class="o">.</span><span class="n">processElement</span><span class="o">(</span><span class="n">record</span><span class="o">);</span>
-     <span class="o">}</span>
-     <span class="k">catch</span> <span class="o">(</span><span class="nc">Exception</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-         <span class="k">throw</span> <span class="k">new</span> <span class="nc">ExceptionInChainedOperatorException</span><span class="o">(</span><span class="n">e</span><span class="o">);</span>
-     <span class="o">}</span>
- <span class="o">}</span>
- <span class="o">...</span>
-<span class="o">}</span>
-</code></pre></div>    </div>
-  </li>
-</ol>
-
-<h2 id="作业管理器任务管理器与客户端-job-managers-task-managers-clients">作业管理器，任务管理器与客户端-Job Managers, Task Managers, Clients</h2>
-<ol>
-  <li>Flink运行时环境由两种类型进程组成：
-    <ul>
-      <li>JobManagers-作业管理器（也称为master）<br />
-用于协调程序的分布式执行。它的主要功能是调度任务（tasks），协调checkpoint，故障恢复等。<br />
-每个Flink环境中只有一个JobManagers。高可用设计中会包含多个JobManagers，其中一个是leader，其他standby。</li>
-      <li>TaskManagers-任务管理器（也称为worker）<br />
-用于执行数据流图（dataflow）的任务（tasks）（更准确地说，是计算子任务（subtasks）），并对数据流进行缓冲、交换。<br />
-每个Flink环境中至少包含一个TaskManagers。</li>
-    </ul>
-  </li>
-  <li>JobManagers和TaskManagers可以以多种方式启动：
-    <ul>
-      <li>直接在机器上作为独立群集(<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.6/ops/deployment/cluster_setup.html">standalone cluster</a>)</li>
-      <li>容器中启动</li>
-      <li>YARN或Mesos等资源框架来管理</li>
-    </ul>
-
-    <p>启动之后，TaskManagers会连接到JobManagers来宣布自己可用报告自身的状态，便于JobManagers来分配工作。</p>
-  </li>
-  <li>
-    <p>关于客户端（Client）<br />
- Client其实并不是运行时及程序执行时的一个组成部分，而是被用来准备和发送的数据流(dataflow)给JobManager的。在发送完数据流图之后，客户端可以选择断开与JobManager的连接，或继续保持连接以接收程序运行的进度报告。Client程序可以以 Java/Scala 程序的形式执行，也可以以命令行的形式（./bin/flink run …）执行。</p>
-
-    <p>官网运行时架构图如下：<br />
- <img src="https://ci.apache.org/projects/flink/flink-docs-release-1.6/fig/processes.svg" alt="runtime架构图" /></p>
-  </li>
-  <li>小结(转)<br />
-本部分内容转载自<a href="http://wuchong.me/blog/2016/05/03/flink-internals-overview/#Job-例子">Flink 原理与实现：架构和拓扑概览</a>，此文章应该是基于flink1.3，可以参考。<br />
-当Flink集群启动后，首先会启动一个JobManger和一个或多个的TaskManager。由Client提交任务给JobManager，JobManager再调度任务到各个TaskManager去执行，然后TaskManager将心跳和统计信息汇报给JobManager。TaskManager 之间以流的形式进行数据的传输。上述三者均为独立的JVM 进程。
-    <ul>
-      <li>Client为提交Job的客户端，可以是运行在任何机器上（与JobManager环境连通即可）。提交Job后，Client可以结束进程（Streaming的任务），也可以不结束并等待结果返回。</li>
-      <li>JobManager主要负责调度Job并协调Task做checkpoint，职责上很像Storm的Nimbus。从Client处接收到Job和JAR包等资源后，会生成优化后的执行计划，并以Task的单元调度到各个TaskManager去执行。</li>
-      <li>TaskManager在启动的时候就设置好了槽位数（Slot），每个slot能启动一个Task，Task为线程。从JobManager处接收需要部署的Task，部署启动后，与自己的上游建立 Netty 连接，接收数据并处理。</li>
-    </ul>
-
-    <p>可以看到Flink的任务调度是多线程模型，并且不同Job/Task混合在一个TaskManager进程中。虽然这种方式可以有效提高CPU利用率，但是个人不太喜欢这种设计，因为不仅缺乏资源隔离机制，同时也不方便调试。类似Storm的进程模型，一个JVM中只跑该Job的Tasks实际应用中更为合理。</p>
-  </li>
-  <li>其它<br />
-Flink运行时角色间的通信使用akka，数据的传输使用netty。对比spark，从Spark1.3.1版本开始，为了解决大数据块（如shuffle）的传输问题，Spark引入了Netty通信框架，到了1.6.0版本，Netty完全取代了Akka，承担Spark内部所有的RPC通信以及数据流传输。<br />
-参考<a href="https://blog.csdn.net/yanghua_kobe/article/details/51156218?utm_source=itdadao&amp;utm_medium=referral">Akka在Flink中的使用剖析</a>。</li>
-</ol>
-
-<h2 id="任务槽与资源-task-slots-and-resources">任务槽与资源-Task Slots and Resources</h2>
-<ol>
-  <li>
-    <p>TaskManager和Slot的关系<br />
-每个worker（即TaskManager）都是一个独立的JVM进程，可以运行一个或多个子任务（subtask）在其不同的线程中。为了控制worker（TaskManager）接收任务（tasks）的数量，在worker 中引入了任务槽（task slots）的概念（每个worker中至少包含一个任务槽）。<br />
-每个任务槽（task slots）代表任务管理器（TaskManager）中一个特定的资源池子集，槽把TaskManager的资源进行平分。例如，如果任务管理器有3个槽，它会为每个槽分配1/3的内存。将资源池槽化可以让子任务（subtask）获取指定容量的内存资源，而避免同其他作业（job）中的子任务（subtask）竞争。注意，这里没有对CPU进行隔离；目前任务槽仅仅用于隔离任务（tasks）的内存。<br />
-通过调整任务槽（task slots）的数量，用户可以设定子任务（subtasks）如何相互隔离。如果任务管理器（TaskManager）中只有一个槽，那么每个任务组（task group）都运行在一个独立的JVM中（which can be started in a separate container, for example）。若任务管理器（TaskManager ）有多个槽就意味着会有更多的子任务共享同一个JVM。在同一个JVM中的任务会共享 TCP连接（通过多路复用（multiplexing）的方式）和心跳信息，可以减少数据的网络传输，同时他们也会共享数据集和数据结构，一定程度上可以降低每个task的开销。<br />
-如上文所述的 WordCount 例子，5个Task可能会在TaskManager的slots中如下图分布，2个TaskManager，每个有3个slot：<br />
-<img src="https://github.com/leafming/bak/blob/master/images/flink/2018-10-09-FlinkSlot分布例子.png?raw=true" alt="2018-10-09-FlinkSlot分布例子" /></p>
-  </li>
-  <li>
-    <p>槽和并行度的关系-任务调度<br />
-官网<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.6/internals/job_scheduling.html#scheduling">Scheduling</a>。<br />
-Flink通过任务槽（Task Slot）定义执行资源，每个TaskManager都有一或多个任务槽，每个任务槽都可以运行一个并行任务流(one pipeline of parallel tasks)，一个流(pipeline)包括多个连续的任务，例如一个MapFunction的第n个并行实例与一个ReduceFunction的第n个并行实例的连续任务可以组成一个pipeline。注意，Flink通常会并行的执行连续的任务，对于Streaming程序来说，任何情况都如此执行；而对于batch 程序，多数情况也如此执行。<br />
-下图举例说明。由一个data source、一个MapFunction和一个ReduceFunction组成的程序，data source和MapFunction的并发度都为4，而ReduceFunction的并发度为3。一个数据流由Source-Map-Reduce的顺序组成，在具有2个TaskManager，每个TaskManager都有3个Task Slot的集群上运行，则程序执行情况如图所述。<br />
-<img src="https://ci.apache.org/projects/flink/flink-docs-release-1.6/fig/slots.svg" alt="Scheduling" /></p>
-  </li>
-  <li>
-    <p>slot共享机制-SlotSharingGroup与CoLocationGroup<br />
-参考官网和<a href="http://wuchong.me/blog/2016/05/09/flink-internals-understanding-execution-resources/">Flink 原理与实现：理解 Flink 中的计算资源</a>。<br />
-默认情况下，Flink允许subtasks共享slot，即Flink会允许同一个作业（job）中来自不同的task的多个子任务（subtasks）共享一个槽，即前提是他们来自同一个job，哪怕不同task也可以。这种情况下，有可能会出现某个槽中包含一个完整的作业流水的场景(原文：The result is that one slot may hold an entire pipeline of the job.)。开启这样的slot共享机制主要有两点好处：</p>
-    <ul>
-      <li>Flink集群需要确保job中任务槽的数量和程序最高并发量完全一致，因此不需要去计算一个程序中一共会起多少个task。</li>
-      <li>可以提高资源利用率。如果没有任务槽共享机制，非密集型（non-intensive）的source/map()子任务就会和（intensive）密集型的window子任务一样阻塞大量资源。如果有任务槽共享机制，会提高程序的基础并发量，比如说从2提高到6，就可以让密集型子任务（heavy subtasks）公平的完全分散到任务管理器（TaskManager）中，从而可以显著提高槽的资源利用率充分利用资源。<br />
-如下图，我们将WordCount的并行度从之前的2个增加到6个（Source并行度仍为1），并开启slot共享（所有operator都在default共享组），就可以得到下图所示的slot分布图。首先，我们不用去计算这个job会其多少个task，总之该任务最终会占用6个slots（最高并行度为6）。其次，我们可以看到密集型操作keyAggregation/sink被平均地分配到各个TaskManager。<br />
-<img src="https://github.com/leafming/bak/blob/master/images/flink/2018-10-09-slot共享示例.png?raw=true" alt="2018-10-09-slot共享示例" /></li>
-    </ul>
-
-    <p>a. 关于是如何实现共享slot呢？槽分配的策略？</p>
-    <ul>
-      <li>SlotSharingGroup是Flink中用来实现slot共享的类，它尽可能地让subtasks共享一个slot。</li>
-      <li>CoLocationGroup类用来强制将subtasks放到同一个slot中。CoLocationGroup主要用于迭代流中，用来保证迭代头与迭代尾的第i个subtask能被调度到同一个TaskManager上。这里我们不会详细讨论CoLocationGroup的实现细节。</li>
-    </ul>
-
-    <p>b. 怎么判断operator（算子）属于哪个slot共享组呢？（怎么确定一个算子的SlotSharingGroup？）<br />
-默认情况下，所有的operator（算子）都属于默认的共享组default，也就是说默认情况下所有的operator都是可以共享一个slot的。而当所有input operators具有相同的slot共享组时，该operator会继承这个共享组。最后，为了防止不合理的共享，用户也能通过API来强制指定operator的共享组，比如：someStream.filter(…).slotSharingGroup(“group1”);就强制指定了filter的slot共享组为group1。（总结：根据input的group和自身是否设置group共同确定）适当的设置可以减少每个slot运行的线程数，从而整体上减少机器的负载。</p>
-
-    <p>c.原理与实现（转）<br />
-那么多个tasks（或者说operators）是如何共享slot的呢？本部分转自<a href="http://wuchong.me/blog/2016/05/09/flink-internals-understanding-execution-resources/">Flink 原理与实现：理解 Flink 中的计算资源</a>。<br />
-来看一下用来定义计算资源的slot的类。抽象类Slot定义了该槽位属于哪个TaskManager（instance）的第几个槽位（slotNumber），属于哪个Job（jobID）等信息。最简单的情况下，一个slot只持有一个task，也就是SimpleSlot的实现。复杂点的情况，一个slot能共享给多个task使用，也就是SharedSlot的实现。SharedSlot能包含其他的SharedSlot，也能包含SimpleSlot。所以一个SharedSlot能定义出一棵slots树。<br />
-接下来我们来看看 Flink 为subtask分配slot的过程。关于Flink调度，有两个非常重要的原则我们必须知道：A.同一个operator的各个subtask是不能呆在同一个SharedSlot中的，例如FlatMap[1]和FlatMap[2]是不能在同一个SharedSlot中的。B.Flink是按照拓扑顺序从Source一个个调度到Sink的。例如WordCount（Source并行度为1，其他并行度为2），那么调度的顺序依次是：Source -&gt; FlatMap[1] -&gt; FlatMap[2] -&gt; KeyAgg-&gt;Sink[1] -&gt; KeyAgg-&gt;Sink[2]。假设现在有2个TaskManager，每个只有1个slot（为简化问题），那么分配slot的过程如图所示：<br />
-<img src="https://github.com/leafming/bak/blob/master/images/flink/2018-10-10-slot共享机制实现例子图.png?raw=true" alt="2018-10-10-slot共享机制实现例子图" /><br />
-注：图中 SharedSlot 与 SimpleSlot 后带的括号中的数字代表槽位号（slotNumber）。</p>
-    <ul>
-      <li>为Source分配slot。首先，我们从TaskManager1中分配出一个SharedSlot。并从SharedSlot中为Source分配出一个SimpleSlot。如上图中的①和②。</li>
-      <li>为FlatMap[1]分配slot。目前已经有一个SharedSlot，则从该SharedSlot中分配出一个SimpleSlot用来部署FlatMap[1]。如上图中的③。</li>
-      <li>为FlatMap[2]分配slot。由于TaskManager1的SharedSlot中已经有同operator的FlatMap[1]了，我们只能分配到其他SharedSlot中去。从TaskManager2中分配出一个SharedSlot，并从该SharedSlot中为FlatMap[2]分配出一个SimpleSlot。如上图的④和⑤。</li>
-      <li>为Key-&gt;Sink[1]分配slot。目前两个SharedSlot都符合条件，从TaskManager1的SharedSlot中分配出一个SimpleSlot用来部署Key-&gt;Sink[1]。如上图中的⑥。</li>
-      <li>为Key-&gt;Sink[2]分配slot。TaskManager1的SharedSlot中已经有同operator的Key-&gt;Sink[1]了，则只能选择另一个SharedSlot中分配出一个SimpleSlot用来部署Key-&gt;Sink[2]。如上图中的⑦。</li>
-    </ul>
-
-    <p>最后Source、FlatMap[1]、Key-&gt;Sink[1]这些subtask都会部署到TaskManager1的唯一一个slot中，并启动对应的线程。FlatMap[2]、Key-&gt;Sink[2]这些subtask都会被部署到TaskManager2的唯一一个slot中，并启动对应的线程。从而实现了slot共享。</p>
-  </li>
-</ol>
-
-<p>Flink API中包含一个资源组机制，可以避免不合理的任务槽共享。<br />
-依照以往的经验来说，默认的任务槽数量应设置为CPU core的数量。如果使用超线程技术，每个槽中甚至可以调度处理超过2个硬件线程。<br />
-总结：一个应用需要多少个slot？</p>
+<h1 id="athenax特点">AthenaX特点</h1>
 <ul>
-  <li>不设置SlotSharingGroup的情况下：应用的最大并行度。</li>
-  <li>设置了SlotSharingGroup：所有SlotSharingGroup中最大并行度之和。如下图：source时为default，然后在map算子处设置gourp为test，那么这个需要的槽数是10+20=30。<br />
-<img src="https://github.com/leafming/bak/blob/master/images/flink/2018-10-10-slot和并行度关系.png?raw=true" alt="2018-10-10-slot和并行度关系" /></li>
+  <li>Streaming SQL<br />
+production-ready流处理分析，支持Filtering, projecting和combining操作。<br />
+支持基于processing time和event time的GroupWindow聚合。<br />
+支持定制化SQL：用户定义函数（UDF）、用户定义聚合函数（UDAF）和用户定义表函数（UDTF-测试）。</li>
+  <li>高效的执行过程<br />
+为了满足Uber业务的规模化要求，AthenaX 对 SQL 查询进行了编译与优化，并将其交付至分布式流应用程序当中以确保仅利用 8 套 YARN 容器即可实现每秒数百万次的消息处理操作。</li>
+  <li>监控和自动故障恢复<br />
+AthenaX 以端到端方式管理各应用程序，具体包括持续监控其运行状态、根据输入数据大小自动进行规模伸缩，且可顺利在节点或者整体数据中心发生故障时通过故障转移保证业务的正常恢复。</li>
+  <li>资源估算和自动缩放-AthenaX jobs自动扩展等<br />
+AthenaX根据查询和输入数据的吞吐量估算vcores和内存的数量。AthenaX master会持续监视每个作业的watermarks和垃圾回收统计信息，并在必要时重新启动它们。Flink的容错性机制能够保障job运行正确的结果。</li>
 </ul>
 
-<h2 id="state-backends">State Backends</h2>
-<p>通过键值对索引的数据结构保存在指定的后端存储(State Backends)中。有的后端存储将数据保存在内存中的哈希表中，而有的存储会使用RocksDB来保存键值对。除了定义保存状态的数据结构之外，后端存储还实现了获取键值对的特定时间点快照的功能，该功能可以将快照保存为检查点的一部分。<br />
-<img src="https://ci.apache.org/projects/flink/flink-docs-release-1.6/fig/checkpoints.svg" alt="State Backends官网图片" /></p>
+<h1 id="依赖组件">依赖组件</h1>
+<ul>
+  <li>AthenaX构建在Apache Calcite以及Apache Flink之上<br />
+Apache Calcite 是一款开源SQL解析工具, 可以将各种SQL语句解析成抽象语法术AST(Abstract Syntax Tree), 之后通过操作AST就可以把SQL中所要表达的算法与关系体现在具体代码之中。<br />
+Apache Flink是一个面向分布式数据流处理和批量数据处理的开源计算平台,它能够基于同一个Flink运行时(FlinkRuntime),提供支持流处理和批处理两种类型应用的功能。</li>
+  <li>采用YARN集群来管理Job</li>
+  <li>LevelDB作为持久化存储<br />
+LevelDB是Google开源的持久化KV单机数据库,具有很高的随机写,顺序读/写性能,但是随机读的性能很一般,也就是说,LevelDB很适合应用在查询较少,而写很多的场景。</li>
+</ul>
 
-<h2 id="保存点-savepoints">保存点-Savepoints</h2>
-<p>使用Data Stream API的程序可以从指定的保存点恢复。保存点可以更新程序和Flink集群，并且不丢失任何状态的功能。也就是相对于checkpoint来比较，checkpoint是针对于内部的，savepoint是针对于外部的。SparkStreaming中，如果使用了checkpoint，流处理程序有更新的话，进行程序替换需要清理调checkpoint才能生效，而在flink中，可以在流处理程序更新后，手动添加savepoint，那么新程序能从savepoint的地方开始读取数据，能与老程序并行存在或者直接替换。<br />
-保存点可以看作是一种手动触发的检查点，该检查点可以获取程序的快照并将其写入后端存储（State Backend）中。所以说保存点的功能依赖于一般的检查点机制。程序执行时会定期在worker节点生成快照和检查点（checkpoint）。由于Flink的恢复机制只需要使用最新一个有效的检查点（checkpoint），在新的检查点（checkpoint）生成后就可以安全移除其余旧的检查点（checkpoint）了。<br />
-保存点（savepoint）和定期检查点（checkpoint）在大部分情况下都很相似，区别只在于保存点是由用户触发的，并且在新的检查点生成后不会自动过期失效。保存点可以通过命令行生成，也可以在调用<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.6/monitoring/rest_api.html#cancel-job-with-savepoint">REST API</a>取消作业时产生。<br />
-关于Savepoints的详细说明，可见官网<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.6/ops/state/savepoints.html#savepoints">Savepoints</a>。</p>
+<h1 id="架构说明">架构说明</h1>
+<p><img src="https://github.com/leafming/bak/blob/master/images/flink/2019-06-19-AthenaX架构.png?raw=true" alt="2019-06-19-AthenaX架构" /><br />
+AthenaX平台一般架构如上图。<br />
+Data Sources<br />
+Output:AthenaX支持多种数据源和输出。 <br />
+AthenaX platform</p>
+<ul>
+  <li>AthenaX master：管理job的全生命周期。</li>
+  <li>catalogs 和connectors：描述 AthenaX jobs如何与外部组件联系。
+    <ol>
+      <li>Catalog和connectors是可插拔的。Catalog指定了如何将SQL中的表映射到source或sink。Connectors定义AthenaX如何与外部系统交互。（如发布到Kafka主题或进行RPC调用）</li>
+      <li>用户自定义的Catalogs必须实现AthenaXTableCatalogProvider。Connectors必须实现DataSinkProvider或者TableSourceConverter。例子：https://github.com/uber/AthenaX/tree/master/athenax-vm-connectors/athenax-vm-connector-kafka/src/main/java/com/uber/athenax/vm/connectors/kafka</li>
+    </ol>
+  </li>
+</ul>
 
-<h2 id="总结">总结</h2>
-<p>Flink中计算资源的相关，最核心的是 Task Slot，每个slot能运行一个或多个task。为了更高效地运行，Flink提出了Chaining，尽可能地将operators chain在一起作为一个task来处理。为了资源更充分的利用，Flink又提出了SlotSharingGroup，尽可能地让多个task共享一个slot。</p>
+<h1 id="athenax中的一些概念">AthenaX中的一些概念</h1>
+<p>Job：流式分析应用程序。包括SQL、运行集群、所需资源。<br />
+Catalog：描述了如何将SQL中的table转换为data source或data sink。<br />
+Cluster：运行AthenaX job 的YARN cluster。<br />
+Instance：通过AthenaX job 转换而来的运行在特定集群上的Flink application。</p>
+
+<h1 id="athenax的工作流程">AthenaX的工作流程</h1>
+<ol>
+  <li>用户使用SQL开发作业，通过 REST APIs并将其提交给AthenaX master。</li>
+  <li>AthenaX master验证查询并将其编译为Flink作业。
+    <ol>
+      <li>为了有效地执行Athenax jobs，Athenax使用Flink’s Table and SQL APIs将AthenaX jobs编译成本地的Flink应用程序。Athenax将catalogs和parameters（例如并行性）以及job的SQL编译为一个Flink application，形成Flink里的JobGraph。</li>
+      <li>【未来】Athenax支持用户自定义函数的SQL。用户可以指定附加的JAR随SQL一起加载。为了安全地编译它们，Athenax在专用的过程中编译SQL。但是，在当前版本中，该功能（尤其是对UDF JAR的本地化）尚未完全实现。</li>
+    </ol>
+  </li>
+  <li>AthenaX master会将其打包、部署到YARN集群中执行。部署完成后，Athenax主机会持续监控作业的状态，并在出现故障时将其恢复。
+    <ol>
+      <li>Athenax使用两种状态描述作业的运行状态。第一个状态是desired state，它描述了集群和作业所需的启动资源。第二个是actual state，每个job的已创建instance的资源。</li>
+      <li>watchdog周期性的计算actual state并将其与desired state进行比较，AthenaX master可以根据差异启动或终止相应的Yarn application，这种情况下启动的作业只是对failed job的恢复。Auto scaling的处理也类似。需要注意，所有的actual state都是“soft states”，也就是说，它们可以通过Yarn cluster来获取。这样的设计允许AthenaX控件在多个区域中运行，前提是（1）底层持久数据存储在部署的区域中可用，并且（2）watchdog知道多个可用区域中的活动主机。</li>
+    </ol>
+  </li>
+  <li>作业开始处理数据并将结果输出到外部系统（例如，Kafka）。</li>
+</ol>
+
+<h1 id="athenax核心技术点">AthenaX核心技术点</h1>
+<p>Athenax它提供了一个对Flink进行扩展以利用其运行时的一种机制。</p>
+
+<h2 id="准备工作">准备工作</h2>
+<p>下载源码，编译：<br />
+问题：Class “ExtendedJobDefinition, JobDefinition, JobDefinitionDesiredstate and JobDefinitionResource” are not in package <br />
+解决：The “missing” classes are generated during the compilation process. You can find them once you run mvn clean compile install。</p>
+
+<h2 id="athenax主要分为以下几个模块">AthenaX主要分为以下几个模块</h2>
+<p>athenax-backend：项目的后端服务实现。<br />
+athenax-vm-compiler：主要负责将SQL编译为Flink作业。<br />
+athenax-vm-api：Athenax提供给用户的去实现的一些API接口。<br />
+athennax-vm-connectors：开放给用户 扩展的连接器。</p>
+
+<h2 id="athenax-backend">athenax-backend</h2>
+<p>项目的后端服务实现，提供了一个运行时实例。<br />
+其主要启动步骤分为两步：</p>
+<ol>
+  <li>启动一个web server(com.uber.athenax.backend.server.WebServer)，用来接收restful的各种服务请求；<br />
+这里的web server，事实上是一个Glashfish中的Grizzly所提供的一个轻量级的http server（Glashfish:Java EE应用服务器的实现;Grizzly:基于Java NIO实现的服务器），它也具备处理动态请求（web container，Servlet）的能力。<br />
+RESTful API这块，AthenaX使用了swagger这一API开发框架来提供部分代码（实体类/服务接口类）的生成。<br />
+web server接收用户的RESTful API请求，这些API可以分成三类：<br />
+（1）Cluster: 集群相关的信息<br />
+（2）Instance: Job运行时相关的信息<br />
+（3）Job: 作业本身的信息；</li>
+  <li>启动了一个ServerContext（上下文-com.uber.athenax.backend.server.ServerContext），它封装了一些核心对象，是服务的具体提供者:<br />
+job store：一个基于LevelDB的job元数据存储机制；<br />
+job manager：注意这与Flink的JobManager没有关系，这是AthenaX封装出来的一个对象，用于对SQL Job进行管理；<br />
+instance manager：一个instance manager管理着部署在YARN集群上所有正在被执行的job；<br />
+watch dog：提供了对job的状态、心跳的检测，以适时进行failover；<br />
+…</li>
+</ol>
+
+<h2 id="athenax-vm-compiler">athenax-vm-compiler</h2>
+<p>主要实现将SQL编译为Flink作业。分为3部分：<br />
+planer：计划器，该模块的入口，它会顺序调用parser、validator、executor，最终得到一个称之为作业编译结果的JobCompilationResult对象；<br />
+parser：编译器，这里主要是针对其对SQL的扩展提供相应的解析实现，主要是对Calcite api的实现，最终得到SqlNode集合SqlNodeList；<br />
+validator：校验；<br />
+executor：真正完成所谓的”编译“工作，这里编译之所以加引号，其实只是借助于Flink的API得到对应的JobGraph；<br />
+这里，值得一提的是其”编译“的实现机制。AthenaX最终是要将其SQL Job提交给Flink运行时去执行，而对Flink而言JobGraph是其唯一识别的Job描述的对象，所以它最关键的一点就是需要得到其job的JobGraph。<br />
+整体调用过程：</p>
+<ol>
+  <li>Athenax Jobmanger编译
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>//com.uber.athenax.backend.server.jobs.JobManager#compile Athenax Jobmanager编译
+public JobCompilationResult compile(JobDefinition job, JobDefinitionDesiredstate spec) throws Throwable {
+  Map&lt;String, AthenaXTableCatalog&gt; inputs = catalogProvider.getInputCatalog(spec.getClusterId());
+ AthenaXTableCatalog output = catalogProvider.getOutputCatalog(spec.getClusterId(), job.getOutputs());
+ Planner planner = new Planner(inputs, output);
+ return planner.sql(job.getQuery(), Math.toIntExact(spec.getResource().getVCores()));
+}
+</code></pre></div>    </div>
+  </li>
+  <li>Planner sql方法，返回JobCompilationResult，其中JobDescriptor是其Job业务相关的信息。
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>public JobCompilationResult sql(String sql, int parallelism) throws Throwable {
+//解析
+ SqlNodeList stmts = parse(sql);
+ //校验
+ Validator validator = new Validator();
+ validator.validateQuery(stmts);
+ //Job相关信息
+ JobDescriptor job = new JobDescriptor(
+//输入源Catalog-将SQL中的table转换为data source
+ inputs,
+ //自定义fun
+ validator.userDefinedFunctions(),
+ //Catalog输出源-将SQL中的table转换为data sink
+ outputs,
+ //并行度
+ parallelism,
+ //SQL
+ validator.statement().toString());
+ // 调用excutor，使用Flink的API得到对应的JobGraph,res.jobGraph()
+ // 说明：AthenX采用了运行时执行构造命令行执行JobCompiler的方法，然后利用socket+标准输出重定向的方式，来模拟UNIX PIPELINE，可能没必要这么绕弯路，直接调用就行了。
+ // uses contained executor instead of direct compile for: JobCompiler.compileJob(job); 实际上即调用JobCompiler.compileJob(job)
+ CompilationResult res = new ContainedExecutor().run(job);
+ if (res.remoteThrowable() != null) {
+throw res.remoteThrowable();
+ }
+return new JobCompilationResult(res.jobGraph(),
+ validator.userDefinedFunctions().values().stream().map(Path::new).collect(Collectors.toList()));
+}
+</code></pre></div>    </div>
+    <p>说明：<br />
+（1）以上具体的触发机制，采用了运行时（com.uber.athenax.vm.compiler.executor.ContainedExecutor）执行构造命令行执行JobCompiler的方法，然后利用套接字+标准输出重定向的方式，来模拟UNIX PIPELINE，可以理解成直接调用JobCompiler.compileJob(job)。<br />
+（2）parse的代码生成<br />
+值得一提的是，parser涉及到具体的语法，这一块为了体现灵活性。AthenaX将解析器的实现类跟SQL语法绑定在一起通过fmpp(文本模板预处理器)的形式进行代码生成。<br />
+fmpp是一个支持freemark语法的文本预处理器。</p>
+  </li>
+  <li>JobCompiler（com.uber.athenax.vm.compiler.executor.JobCompiler）的compileJob方法，构造ComplicationResult。
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>//构造CompilationResult（核心：构造JobGraph）
+public static CompilationResult compileJob(JobDescriptor job) {
+  //flink env
+ StreamExecutionEnvironment execEnv = StreamExecutionEnvironment.createLocalEnvironment();
+ StreamTableEnvironment env = StreamTableEnvironment.getTableEnvironment(execEnv);
+ execEnv.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+ CompilationResult res = new CompilationResult();
+ try {
+ //getJobGraph
+ res.jobGraph(new JobCompiler(env, job).getJobGraph());
+ } catch (IOException e) {
+ res.remoteThrowable(e);
+ }
+  return res;
+}
+</code></pre></div>    </div>
+  </li>
+  <li>核心在于上面的getJobGraph（com.uber.athenax.vm.compiler.executor.JobCompiler#getJobGraph）方法。之前JobDescriptor是其Job业务相关的信息，这里动态设置非固定部分。
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>//构造JobGraph 利用Flink的Table&amp;SQL API编写的Table&amp;SQL 程序模板
+JobGraph getJobGraph() throws IOException {
+  StreamExecutionEnvironment exeEnv = env.execEnv();
+ exeEnv.setParallelism(job.parallelism());
+ //AthenaX动态设置注册registerUdfs和registerInputCatalogs
+ this
+ .registerUdfs()
+   .registerInputCatalogs();
+ //flink table api
+ Table table = env.sqlQuery(job.sql());
+ for (String t : job.outputs().listTables()) {
+ table.writeToSink(getOutputTable(job.outputs().getTable(t)));
+ }
+  //直接调用StreamExecutionEnvironment#getStreamGraph就可以自动获得JobGraph对象
+ StreamGraph streamGraph = exeEnv.getStreamGraph();
+ //JobGraph的生成还是由Flink 自己提供的，而AthenaX只需要拼凑并触发该对象的生成
+ return streamGraph.getJobGraph();
+}
+</code></pre></div>    </div>
+    <p>其中调用env.sql()这个方法说明它本质没能真正脱离Flink Table&amp;SQL。<br />
+设置完成之后，通过调用StreamExecutionEnvironment#getStreamGraph就可以自动获得JobGraph对象，因此JobGraph的生成还是由Flink 自己提供的，而AthenaX只需要拼凑并触发该对象的生成。  生成后会通过flink的yarn client实现（com.uber.athenax.backend.server.yarn.JobDeployer），将JobGraph提交给YARN集群，并启动Flink运行时执行Job。</p>
+  </li>
+</ol>
+
+<h2 id="athenax-vm-api">athenax-vm-api</h2>
+<p>这个模块就是Athenax提供给用户的去实现的一些API接口，它们是：<br />
+function：各种函数的rich化(open/close方法对)扩展；<br />
+catalog：table / source、sink的映射；<br />
+sink provider：sink的扩展接口。</p>
+
+<h2 id="athennax-vm-connectors">athennax-vm-connectors</h2>
+<p>开放给用户去扩展的连接器，目前只提供了kafka这一个连接器的实现。</p>
 
 <hr />
 <p>至此，本篇内容完成。</p>
@@ -689,7 +706,7 @@ Flink通过任务槽（Task Slot）定义执行资源，每个TaskManager都有�
     </li>
     <li class="post-copyright-link">
       <strong>本文链接：</strong>
-      <a href="http://localhost:4000/bigdata/2018/10/09/Flink%E5%9F%BA%E7%A1%80%E8%BF%90%E8%A1%8C%E6%97%B6%E7%8E%AF%E5%A2%83/" title="Flink基础运行时环境">Flink基础运行时环境</a>
+      <a href="http://localhost:4000/bigdata/2019/06/19/AthenaX%E5%9F%BA%E4%BA%8ESQL%E7%9A%84%E5%A4%A7%E8%A7%84%E6%A8%A1%E6%B5%81%E5%88%86%E6%9E%90%E5%B9%B3%E5%8F%B0-%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/" title="AthenaX基于SQL的大规模流分析平台-开源项目简要分析">AthenaX基于SQL的大规模流分析平台-开源项目简要分析</a>
     </li>
     <li class="post-copyright-license">
       <strong>版权声明： </strong>
@@ -722,18 +739,14 @@ Flink通过任务槽（Task Slot）定义执行资源，每个TaskManager都有�
         <div class="post-nav" id="post-nav-id">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/bigdata/2018/10/17/Flink%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0/" rel="next" title="Flink配置参数(官网翻译转载)">
-                <i class="fa fa-chevron-left"></i> Flink配置参数(官网翻译转载)
-              </a>
-            
           </div>
 
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/bigdata/2018/09/05/Flink%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/" rel="prev" title="Flink基础概念">
-                Flink基础概念 <i class="fa fa-chevron-right"></i>
+              <a href="/bigdata/2019/05/16/%E8%AE%B0%E4%B8%80%E6%AC%A1FlinkCheckpoint%E8%B6%85%E6%97%B6%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5%E8%BF%87%E7%A8%8B/" rel="prev" title="记一次Flink Checkpoint超时问题排查">
+                记一次Flink Checkpoint超时问题排查 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -900,7 +913,7 @@ Flink通过任务槽（Task Slot）定义执行资源，每个TaskManager都有�
             
               <div class="post-toc-content">
     <ol class=nav>
-      <li class="nav-item nav-level-1"> <a class="nav-link" href="#flink运行时环境"> <span class="nav-number">1</span> <span class="nav-text">Flink运行时环境</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#tasks和operator-chains"> <span class="nav-number">1.1</span> <span class="nav-text">Tasks和Operator Chains</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#作业管理器任务管理器与客户端-job-managers-task-managers-clients"> <span class="nav-number">1.2</span> <span class="nav-text">作业管理器，任务管理器与客户端-Job Managers, Task Managers, Clients</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#任务槽与资源-task-slots-and-resources"> <span class="nav-number">1.3</span> <span class="nav-text">任务槽与资源-Task Slots and Resources</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#state-backends"> <span class="nav-number">1.4</span> <span class="nav-text">State Backends</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#保存点-savepoints"> <span class="nav-number">1.5</span> <span class="nav-text">保存点-Savepoints</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#总结"> <span class="nav-number">1.6</span> <span class="nav-text">总结</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child">
+      <li class="nav-item nav-level-1"> <a class="nav-link" href="#主要参考"> <span class="nav-number">1</span> <span class="nav-text">主要参考</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#athenax特点"> <span class="nav-number">2</span> <span class="nav-text">AthenaX特点</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#依赖组件"> <span class="nav-number">3</span> <span class="nav-text">依赖组件</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#架构说明"> <span class="nav-number">4</span> <span class="nav-text">架构说明</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#athenax中的一些概念"> <span class="nav-number">5</span> <span class="nav-text">AthenaX中的一些概念</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#athenax的工作流程"> <span class="nav-number">6</span> <span class="nav-text">AthenaX的工作流程</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#athenax核心技术点"> <span class="nav-number">7</span> <span class="nav-text">AthenaX核心技术点</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#准备工作"> <span class="nav-number">7.1</span> <span class="nav-text">准备工作</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#athenax主要分为以下几个模块"> <span class="nav-number">7.2</span> <span class="nav-text">AthenaX主要分为以下几个模块</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#athenax-backend"> <span class="nav-number">7.3</span> <span class="nav-text">athenax-backend</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#athenax-vm-compiler"> <span class="nav-number">7.4</span> <span class="nav-text">athenax-vm-compiler</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#athenax-vm-api"> <span class="nav-number">7.5</span> <span class="nav-text">athenax-vm-api</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> </li></ol> </li></ol> </li></ol> </li></ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#athennax-vm-connectors"> <span class="nav-number">7.6</span> <span class="nav-text">athennax-vm-connectors</span> </a> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child"> <ol class="nav-child">
     </ol>
   </div>
             

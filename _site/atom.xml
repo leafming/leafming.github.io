@@ -1,4 +1,220 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.7.4">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2019-05-16T15:40:56+08:00</updated><id>http://localhost:4000/atom.xml</id><title type="html">iLeaf</title><subtitle>Yesterday you said tomorrow.</subtitle><author><name>叶子  ( ˘ ³˘)♥</name></author><entry><title type="html">记一次Flink Checkpoint超时问题排查</title><link href="http://localhost:4000/bigdata/2019/05/16/%E8%AE%B0%E4%B8%80%E6%AC%A1FlinkCheckpoint%E8%B6%85%E6%97%B6%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5%E8%BF%87%E7%A8%8B/" rel="alternate" type="text/html" title="记一次Flink Checkpoint超时问题排查" /><published>2019-05-16T00:00:00+08:00</published><updated>2019-05-16T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2019/05/16/%E8%AE%B0%E4%B8%80%E6%AC%A1FlinkCheckpoint%E8%B6%85%E6%97%B6%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5%E8%BF%87%E7%A8%8B</id><content type="html" xml:base="http://localhost:4000/bigdata/2019/05/16/%E8%AE%B0%E4%B8%80%E6%AC%A1FlinkCheckpoint%E8%B6%85%E6%97%B6%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5%E8%BF%87%E7%A8%8B/">&lt;blockquote&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.7.4">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2019-06-19T20:47:21+08:00</updated><id>http://localhost:4000/atom.xml</id><title type="html">iLeaf</title><subtitle>Yesterday you said tomorrow.</subtitle><author><name>叶子  ( ˘ ³˘)♥</name></author><entry><title type="html">AthenaX基于SQL的大规模流分析平台-开源项目简要分析</title><link href="http://localhost:4000/bigdata/2019/06/19/AthenaX%E5%9F%BA%E4%BA%8ESQL%E7%9A%84%E5%A4%A7%E8%A7%84%E6%A8%A1%E6%B5%81%E5%88%86%E6%9E%90%E5%B9%B3%E5%8F%B0-%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/" rel="alternate" type="text/html" title="AthenaX基于SQL的大规模流分析平台-开源项目简要分析" /><published>2019-06-19T00:00:00+08:00</published><updated>2019-06-19T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2019/06/19/AthenaX%E5%9F%BA%E4%BA%8ESQL%E7%9A%84%E5%A4%A7%E8%A7%84%E6%A8%A1%E6%B5%81%E5%88%86%E6%9E%90%E5%B9%B3%E5%8F%B0-%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90</id><content type="html" xml:base="http://localhost:4000/bigdata/2019/06/19/AthenaX%E5%9F%BA%E4%BA%8ESQL%E7%9A%84%E5%A4%A7%E8%A7%84%E6%A8%A1%E6%B5%81%E5%88%86%E6%9E%90%E5%B9%B3%E5%8F%B0-%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/">&lt;blockquote&gt;
+  &lt;p&gt;文主要关于Uber开源的AthenaX基于SQL的大规模流分析平台的简单整理。想要学习一下基于SQL流处理平台的思路，将看到的博客和文章简单整理了一下。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h1 id=&quot;主要参考&quot;&gt;主要参考&lt;/h1&gt;
+&lt;p&gt;这次把主要参考文章列在了最前面，主要是基本上此文就是在前人的基础上整理在了一起，此文原创很少，参考链接如下:&lt;br /&gt;
+前人博客-Uber Athenax项目核心技术点剖析：&lt;a href=&quot;https://blog.csdn.net/yanghua_kobe/article/details/78573578&quot;&gt;https://blog.csdn.net/yanghua_kobe/article/details/78573578&lt;/a&gt;&lt;br /&gt;
+介绍文章-Introducing AthenaX, Uber Engineering’s Open Source Streaming Analytics Platform：&lt;a href=&quot;https://eng.uber.com/athenax/&quot;&gt;https://eng.uber.com/athenax/&lt;/a&gt;&lt;br /&gt;
+官网说明：&lt;a href=&quot;https://athenax.readthedocs.io/en/latest/&quot;&gt;https://athenax.readthedocs.io/en/latest/&lt;/a&gt;&lt;br /&gt;
+博客-如何构建一个flink sql平台:&lt;a href=&quot;https://my.oschina.net/qiangzigege/blog/2252975&quot;&gt;https://my.oschina.net/qiangzigege/blog/2252975&lt;/a&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;athenax特点&quot;&gt;AthenaX特点&lt;/h1&gt;
+&lt;ul&gt;
+  &lt;li&gt;Streaming SQL&lt;br /&gt;
+production-ready流处理分析，支持Filtering, projecting和combining操作。&lt;br /&gt;
+支持基于processing time和event time的GroupWindow聚合。&lt;br /&gt;
+支持定制化SQL：用户定义函数（UDF）、用户定义聚合函数（UDAF）和用户定义表函数（UDTF-测试）。&lt;/li&gt;
+  &lt;li&gt;高效的执行过程&lt;br /&gt;
+为了满足Uber业务的规模化要求，AthenaX 对 SQL 查询进行了编译与优化，并将其交付至分布式流应用程序当中以确保仅利用 8 套 YARN 容器即可实现每秒数百万次的消息处理操作。&lt;/li&gt;
+  &lt;li&gt;监控和自动故障恢复&lt;br /&gt;
+AthenaX 以端到端方式管理各应用程序，具体包括持续监控其运行状态、根据输入数据大小自动进行规模伸缩，且可顺利在节点或者整体数据中心发生故障时通过故障转移保证业务的正常恢复。&lt;/li&gt;
+  &lt;li&gt;资源估算和自动缩放-AthenaX jobs自动扩展等&lt;br /&gt;
+AthenaX根据查询和输入数据的吞吐量估算vcores和内存的数量。AthenaX master会持续监视每个作业的watermarks和垃圾回收统计信息，并在必要时重新启动它们。Flink的容错性机制能够保障job运行正确的结果。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;依赖组件&quot;&gt;依赖组件&lt;/h1&gt;
+&lt;ul&gt;
+  &lt;li&gt;AthenaX构建在Apache Calcite以及Apache Flink之上&lt;br /&gt;
+Apache Calcite 是一款开源SQL解析工具, 可以将各种SQL语句解析成抽象语法术AST(Abstract Syntax Tree), 之后通过操作AST就可以把SQL中所要表达的算法与关系体现在具体代码之中。&lt;br /&gt;
+Apache Flink是一个面向分布式数据流处理和批量数据处理的开源计算平台,它能够基于同一个Flink运行时(FlinkRuntime),提供支持流处理和批处理两种类型应用的功能。&lt;/li&gt;
+  &lt;li&gt;采用YARN集群来管理Job&lt;/li&gt;
+  &lt;li&gt;LevelDB作为持久化存储&lt;br /&gt;
+LevelDB是Google开源的持久化KV单机数据库,具有很高的随机写,顺序读/写性能,但是随机读的性能很一般,也就是说,LevelDB很适合应用在查询较少,而写很多的场景。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;架构说明&quot;&gt;架构说明&lt;/h1&gt;
+&lt;p&gt;&lt;img src=&quot;https://github.com/leafming/bak/blob/master/images/flink/2019-06-19-AthenaX架构.png?raw=true&quot; alt=&quot;2019-06-19-AthenaX架构&quot; /&gt;&lt;br /&gt;
+AthenaX平台一般架构如上图。&lt;br /&gt;
+Data Sources&lt;br /&gt;
+Output:AthenaX支持多种数据源和输出。 &lt;br /&gt;
+AthenaX platform&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;AthenaX master：管理job的全生命周期。&lt;/li&gt;
+  &lt;li&gt;catalogs 和connectors：描述 AthenaX jobs如何与外部组件联系。
+    &lt;ol&gt;
+      &lt;li&gt;Catalog和connectors是可插拔的。Catalog指定了如何将SQL中的表映射到source或sink。Connectors定义AthenaX如何与外部系统交互。（如发布到Kafka主题或进行RPC调用）&lt;/li&gt;
+      &lt;li&gt;用户自定义的Catalogs必须实现AthenaXTableCatalogProvider。Connectors必须实现DataSinkProvider或者TableSourceConverter。例子：https://github.com/uber/AthenaX/tree/master/athenax-vm-connectors/athenax-vm-connector-kafka/src/main/java/com/uber/athenax/vm/connectors/kafka&lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;athenax中的一些概念&quot;&gt;AthenaX中的一些概念&lt;/h1&gt;
+&lt;p&gt;Job：流式分析应用程序。包括SQL、运行集群、所需资源。&lt;br /&gt;
+Catalog：描述了如何将SQL中的table转换为data source或data sink。&lt;br /&gt;
+Cluster：运行AthenaX job 的YARN cluster。&lt;br /&gt;
+Instance：通过AthenaX job 转换而来的运行在特定集群上的Flink application。&lt;/p&gt;
+
+&lt;h1 id=&quot;athenax的工作流程&quot;&gt;AthenaX的工作流程&lt;/h1&gt;
+&lt;ol&gt;
+  &lt;li&gt;用户使用SQL开发作业，通过 REST APIs并将其提交给AthenaX master。&lt;/li&gt;
+  &lt;li&gt;AthenaX master验证查询并将其编译为Flink作业。
+    &lt;ol&gt;
+      &lt;li&gt;为了有效地执行Athenax jobs，Athenax使用Flink’s Table and SQL APIs将AthenaX jobs编译成本地的Flink应用程序。Athenax将catalogs和parameters（例如并行性）以及job的SQL编译为一个Flink application，形成Flink里的JobGraph。&lt;/li&gt;
+      &lt;li&gt;【未来】Athenax支持用户自定义函数的SQL。用户可以指定附加的JAR随SQL一起加载。为了安全地编译它们，Athenax在专用的过程中编译SQL。但是，在当前版本中，该功能（尤其是对UDF JAR的本地化）尚未完全实现。&lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+  &lt;li&gt;AthenaX master会将其打包、部署到YARN集群中执行。部署完成后，Athenax主机会持续监控作业的状态，并在出现故障时将其恢复。
+    &lt;ol&gt;
+      &lt;li&gt;Athenax使用两种状态描述作业的运行状态。第一个状态是desired state，它描述了集群和作业所需的启动资源。第二个是actual state，每个job的已创建instance的资源。&lt;/li&gt;
+      &lt;li&gt;watchdog周期性的计算actual state并将其与desired state进行比较，AthenaX master可以根据差异启动或终止相应的Yarn application，这种情况下启动的作业只是对failed job的恢复。Auto scaling的处理也类似。需要注意，所有的actual state都是“soft states”，也就是说，它们可以通过Yarn cluster来获取。这样的设计允许AthenaX控件在多个区域中运行，前提是（1）底层持久数据存储在部署的区域中可用，并且（2）watchdog知道多个可用区域中的活动主机。&lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+  &lt;li&gt;作业开始处理数据并将结果输出到外部系统（例如，Kafka）。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h1 id=&quot;athenax核心技术点&quot;&gt;AthenaX核心技术点&lt;/h1&gt;
+&lt;p&gt;Athenax它提供了一个对Flink进行扩展以利用其运行时的一种机制。&lt;/p&gt;
+
+&lt;h2 id=&quot;准备工作&quot;&gt;准备工作&lt;/h2&gt;
+&lt;p&gt;下载源码，编译：&lt;br /&gt;
+问题：Class “ExtendedJobDefinition, JobDefinition, JobDefinitionDesiredstate and JobDefinitionResource” are not in package &lt;br /&gt;
+解决：The “missing” classes are generated during the compilation process. You can find them once you run mvn clean compile install。&lt;/p&gt;
+
+&lt;h2 id=&quot;athenax主要分为以下几个模块&quot;&gt;AthenaX主要分为以下几个模块&lt;/h2&gt;
+&lt;p&gt;athenax-backend：项目的后端服务实现。&lt;br /&gt;
+athenax-vm-compiler：主要负责将SQL编译为Flink作业。&lt;br /&gt;
+athenax-vm-api：Athenax提供给用户的去实现的一些API接口。&lt;br /&gt;
+athennax-vm-connectors：开放给用户 扩展的连接器。&lt;/p&gt;
+
+&lt;h2 id=&quot;athenax-backend&quot;&gt;athenax-backend&lt;/h2&gt;
+&lt;p&gt;项目的后端服务实现，提供了一个运行时实例。&lt;br /&gt;
+其主要启动步骤分为两步：&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;启动一个web server(com.uber.athenax.backend.server.WebServer)，用来接收restful的各种服务请求；&lt;br /&gt;
+这里的web server，事实上是一个Glashfish中的Grizzly所提供的一个轻量级的http server（Glashfish:Java EE应用服务器的实现;Grizzly:基于Java NIO实现的服务器），它也具备处理动态请求（web container，Servlet）的能力。&lt;br /&gt;
+RESTful API这块，AthenaX使用了swagger这一API开发框架来提供部分代码（实体类/服务接口类）的生成。&lt;br /&gt;
+web server接收用户的RESTful API请求，这些API可以分成三类：&lt;br /&gt;
+（1）Cluster: 集群相关的信息&lt;br /&gt;
+（2）Instance: Job运行时相关的信息&lt;br /&gt;
+（3）Job: 作业本身的信息；&lt;/li&gt;
+  &lt;li&gt;启动了一个ServerContext（上下文-com.uber.athenax.backend.server.ServerContext），它封装了一些核心对象，是服务的具体提供者:&lt;br /&gt;
+job store：一个基于LevelDB的job元数据存储机制；&lt;br /&gt;
+job manager：注意这与Flink的JobManager没有关系，这是AthenaX封装出来的一个对象，用于对SQL Job进行管理；&lt;br /&gt;
+instance manager：一个instance manager管理着部署在YARN集群上所有正在被执行的job；&lt;br /&gt;
+watch dog：提供了对job的状态、心跳的检测，以适时进行failover；&lt;br /&gt;
+…&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;athenax-vm-compiler&quot;&gt;athenax-vm-compiler&lt;/h2&gt;
+&lt;p&gt;主要实现将SQL编译为Flink作业。分为3部分：&lt;br /&gt;
+planer：计划器，该模块的入口，它会顺序调用parser、validator、executor，最终得到一个称之为作业编译结果的JobCompilationResult对象；&lt;br /&gt;
+parser：编译器，这里主要是针对其对SQL的扩展提供相应的解析实现，主要是对Calcite api的实现，最终得到SqlNode集合SqlNodeList；&lt;br /&gt;
+validator：校验；&lt;br /&gt;
+executor：真正完成所谓的”编译“工作，这里编译之所以加引号，其实只是借助于Flink的API得到对应的JobGraph；&lt;br /&gt;
+这里，值得一提的是其”编译“的实现机制。AthenaX最终是要将其SQL Job提交给Flink运行时去执行，而对Flink而言JobGraph是其唯一识别的Job描述的对象，所以它最关键的一点就是需要得到其job的JobGraph。&lt;br /&gt;
+整体调用过程：&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Athenax Jobmanger编译
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;//com.uber.athenax.backend.server.jobs.JobManager#compile Athenax Jobmanager编译
+public JobCompilationResult compile(JobDefinition job, JobDefinitionDesiredstate spec) throws Throwable {
+  Map&amp;lt;String, AthenaXTableCatalog&amp;gt; inputs = catalogProvider.getInputCatalog(spec.getClusterId());
+ AthenaXTableCatalog output = catalogProvider.getOutputCatalog(spec.getClusterId(), job.getOutputs());
+ Planner planner = new Planner(inputs, output);
+ return planner.sql(job.getQuery(), Math.toIntExact(spec.getResource().getVCores()));
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Planner sql方法，返回JobCompilationResult，其中JobDescriptor是其Job业务相关的信息。
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;public JobCompilationResult sql(String sql, int parallelism) throws Throwable {
+//解析
+ SqlNodeList stmts = parse(sql);
+ //校验
+ Validator validator = new Validator();
+ validator.validateQuery(stmts);
+ //Job相关信息
+ JobDescriptor job = new JobDescriptor(
+//输入源Catalog-将SQL中的table转换为data source
+ inputs,
+ //自定义fun
+ validator.userDefinedFunctions(),
+ //Catalog输出源-将SQL中的table转换为data sink
+ outputs,
+ //并行度
+ parallelism,
+ //SQL
+ validator.statement().toString());
+ // 调用excutor，使用Flink的API得到对应的JobGraph,res.jobGraph()
+ // 说明：AthenX采用了运行时执行构造命令行执行JobCompiler的方法，然后利用socket+标准输出重定向的方式，来模拟UNIX PIPELINE，可能没必要这么绕弯路，直接调用就行了。
+ // uses contained executor instead of direct compile for: JobCompiler.compileJob(job); 实际上即调用JobCompiler.compileJob(job)
+ CompilationResult res = new ContainedExecutor().run(job);
+ if (res.remoteThrowable() != null) {
+throw res.remoteThrowable();
+ }
+return new JobCompilationResult(res.jobGraph(),
+ validator.userDefinedFunctions().values().stream().map(Path::new).collect(Collectors.toList()));
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+    &lt;p&gt;说明：&lt;br /&gt;
+（1）以上具体的触发机制，采用了运行时（com.uber.athenax.vm.compiler.executor.ContainedExecutor）执行构造命令行执行JobCompiler的方法，然后利用套接字+标准输出重定向的方式，来模拟UNIX PIPELINE，可以理解成直接调用JobCompiler.compileJob(job)。&lt;br /&gt;
+（2）parse的代码生成&lt;br /&gt;
+值得一提的是，parser涉及到具体的语法，这一块为了体现灵活性。AthenaX将解析器的实现类跟SQL语法绑定在一起通过fmpp(文本模板预处理器)的形式进行代码生成。&lt;br /&gt;
+fmpp是一个支持freemark语法的文本预处理器。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;JobCompiler（com.uber.athenax.vm.compiler.executor.JobCompiler）的compileJob方法，构造ComplicationResult。
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;//构造CompilationResult（核心：构造JobGraph）
+public static CompilationResult compileJob(JobDescriptor job) {
+  //flink env
+ StreamExecutionEnvironment execEnv = StreamExecutionEnvironment.createLocalEnvironment();
+ StreamTableEnvironment env = StreamTableEnvironment.getTableEnvironment(execEnv);
+ execEnv.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+ CompilationResult res = new CompilationResult();
+ try {
+ //getJobGraph
+ res.jobGraph(new JobCompiler(env, job).getJobGraph());
+ } catch (IOException e) {
+ res.remoteThrowable(e);
+ }
+  return res;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;核心在于上面的getJobGraph（com.uber.athenax.vm.compiler.executor.JobCompiler#getJobGraph）方法。之前JobDescriptor是其Job业务相关的信息，这里动态设置非固定部分。
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;//构造JobGraph 利用Flink的Table&amp;amp;SQL API编写的Table&amp;amp;SQL 程序模板
+JobGraph getJobGraph() throws IOException {
+  StreamExecutionEnvironment exeEnv = env.execEnv();
+ exeEnv.setParallelism(job.parallelism());
+ //AthenaX动态设置注册registerUdfs和registerInputCatalogs
+ this
+ .registerUdfs()
+   .registerInputCatalogs();
+ //flink table api
+ Table table = env.sqlQuery(job.sql());
+ for (String t : job.outputs().listTables()) {
+ table.writeToSink(getOutputTable(job.outputs().getTable(t)));
+ }
+  //直接调用StreamExecutionEnvironment#getStreamGraph就可以自动获得JobGraph对象
+ StreamGraph streamGraph = exeEnv.getStreamGraph();
+ //JobGraph的生成还是由Flink 自己提供的，而AthenaX只需要拼凑并触发该对象的生成
+ return streamGraph.getJobGraph();
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+    &lt;p&gt;其中调用env.sql()这个方法说明它本质没能真正脱离Flink Table&amp;amp;SQL。&lt;br /&gt;
+设置完成之后，通过调用StreamExecutionEnvironment#getStreamGraph就可以自动获得JobGraph对象，因此JobGraph的生成还是由Flink 自己提供的，而AthenaX只需要拼凑并触发该对象的生成。  生成后会通过flink的yarn client实现（com.uber.athenax.backend.server.yarn.JobDeployer），将JobGraph提交给YARN集群，并启动Flink运行时执行Job。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;athenax-vm-api&quot;&gt;athenax-vm-api&lt;/h2&gt;
+&lt;p&gt;这个模块就是Athenax提供给用户的去实现的一些API接口，它们是：&lt;br /&gt;
+function：各种函数的rich化(open/close方法对)扩展；&lt;br /&gt;
+catalog：table / source、sink的映射；&lt;br /&gt;
+sink provider：sink的扩展接口。&lt;/p&gt;
+
+&lt;h2 id=&quot;athennax-vm-connectors&quot;&gt;athennax-vm-connectors&lt;/h2&gt;
+&lt;p&gt;开放给用户去扩展的连接器，目前只提供了kafka这一个连接器的实现。&lt;/p&gt;
+
+&lt;hr /&gt;
+&lt;p&gt;至此，本篇内容完成。&lt;/p&gt;</content><author><name>叶子  ( ˘ ³˘)♥</name></author><category term="Flink" /><summary type="html">文主要关于Uber开源的AthenaX基于SQL的大规模流分析平台的简单整理。想要学习一下基于SQL流处理平台的思路，将看到的博客和文章简单整理了一下。 主要参考 这次把主要参考文章列在了最前面，主要是基本上此文就是在前人的基础上整理在了一起，此文原创很少，参考链接如下: 前人博客-Uber Athenax项目核心技术点剖析：https://blog.csdn.net/yanghua_kobe/article/details/78573578 介绍文章-Introducing AthenaX, Uber Engineering’s Open Source Streaming Analytics Platform：https://eng.uber.com/athenax/ 官网说明：https://athenax.readthedocs.io/en/latest/ 博客-如何构建一个flink sql平台:https://my.oschina.net/qiangzigege/blog/2252975 AthenaX特点 Streaming SQL production-ready流处理分析，支持Filtering, projecting和combining操作。 支持基于processing time和event time的GroupWindow聚合。 支持定制化SQL：用户定义函数（UDF）、用户定义聚合函数（UDAF）和用户定义表函数（UDTF-测试）。 高效的执行过程 为了满足Uber业务的规模化要求，AthenaX 对 SQL 查询进行了编译与优化，并将其交付至分布式流应用程序当中以确保仅利用 8 套 YARN 容器即可实现每秒数百万次的消息处理操作。 监控和自动故障恢复 AthenaX 以端到端方式管理各应用程序，具体包括持续监控其运行状态、根据输入数据大小自动进行规模伸缩，且可顺利在节点或者整体数据中心发生故障时通过故障转移保证业务的正常恢复。 资源估算和自动缩放-AthenaX jobs自动扩展等 AthenaX根据查询和输入数据的吞吐量估算vcores和内存的数量。AthenaX master会持续监视每个作业的watermarks和垃圾回收统计信息，并在必要时重新启动它们。Flink的容错性机制能够保障job运行正确的结果。 依赖组件 AthenaX构建在Apache Calcite以及Apache Flink之上 Apache Calcite 是一款开源SQL解析工具, 可以将各种SQL语句解析成抽象语法术AST(Abstract Syntax Tree), 之后通过操作AST就可以把SQL中所要表达的算法与关系体现在具体代码之中。 Apache Flink是一个面向分布式数据流处理和批量数据处理的开源计算平台,它能够基于同一个Flink运行时(FlinkRuntime),提供支持流处理和批处理两种类型应用的功能。 采用YARN集群来管理Job LevelDB作为持久化存储 LevelDB是Google开源的持久化KV单机数据库,具有很高的随机写,顺序读/写性能,但是随机读的性能很一般,也就是说,LevelDB很适合应用在查询较少,而写很多的场景。 架构说明 AthenaX平台一般架构如上图。 Data Sources Output:AthenaX支持多种数据源和输出。 AthenaX platform AthenaX master：管理job的全生命周期。 catalogs 和connectors：描述 AthenaX jobs如何与外部组件联系。 Catalog和connectors是可插拔的。Catalog指定了如何将SQL中的表映射到source或sink。Connectors定义AthenaX如何与外部系统交互。（如发布到Kafka主题或进行RPC调用） 用户自定义的Catalogs必须实现AthenaXTableCatalogProvider。Connectors必须实现DataSinkProvider或者TableSourceConverter。例子：https://github.com/uber/AthenaX/tree/master/athenax-vm-connectors/athenax-vm-connector-kafka/src/main/java/com/uber/athenax/vm/connectors/kafka AthenaX中的一些概念 Job：流式分析应用程序。包括SQL、运行集群、所需资源。 Catalog：描述了如何将SQL中的table转换为data source或data sink。 Cluster：运行AthenaX job 的YARN cluster。 Instance：通过AthenaX job 转换而来的运行在特定集群上的Flink application。 AthenaX的工作流程 用户使用SQL开发作业，通过 REST APIs并将其提交给AthenaX master。 AthenaX master验证查询并将其编译为Flink作业。 为了有效地执行Athenax jobs，Athenax使用Flink’s Table and SQL APIs将AthenaX jobs编译成本地的Flink应用程序。Athenax将catalogs和parameters（例如并行性）以及job的SQL编译为一个Flink application，形成Flink里的JobGraph。 【未来】Athenax支持用户自定义函数的SQL。用户可以指定附加的JAR随SQL一起加载。为了安全地编译它们，Athenax在专用的过程中编译SQL。但是，在当前版本中，该功能（尤其是对UDF JAR的本地化）尚未完全实现。 AthenaX master会将其打包、部署到YARN集群中执行。部署完成后，Athenax主机会持续监控作业的状态，并在出现故障时将其恢复。 Athenax使用两种状态描述作业的运行状态。第一个状态是desired state，它描述了集群和作业所需的启动资源。第二个是actual state，每个job的已创建instance的资源。 watchdog周期性的计算actual state并将其与desired state进行比较，AthenaX master可以根据差异启动或终止相应的Yarn application，这种情况下启动的作业只是对failed job的恢复。Auto scaling的处理也类似。需要注意，所有的actual state都是“soft states”，也就是说，它们可以通过Yarn cluster来获取。这样的设计允许AthenaX控件在多个区域中运行，前提是（1）底层持久数据存储在部署的区域中可用，并且（2）watchdog知道多个可用区域中的活动主机。 作业开始处理数据并将结果输出到外部系统（例如，Kafka）。 AthenaX核心技术点 Athenax它提供了一个对Flink进行扩展以利用其运行时的一种机制。 准备工作 下载源码，编译： 问题：Class “ExtendedJobDefinition, JobDefinition, JobDefinitionDesiredstate and JobDefinitionResource” are not in package 解决：The “missing” classes are generated during the compilation process. You can find them once you run mvn clean compile install。 AthenaX主要分为以下几个模块 athenax-backend：项目的后端服务实现。 athenax-vm-compiler：主要负责将SQL编译为Flink作业。 athenax-vm-api：Athenax提供给用户的去实现的一些API接口。 athennax-vm-connectors：开放给用户 扩展的连接器。 athenax-backend 项目的后端服务实现，提供了一个运行时实例。 其主要启动步骤分为两步： 启动一个web server(com.uber.athenax.backend.server.WebServer)，用来接收restful的各种服务请求； 这里的web server，事实上是一个Glashfish中的Grizzly所提供的一个轻量级的http server（Glashfish:Java EE应用服务器的实现;Grizzly:基于Java NIO实现的服务器），它也具备处理动态请求（web container，Servlet）的能力。 RESTful API这块，AthenaX使用了swagger这一API开发框架来提供部分代码（实体类/服务接口类）的生成。 web server接收用户的RESTful API请求，这些API可以分成三类： （1）Cluster: 集群相关的信息 （2）Instance: Job运行时相关的信息 （3）Job: 作业本身的信息； 启动了一个ServerContext（上下文-com.uber.athenax.backend.server.ServerContext），它封装了一些核心对象，是服务的具体提供者: job store：一个基于LevelDB的job元数据存储机制； job manager：注意这与Flink的JobManager没有关系，这是AthenaX封装出来的一个对象，用于对SQL Job进行管理； instance manager：一个instance manager管理着部署在YARN集群上所有正在被执行的job； watch dog：提供了对job的状态、心跳的检测，以适时进行failover； … athenax-vm-compiler 主要实现将SQL编译为Flink作业。分为3部分： planer：计划器，该模块的入口，它会顺序调用parser、validator、executor，最终得到一个称之为作业编译结果的JobCompilationResult对象； parser：编译器，这里主要是针对其对SQL的扩展提供相应的解析实现，主要是对Calcite api的实现，最终得到SqlNode集合SqlNodeList； validator：校验； executor：真正完成所谓的”编译“工作，这里编译之所以加引号，其实只是借助于Flink的API得到对应的JobGraph； 这里，值得一提的是其”编译“的实现机制。AthenaX最终是要将其SQL Job提交给Flink运行时去执行，而对Flink而言JobGraph是其唯一识别的Job描述的对象，所以它最关键的一点就是需要得到其job的JobGraph。 整体调用过程： Athenax Jobmanger编译 //com.uber.athenax.backend.server.jobs.JobManager#compile Athenax Jobmanager编译 public JobCompilationResult compile(JobDefinition job, JobDefinitionDesiredstate spec) throws Throwable { Map&amp;lt;String, AthenaXTableCatalog&amp;gt; inputs = catalogProvider.getInputCatalog(spec.getClusterId()); AthenaXTableCatalog output = catalogProvider.getOutputCatalog(spec.getClusterId(), job.getOutputs()); Planner planner = new Planner(inputs, output); return planner.sql(job.getQuery(), Math.toIntExact(spec.getResource().getVCores())); } Planner sql方法，返回JobCompilationResult，其中JobDescriptor是其Job业务相关的信息。 public JobCompilationResult sql(String sql, int parallelism) throws Throwable { //解析 SqlNodeList stmts = parse(sql); //校验 Validator validator = new Validator(); validator.validateQuery(stmts); //Job相关信息 JobDescriptor job = new JobDescriptor( //输入源Catalog-将SQL中的table转换为data source inputs, //自定义fun validator.userDefinedFunctions(), //Catalog输出源-将SQL中的table转换为data sink outputs, //并行度 parallelism, //SQL validator.statement().toString()); // 调用excutor，使用Flink的API得到对应的JobGraph,res.jobGraph() // 说明：AthenX采用了运行时执行构造命令行执行JobCompiler的方法，然后利用socket+标准输出重定向的方式，来模拟UNIX PIPELINE，可能没必要这么绕弯路，直接调用就行了。 // uses contained executor instead of direct compile for: JobCompiler.compileJob(job); 实际上即调用JobCompiler.compileJob(job) CompilationResult res = new ContainedExecutor().run(job); if (res.remoteThrowable() != null) { throw res.remoteThrowable(); } return new JobCompilationResult(res.jobGraph(), validator.userDefinedFunctions().values().stream().map(Path::new).collect(Collectors.toList())); } 说明： （1）以上具体的触发机制，采用了运行时（com.uber.athenax.vm.compiler.executor.ContainedExecutor）执行构造命令行执行JobCompiler的方法，然后利用套接字+标准输出重定向的方式，来模拟UNIX PIPELINE，可以理解成直接调用JobCompiler.compileJob(job)。 （2）parse的代码生成 值得一提的是，parser涉及到具体的语法，这一块为了体现灵活性。AthenaX将解析器的实现类跟SQL语法绑定在一起通过fmpp(文本模板预处理器)的形式进行代码生成。 fmpp是一个支持freemark语法的文本预处理器。 JobCompiler（com.uber.athenax.vm.compiler.executor.JobCompiler）的compileJob方法，构造ComplicationResult。 //构造CompilationResult（核心：构造JobGraph） public static CompilationResult compileJob(JobDescriptor job) { //flink env StreamExecutionEnvironment execEnv = StreamExecutionEnvironment.createLocalEnvironment(); StreamTableEnvironment env = StreamTableEnvironment.getTableEnvironment(execEnv); execEnv.setStreamTimeCharacteristic(TimeCharacteristic.EventTime); CompilationResult res = new CompilationResult(); try { //getJobGraph res.jobGraph(new JobCompiler(env, job).getJobGraph()); } catch (IOException e) { res.remoteThrowable(e); } return res; } 核心在于上面的getJobGraph（com.uber.athenax.vm.compiler.executor.JobCompiler#getJobGraph）方法。之前JobDescriptor是其Job业务相关的信息，这里动态设置非固定部分。 //构造JobGraph 利用Flink的Table&amp;amp;SQL API编写的Table&amp;amp;SQL 程序模板 JobGraph getJobGraph() throws IOException { StreamExecutionEnvironment exeEnv = env.execEnv(); exeEnv.setParallelism(job.parallelism()); //AthenaX动态设置注册registerUdfs和registerInputCatalogs this .registerUdfs() .registerInputCatalogs(); //flink table api Table table = env.sqlQuery(job.sql()); for (String t : job.outputs().listTables()) { table.writeToSink(getOutputTable(job.outputs().getTable(t))); } //直接调用StreamExecutionEnvironment#getStreamGraph就可以自动获得JobGraph对象 StreamGraph streamGraph = exeEnv.getStreamGraph(); //JobGraph的生成还是由Flink 自己提供的，而AthenaX只需要拼凑并触发该对象的生成 return streamGraph.getJobGraph(); } 其中调用env.sql()这个方法说明它本质没能真正脱离Flink Table&amp;amp;SQL。 设置完成之后，通过调用StreamExecutionEnvironment#getStreamGraph就可以自动获得JobGraph对象，因此JobGraph的生成还是由Flink 自己提供的，而AthenaX只需要拼凑并触发该对象的生成。 生成后会通过flink的yarn client实现（com.uber.athenax.backend.server.yarn.JobDeployer），将JobGraph提交给YARN集群，并启动Flink运行时执行Job。 athenax-vm-api 这个模块就是Athenax提供给用户的去实现的一些API接口，它们是： function：各种函数的rich化(open/close方法对)扩展； catalog：table / source、sink的映射； sink provider：sink的扩展接口。 athennax-vm-connectors 开放给用户去扩展的连接器，目前只提供了kafka这一个连接器的实现。 至此，本篇内容完成。</summary></entry><entry><title type="html">记一次Flink Checkpoint超时问题排查</title><link href="http://localhost:4000/bigdata/2019/05/16/%E8%AE%B0%E4%B8%80%E6%AC%A1FlinkCheckpoint%E8%B6%85%E6%97%B6%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5%E8%BF%87%E7%A8%8B/" rel="alternate" type="text/html" title="记一次Flink Checkpoint超时问题排查" /><published>2019-05-16T00:00:00+08:00</published><updated>2019-05-16T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2019/05/16/%E8%AE%B0%E4%B8%80%E6%AC%A1FlinkCheckpoint%E8%B6%85%E6%97%B6%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5%E8%BF%87%E7%A8%8B</id><content type="html" xml:base="http://localhost:4000/bigdata/2019/05/16/%E8%AE%B0%E4%B8%80%E6%AC%A1FlinkCheckpoint%E8%B6%85%E6%97%B6%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5%E8%BF%87%E7%A8%8B/">&lt;blockquote&gt;
   &lt;p&gt;本文主要关于Flink Checkpoint超时问题排查过程，基于Flink1.7.1版本。&lt;/p&gt;
 &lt;/blockquote&gt;
 
@@ -49,10 +265,11 @@ QueueLength（队列输入缓冲区的数量）我们来参考一下。那么就
 可以判断写入es的时候发生了阻塞，我们现在使用的是es6具体后续排查优化一下，有时间的话再写一篇详细继续说明一下。&lt;/p&gt;
 
 &lt;hr /&gt;
-&lt;p&gt;至此，本篇内容完成。&lt;/p&gt;</content><author><name>叶子  ( ˘ ³˘)♥</name></author><category term="Flink" /><summary type="html">本文主要关于Flink Checkpoint超时问题排查过程，基于Flink1.7.1版本。 最近在使用Flink进行流处理开发，开发时间不长，但是经历了很长时间的调优过程。最近发现Checkpoint经常出现超时失败的情况，所以对这一现象进行了排查。 针对Flink Checkpoint超时问题，已经有一个大神最近刚刚写了关于这个的排查思路给了很多的参考，我也跟着他的思路，来进行进一步排查。参考文章如下:Flink常见Checkpoint超时问题排查思路，这个文章最开始对于checkpoint超时做了分析，后来给出了一般的排查方式，我也是对照他的排查方式来查找问题的。下面文章我将对此问题排查过程进行一下记录。 Flink Checkpoint超时问题排查 最近程序经常出现checkpoint超时失败的问题，因此去排查了一下问题，查找资料的时候看到了上文提到的文章，Flink常见Checkpoint超时问题排查思路，在他最初的分析中指出“可能是因为Barrier对齐原因导致的checkpoint超时”，我就对这这个思路去排查了下问题。 首先，可以看到下图checkpoint开始失败(这个图是后来再截的补充的，所以时间和ck ID与后续内容不一致，为了表明现象补充的截图，现象是一样)。 点开看下详细信息，发现”narrowReduce-&amp;gt;Sink:es”整体显示的n/a,但是它的上游”wideReduce-toNarrow”可以看出是479/480,可以看到是卡在了一个task上。 点开show subtasks,可以看一下，卡在了编号97的subtask上。 这里有个问题，看参考文章里写的是“这个id并不是subtaskIndex”，这里显示的97，但是我理解此97确实为subtaskIndex,对于subtaskIndex的描述我看了源码里写的是：“The task’s index in the subtask group.”，对于此我的理解是，我们程序中没有划分subtask group，都是默认的“default”，因此暂时可以用此subtaskIndex标识一个subtask，但是如果程序中划分了group，那这个id就不准确了。因此后续查看了一下，executionId也就是通过metric采集到的taskAttemptId，看它的描述是：“The execution Id uniquely identifying the executed task represented by this metrics group.”，因此后续对于查看subtask维度的监控，可以使用taskAttemptId作为标识。 因此，假设我们不能使用此subtaskIndex ID作为标示去查询此task的信息，我们就继续跟随参考文章的步骤，去查看下JobManager的日志，查看到日志如下： 从上面日志截图可以看到这个checkpoint的一些延迟的信息，可以看到一个taskAttemptID，然后我们可以去监控上查下相关信息，我们拿“0d2b9593f56af1f5719a00bf4f6”这个taskAttemptId去查一下: 正好看到，taskIndexId显示的为96，因为Flink UI上ID从1开始算的，监控采集的指标ID从0开始算，因此此task即为我们上面看到的卡住的task，可以看到taskName也为“wideReduce-toNarrow”。 参考文章中有说明，Checkpoint时间要么花费在barrier对齐，要么花费在异步状态遍历和写hdfs。而我们的状态并不是很大，因此可以判断下是否是barrier没有对其，barrier下游无法对齐的主要原因还是在于下游消费能力不足，会导致buffer堆积一段时间，但这时并不足以造成上游反压，因为反压需要下游channel持续无法写入，导致tcp阻塞，导致上游的outputbuffer占满才会引起反压。 因此，我们去查看一下flink对于buffer的几个指标。flink针对与task buffers metircs的监控有inputQueueLength（队列输入缓冲区的数量）、outputQueueLength（队列输出缓冲区的数量）、inPoolUsage（输入缓冲区使用情况评估）、outPoolUsage（输出缓冲区使用情况评估）。其中input QueueLength（队列输入缓冲区的数量）我们来参考一下。那么就去看一下具体的监控，如下图： 可以看到，的确在那段时间，对应subTask的inputQueuelength值达到了一条横线，也就是达到了一个最大值，判断inputQueuelength满了，此时发送barrier无法对其引起了Checkpoint超时。此时可以断定下游消费能力不足，但是是因为数据倾斜导致的还是因为下游其他原因阻塞，我们还不能轻易下结论，需要继续排查。不过我们可以确定的是，我们需要计算一个inputQueuelength的最大值怎么计算，便于以后更好的监控和告警，快速定位。对于inputQueuelength最大值如何计算，后续会单独整理一个文章来说明。 为了判断是否是数据倾斜原因还是其他原因导致的问题，可以具体继续分析一下，我们再继续看一下我们采集的此算子每秒records的监控，如下图： 可以看到，的确在那段时间，数据量非常大，而且我们也可以观察到，后续的15:55左右也是不同的subTask的inputQueueLength满了，也可以发现它们的每秒in的数据量较多，并且我们keyby选用的key是有每5min的时间戳的，所以根据in数据量也可以看得出，subtask差不多是每5min变化一次，就可以初步判断出，可能是因为出现了热点导致了数据倾斜，后续我们需要根据这个问题进行一次热点处理操作。 此次的checkpoint超时问题就可以暂时排查到这里，后续需要进行热点处理操作，对于针对这次热点打散的相关文章，如果有时间也会整理一下。 后续 之前的checkpoint超时问题可以判断可能是因为热点问题导致的，因此先去做了打散操作处理了热点，基本解决了问题。后续其他流也出现了类似问题，但是此次问题不是因为数据倾斜的问题，具体排查过程再来一次如下： 通过UI页面看到卡在“Sink：job”的subtaskIndex为1的subtask处，这次直接去看了InputQueueLength的监控，我们通过taskName、TaskAttemptID、TaskIndex 3个维度看一下监控如下： inputQueuelength taskName维度 inputQueuelength TaskAttemptID维度 inputQueueLength SubTaskIndex维度 通过上面三个图可以看出，这次的问题较之前不一样，这次可以发现是某个subTask的InputQueueLength先达到了一个“满”的状态，并且一直是这一个subTask，并没有变化的情况，所以我们可以具体登陆到那台host上去看一下问题，可以直接通过监控查询到具体哪台host： 可以看到上面三个图的taskName、subtaskIndex、TaskAttemptId正好对应上，那么我们去它所在的“…169”机器上去看一下具体情况。其他排查过程省略，后来我截取了一下堆栈信息：jstack -l id &amp;gt; billing，如下： 通过此内容可以发现卡在BulkRequestHandler的88行，88行内容如下： 可以判断写入es的时候发生了阻塞，我们现在使用的是es6具体后续排查优化一下，有时间的话再写一篇详细继续说明一下。 至此，本篇内容完成。</summary></entry><entry><title type="html">Flink中Checkpoint和Savepoint相关概念</title><link href="http://localhost:4000/bigdata/2019/05/08/FlinkCheckPoint%E5%92%8CSavePoint%E6%A6%82%E8%BF%B0/" rel="alternate" type="text/html" title="Flink中Checkpoint和Savepoint相关概念" /><published>2019-05-08T00:00:00+08:00</published><updated>2019-05-08T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2019/05/08/FlinkCheckPoint%E5%92%8CSavePoint%E6%A6%82%E8%BF%B0</id><content type="html" xml:base="http://localhost:4000/bigdata/2019/05/08/FlinkCheckPoint%E5%92%8CSavePoint%E6%A6%82%E8%BF%B0/">&lt;blockquote&gt;
+&lt;p&gt;至此，本篇内容完成。 小渣叶通过这次排查的最终感悟：一个好的全面的监控实在太重要了！&lt;/p&gt;</content><author><name>叶子  ( ˘ ³˘)♥</name></author><category term="Flink" /><summary type="html">本文主要关于Flink Checkpoint超时问题排查过程，基于Flink1.7.1版本。 最近在使用Flink进行流处理开发，开发时间不长，但是经历了很长时间的调优过程。最近发现Checkpoint经常出现超时失败的情况，所以对这一现象进行了排查。 针对Flink Checkpoint超时问题，已经有一个大神最近刚刚写了关于这个的排查思路给了很多的参考，我也跟着他的思路，来进行进一步排查。参考文章如下:Flink常见Checkpoint超时问题排查思路，这个文章最开始对于checkpoint超时做了分析，后来给出了一般的排查方式，我也是对照他的排查方式来查找问题的。下面文章我将对此问题排查过程进行一下记录。 Flink Checkpoint超时问题排查 最近程序经常出现checkpoint超时失败的问题，因此去排查了一下问题，查找资料的时候看到了上文提到的文章，Flink常见Checkpoint超时问题排查思路，在他最初的分析中指出“可能是因为Barrier对齐原因导致的checkpoint超时”，我就对这这个思路去排查了下问题。 首先，可以看到下图checkpoint开始失败(这个图是后来再截的补充的，所以时间和ck ID与后续内容不一致，为了表明现象补充的截图，现象是一样)。 点开看下详细信息，发现”narrowReduce-&amp;gt;Sink:es”整体显示的n/a,但是它的上游”wideReduce-toNarrow”可以看出是479/480,可以看到是卡在了一个task上。 点开show subtasks,可以看一下，卡在了编号97的subtask上。 这里有个问题，看参考文章里写的是“这个id并不是subtaskIndex”，这里显示的97，但是我理解此97确实为subtaskIndex,对于subtaskIndex的描述我看了源码里写的是：“The task’s index in the subtask group.”，对于此我的理解是，我们程序中没有划分subtask group，都是默认的“default”，因此暂时可以用此subtaskIndex标识一个subtask，但是如果程序中划分了group，那这个id就不准确了。因此后续查看了一下，executionId也就是通过metric采集到的taskAttemptId，看它的描述是：“The execution Id uniquely identifying the executed task represented by this metrics group.”，因此后续对于查看subtask维度的监控，可以使用taskAttemptId作为标识。 因此，假设我们不能使用此subtaskIndex ID作为标示去查询此task的信息，我们就继续跟随参考文章的步骤，去查看下JobManager的日志，查看到日志如下： 从上面日志截图可以看到这个checkpoint的一些延迟的信息，可以看到一个taskAttemptID，然后我们可以去监控上查下相关信息，我们拿“0d2b9593f56af1f5719a00bf4f6”这个taskAttemptId去查一下: 正好看到，taskIndexId显示的为96，因为Flink UI上ID从1开始算的，监控采集的指标ID从0开始算，因此此task即为我们上面看到的卡住的task，可以看到taskName也为“wideReduce-toNarrow”。 参考文章中有说明，Checkpoint时间要么花费在barrier对齐，要么花费在异步状态遍历和写hdfs。而我们的状态并不是很大，因此可以判断下是否是barrier没有对其，barrier下游无法对齐的主要原因还是在于下游消费能力不足，会导致buffer堆积一段时间，但这时并不足以造成上游反压，因为反压需要下游channel持续无法写入，导致tcp阻塞，导致上游的outputbuffer占满才会引起反压。 因此，我们去查看一下flink对于buffer的几个指标。flink针对与task buffers metircs的监控有inputQueueLength（队列输入缓冲区的数量）、outputQueueLength（队列输出缓冲区的数量）、inPoolUsage（输入缓冲区使用情况评估）、outPoolUsage（输出缓冲区使用情况评估）。其中input QueueLength（队列输入缓冲区的数量）我们来参考一下。那么就去看一下具体的监控，如下图： 可以看到，的确在那段时间，对应subTask的inputQueuelength值达到了一条横线，也就是达到了一个最大值，判断inputQueuelength满了，此时发送barrier无法对其引起了Checkpoint超时。此时可以断定下游消费能力不足，但是是因为数据倾斜导致的还是因为下游其他原因阻塞，我们还不能轻易下结论，需要继续排查。不过我们可以确定的是，我们需要计算一个inputQueuelength的最大值怎么计算，便于以后更好的监控和告警，快速定位。对于inputQueuelength最大值如何计算，后续会单独整理一个文章来说明。 为了判断是否是数据倾斜原因还是其他原因导致的问题，可以具体继续分析一下，我们再继续看一下我们采集的此算子每秒records的监控，如下图： 可以看到，的确在那段时间，数据量非常大，而且我们也可以观察到，后续的15:55左右也是不同的subTask的inputQueueLength满了，也可以发现它们的每秒in的数据量较多，并且我们keyby选用的key是有每5min的时间戳的，所以根据in数据量也可以看得出，subtask差不多是每5min变化一次，就可以初步判断出，可能是因为出现了热点导致了数据倾斜，后续我们需要根据这个问题进行一次热点处理操作。 此次的checkpoint超时问题就可以暂时排查到这里，后续需要进行热点处理操作，对于针对这次热点打散的相关文章，如果有时间也会整理一下。 后续 之前的checkpoint超时问题可以判断可能是因为热点问题导致的，因此先去做了打散操作处理了热点，基本解决了问题。后续其他流也出现了类似问题，但是此次问题不是因为数据倾斜的问题，具体排查过程再来一次如下： 通过UI页面看到卡在“Sink：job”的subtaskIndex为1的subtask处，这次直接去看了InputQueueLength的监控，我们通过taskName、TaskAttemptID、TaskIndex 3个维度看一下监控如下： inputQueuelength taskName维度 inputQueuelength TaskAttemptID维度 inputQueueLength SubTaskIndex维度 通过上面三个图可以看出，这次的问题较之前不一样，这次可以发现是某个subTask的InputQueueLength先达到了一个“满”的状态，并且一直是这一个subTask，并没有变化的情况，所以我们可以具体登陆到那台host上去看一下问题，可以直接通过监控查询到具体哪台host： 可以看到上面三个图的taskName、subtaskIndex、TaskAttemptId正好对应上，那么我们去它所在的“…169”机器上去看一下具体情况。其他排查过程省略，后来我截取了一下堆栈信息：jstack -l id &amp;gt; billing，如下： 通过此内容可以发现卡在BulkRequestHandler的88行，88行内容如下： 可以判断写入es的时候发生了阻塞，我们现在使用的是es6具体后续排查优化一下，有时间的话再写一篇详细继续说明一下。 至此，本篇内容完成。 小渣叶通过这次排查的最终感悟：一个好的全面的监控实在太重要了！</summary></entry><entry><title type="html">Flink中Checkpoint和Savepoint相关概念</title><link href="http://localhost:4000/bigdata/2019/05/08/FlinkCheckPoint%E5%92%8CSavePoint%E6%A6%82%E8%BF%B0/" rel="alternate" type="text/html" title="Flink中Checkpoint和Savepoint相关概念" /><published>2019-05-08T00:00:00+08:00</published><updated>2019-05-08T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2019/05/08/FlinkCheckPoint%E5%92%8CSavePoint%E6%A6%82%E8%BF%B0</id><content type="html" xml:base="http://localhost:4000/bigdata/2019/05/08/FlinkCheckPoint%E5%92%8CSavePoint%E6%A6%82%E8%BF%B0/">&lt;blockquote&gt;
   &lt;p&gt;本文主要关于Flink中Checkpoint和Savepoint相关概念，基于Flink1.7.1。&lt;/p&gt;
 &lt;/blockquote&gt;
 
+&lt;p&gt;最近在遇到了一些state相关的问题，因此就重新学习和整理了一下Flink里的Checkpoint和Savepoint相关知识，此篇文章基本上就是对于官网文章的整理和翻译，当作一篇笔记来记录一下～&lt;/p&gt;
 &lt;h1 id=&quot;基础概念一览-checkpoint和savepoint的区别&quot;&gt;基础概念一览-Checkpoint和Savepoint的区别&lt;/h1&gt;
 &lt;p&gt;对于Flink容错保障中，Checkpoint和Savepoint是两个关键的概念，注意区分和应用。&lt;/p&gt;
 &lt;h3 id=&quot;使用场景&quot;&gt;使用场景&lt;/h3&gt;
@@ -224,7 +441,7 @@ $ bin/flink run -s :savepointPath -n [:runArgs]&lt;/p&gt;
 &lt;a href=&quot;https://ci.apache.org/projects/flink/flink-docs-release-1.8/ops/state/savepoints.html&quot;&gt;flink官网以及相关官网翻译&lt;/a&gt;&lt;/p&gt;
 
 &lt;hr /&gt;
-&lt;p&gt;至此，本篇内容完成。&lt;/p&gt;</content><author><name>叶子  ( ˘ ³˘)♥</name></author><category term="Flink" /><summary type="html">本文主要关于Flink中Checkpoint和Savepoint相关概念，基于Flink1.7.1。 基础概念一览-Checkpoint和Savepoint的区别 对于Flink容错保障中，Checkpoint和Savepoint是两个关键的概念，注意区分和应用。 使用场景 Checkpoint仅用于恢复意外失败的作业（走flink的job默认恢复机制）。 SavePoint用于用户计划的、手动的备份和恢复（代码版本更新、更改并行度、jog graph、2个程序同时运行red/blue deployment）。 保留时间 Checkpoint默认情况下是作业终止会被删除可配置保留）；Savepoint作业终止后继续存在。 设计目标 Checkpoint设计目标：轻量级创建；快速恢复。 SavePoint：生成和恢复成本更高，关注可移植性和对先前提到的作业更改的支持。 维护 Checkpoint由flink自动维护（ created, owned, and released by Flink），Savepoint需用户维护（ created, owned, and released by user）。 其他 存储的数据格式与state backend密切相关；使用RocksDB state backend，Checkpoint支持增量存储（轻量）；Savepoint是全量Snapshot。 Checkpoint Checkpoint配置例子 val env: StreamExecutionEnvironment = if (mode == &quot;local&quot;) { StreamExecutionEnvironment.createLocalEnvironment() } else { StreamExecutionEnvironment.getExecutionEnvironment } var stateBackend: RocksDBStateBackend = new RocksDBStateBackend(checkpointDir, false) val rocksdbConf = new Configuration rocksdbConf.setString(RocksDBOptions.TIMER_SERVICE_FACTORY, RocksDBStateBackend.PriorityQueueStateType.ROCKSDB.toString) stateBackend.setPredefinedOptions(PredefinedOptions.SPINNING_DISK_OPTIMIZED_HIGH_MEM) stateBackend = stateBackend.configure(rocksdbConf) env.setStateBackend(stateBackend) env.enableCheckpointing(triggerInterval * 1000) env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.AT_LEAST_ONCE) env.getCheckpointConfig.enableExternalizedCheckpoints(ExternalizedCheckpointCleanup.DELETE_ON_CANCELLATION) env.getCheckpointConfig.setMinPauseBetweenCheckpoints(3000) env.getCheckpointConfig.setMaxConcurrentCheckpoints(1) 说明: 通过env.setStateBackend(stateBackend)，设置使用的state backend。 通过env.enableCheckpointing开启checkpoint并设置时间间隔为triggerInterval * 1000。 通过ExternalizedCheckpointCleanup配置checkpoints在job取消的时候是否清除：ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION表示一旦Flink处理程序被cancel后，会保留Checkpoint数据，以便后续需要的话根据实际需要恢复到指定的Checkpoint处理，需要手动清除checkpoint。ExternalizedCheckpointCleanup.DELETE_ON_CANCELLATION表示默认的，当job停止后删除checkpoint数据。 其他配置: 默认情况下，如果设置了Checkpoint选项，则Flink只保留最近成功生成的1个Checkpoint，由于Flink的job恢复机制只需要使用最新一个有效的checkpoint，因此在新的checkpoint生成后就可以安全移除其余旧的checkpoint了，当Flink程序失败时，可以从最近的这个Checkpoint来进行恢复。 如果需要保留多个Checkpoint，需要在Flink的配置文件conf/flink-conf.yaml中，添加如下配置，指定最多需要保存Checkpoint的个数，这样在HDFS的相应文件夹下面会产生多个checkpoint文件： state.checkpoints.num-retained: 20 从checkpoint恢复 checkpoint由元数据文件、额外的数据文件（与state backend相关）组成。在保留checkpoint的情况下，使用命令: $ bin/flink run -s :checkpointMetaDataPath [:runArgs] 从checkpoint的元数据文件进行数据恢复，注意若元数据文件中信息不够，那么jobmanager就需要使用相关的数据文件来恢复作业。 例如：bin/flink run -s hdfs://checkpoint目录/JobID/chk-21(checkpint点)/_metadata 其他运行命令，成功启动的job对应的Checkpoint编号会从该次运行基于的编号继续连续生成：chk-22、chk-23、chk-24等。 SavePoint avepoint使用Flink的Checkpoint机制创建流作业的全量（非增量）状态快照，包含Streaming程序的状态，并且将checkpoint数据和元数据写出到外部文件系统。 算子UID Flink程序中包含两种状态数据，一种是用户定义的状态（User-defined State），他们是基于Flink的Transformation函数来创建或者修改得到的状态数据；另一种是系统状态（System State），他们是指作为Operator计算一部分的数据Buffer等状态数据，比如在使用Window Function时，在Window内部缓存Streaming数据记录。为了能够在创建Savepoint过程中，唯一识别对应的Operator的状态数据，Flink提供了API来为程序中每个Operator设置ID，这样可以在后续更新/升级程序的时候，可以在Savepoint数据中基于Operator ID来与对应的状态信息进行匹配，从而实现恢复。 当然，如果我们不指定Operator ID，Flink也会我们自动生成对应的Operator状态ID。自动生成的ID依赖于程序的结构，并且非常容易受到程序变化的影响。因此，强烈推荐手动指定ID。手动为每个Operator设置ID，即使未来Flink应用程序可能会改动很大，比如替换原来的Operator实现、增加新的Operator、删除Operator等等，至少我们有可能与Savepoint中存储的Operator状态对应上。另外，保存的Savepoint状态数据，毕竟是基于当时程序及其内存数据结构生成的，所以如果未来Flink程序改动比较大，尤其是对应的需要操作的内存数据结构都变化了，可能根本就无法从原来旧的Savepoint正确地恢复。 官网设置例子： DataStream&amp;lt;String&amp;gt; stream = env. // Stateful source (e.g. Kafka) with ID .addSource(new StatefulSource()) .uid(&quot;source-id&quot;) // ID for the source operator .shuffle() // Stateful mapper with ID .map(new StatefulMapper()) .uid(&quot;mapper-id&quot;) // ID for the mapper // Stateless printing sink .print(); // Auto-generated ID Savepoint state 可以将savepoint想象成为保存了每个有状态的算子的“算子ID-&amp;gt;状态”映射的集合。 Operator ID | State ————+———————— source-id | State of StatefulSource mapper-id | State of StatefulMapper 在上述示例中，print结果表是无状态的，因此不是savepoint状态的一部分。默认情况下，我们试图将savepoint的每条数据，都映射到新的程序中。 Savepoint操作 可以通过命令行操作Savepoint，Flink版本&amp;gt;=1.2.0可以使用 webui 从savepoint恢复作业 。 创建一个Savepoint 创建一个Savepoint，需要指定对应Savepoint基础目录，此job对应的新的savepoint目录将在其内被创建并存储数据和元数据。 有两种方式来指定Savepoint目录: 配置Savepoint的默认路径，在Flink的配置文件conf/flink-conf.yaml中，添加如下配置：state.savepoints.dir:hdfs://hdfscluster/flink-savepoints 在手动执行savepoint命令的时候，指定Savepoint存储目录，命令格式如下所示：bin/flink savepoint :jobId [:targetDirectory] 如果你既不配置默认目标目录，也不指定自定义目标目录，触发savepoint将失败。 注意： 目标目录位置必须可以被JobManager和TaskManager访问，比如位于分布式文件系统中。 例子： 例如，正在运行的Flink Job对应的ID为，使用默认state.savepoints.dir配置指定的Savepoint目录，执行如下命令:bin/flink savepoint 40be7c0160b73041dbceafc6256cb37d,可以看到，在目录hdfs://hdfscluster/flink-savepoints/savepoint-40be7c-8201276a3c10下面生成了ID为40be7c0160b73041dbceafc6256cb37d的Job的Savepoint数据。 为正在运行的Flink Job指定一个目录存储Savepoint数据，执行如下命令:bin/flink savepoint 40be7c0160b73041dbceafc6256cb37d hdfs://hdfscluster/tmp/flink/savepoints,可以看到，在目录 hdfs://hdfscluster/tmp/flink/savepoints/savepoint-40be7c-c19253t1b376下面生成了ID为40be7c0160b73041dbceafc6256cb37d的Job的Savepoint数据。 YARN环境中触发Savepoint $ bin/flink savepoint :jobId [:targetDirectory] -yid :yarnAppId 这将为ID为:yarnAppId的YARN应用中，为ID为:jobId的作业触发一份savepoint，并返回savepoint的路径。 取消作业时触发savepoint $ bin/flink cancel -s [:targetDirectory] :jobId 这将为ID为:jobId的作业自动触发一份savepoint，并取消作业。此外，你可以指定目标目录用于保存savepoint。此目录需要可以被JobManager和TaskManager访问。 savepoint目录结构 以FsStateBackend或RocksDBStateBackend为例： # Savepoint target directory # savepoint目标目录 /savepoints/ # Savepoint directory # savepoint目录 /savepoints/savepoint-:shortjobid-:savepointid/ # Savepoint file contains the checkpoint meta data # savepoint元数据文件 /savepoints/savepoint-:shortjobid-:savepointid/_metadata # Savepoint state # savepoint状态 /savepoints/savepoint-:shortjobid-:savepointid/... 注意： 虽然看起来savepoint可能被移动，但是由于_metadata文件中的绝对路径，目前这是不可能的。如果你使用MemoryStateBackend，元数据和savepoint状态将被存储于_metadata文件。因为它是自完备的，你可以移动此文件并从任何位置恢复。 例子： hdfs dfs -ls /flink-1.5.3/flink-savepoints/savepoint-11bbc5-bd967f90709b Found 5 items -rw-r--r-- 3 hadoop supergroup 4935 2018-09-02 01:21 /flink-1.5.3/flink-savepoints/savepoint-11bbc5-bd967f90709b/50231e5f-1d05-435f-b288-06d5946407d6 -rw-r--r-- 3 hadoop supergroup 4599 2018-09-02 01:21 /flink-1.5.3/flink-savepoints/savepoint-11bbc5-bd967f90709b/7a025ad8-207c-47b6-9cab-c13938939159 -rw-r--r-- 3 hadoop supergroup 4976 2018-09-02 01:21 /flink-1.5.3/flink-savepoints/savepoint-11bbc5-bd967f90709b/_metadata -rw-r--r-- 3 hadoop supergroup 4348 2018-09-02 01:21 /flink-1.5.3/flink-savepoints/savepoint-11bbc5-bd967f90709b/bd9b0849-aad2-4dd4-a5e0-89297718a13c -rw-r--r-- 3 hadoop supergroup 4724 2018-09-02 01:21 /flink-1.5.3/flink-savepoints/savepoint-11bbc5-bd967f90709b/be8c1370-d10c-476f-bfe1-dd0c0e7d498a 如上面列出的HDFS路径中，11bbc5是Flink Job ID字符串前6个字符，后面bd967f90709b是随机生成的字符串，然后savepoint-11bbc5-bd967f90709b作为存储此次Savepoint数据的根目录，最后savepoint-11bbc5-bd967f90709b目录下面_metadata文件包含了Savepoint的元数据信息，其中序列化包含了savepoint-11bbc5-bd967f90709b目录下面其它文件的路径，这些文件内容都是序列化的状态信息。 从savepoint恢复 $ bin/flink run -s :savepointPath [:runArgs] 这将提交作业并从指定的savepoint目录恢复作业。你可以指定savepoint的目录或_metadata 文件路径。 允许不恢复状态-Allowing Non-Restored State 默认情况下，恢复操作将试图将savepoint中所有状态条目映射到你计划恢复的程序中。如果你删除了一个算子，通过–allowNonRestoredState(简写：-n)参数，将允许忽略某个不能映射到新程序的状态： $ bin/flink run -s :savepointPath -n [:runArgs] 删除savepoint $ bin/flink savepoint -d :savepointPath 这将删除存储于:savepointPath的savepoint。 注意，同样可以通过常规的文件系统操作手动的删除savepoint，而不影响其他的savepoint或checkpoint（回想下每个savepoint都是自完备的）。在FLink 1.2版本之前，执行以上savepoint命令曾是一个更繁琐的任务。 Savepoint FAQ 是否需要为我作业中的所有算子都分配ID？ 根据经验，是的。严格来说，在作业中通过uid方法仅仅为那些有状态的算子分配ID更高效。savepoint仅仅包含这些算子的状态，而无状态算子则不是savepoint的一部分。 在实践中，推荐为所有算子分配ID，因为某些Flink的内置算子如窗口同样是有状态的，但是哪些算子实际上是有状态的、哪些是没有状态的却并不明显。如果你非常确定某个算子是无状态的，你可以省略uid方法。 如果在我的作业中增加一个需要状态的新算子将会发生什么？ 当你在作业中增加一个新算子，它将被初始化为无任何状态。savepoint包含每个有状态算子的状态。无状态算子不是savepoint的一部分。新算子表现为类似于无状态算子。 如果从作业中删除一个有状态算子将会发生什么？ 默认情况下，从savepoint恢复时作业时，将试图匹配savepoint中所有operatorid和state条目。如果你的新作业将某个有状态的算子删除了，那么从savepoint恢复作业会失败。 你可以通过使用–allowNonRestoredState (简写：-n)参数运行命令来允许这种情况下对作业恢复状态。 $ bin/flink run -s :savepointPath -n [:runArgs] 如果在我的作业中重排序（reorder）有状态的算子将会发生什么？ 如果你为这些算子分配了ID，它们将正常的被恢复。 如果你没有分配ID，在重排序后，有状态算子自动生成的ID很可能改变。这将可能导致你无法从之前的savepoint中恢复。 如果在我的作业中增加、删除或重排序无状态的算子将会发生什么？ 如果你为有状态算子分配了ID，在savepoint恢复时无状态算子将不受影响。 如果你没有分配ID，在重排序后，这些有状态算子自动生成的ID很可能改变。这将可能导致你无法从之前的savepoint中恢复。 在恢复时当我改变程序的并发时将会发生什么？ 如果savepoint是在Flink 1.2.0及以上版本触发的，并且没有使用deprecated state API如Checkpointed，你可以指定新的并发并从savepoint恢复程序。 如果作业要从低于flink 1.2.0版本触发的savepoint中恢复，或使用了已经deprecated APIs，则在改并发之前，必须将作业和savepoint迁移到Flink 1.2.0及以上版本。 更新详见Upgrading Applications and Flink Versions。 我可以在稳定存储上移动保存点文件吗？ 这个问题的快速答案目前是“否”，因为元数据文件出于技术原因将稳定存储中的文件作为绝对路径引用。详细回答答案是：如果出于某种原因必须移动文件，有两种可能的解决方法。首先，更简单但可能更危险，您可以使用编辑器在元数据文件中查找旧路径，并将其替换为新路径。其次，可以使用 class SavepointV2Serializer作为以编程方式读取、操作和用新路径重写元数据文件的起点。 本文参考: flink使用checkpoint等知识 flink官网以及相关官网翻译 至此，本篇内容完成。</summary></entry><entry><title type="html">Flink分布式运行时知识梳理脑图</title><link href="http://localhost:4000/bigdata/2019/02/17/Flink%E8%BF%90%E8%A1%8C%E6%97%B6%E8%84%91%E5%9B%BE%E6%A2%B3%E7%90%86/" rel="alternate" type="text/html" title="Flink分布式运行时知识梳理脑图" /><published>2019-02-17T00:00:00+08:00</published><updated>2019-02-17T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2019/02/17/Flink%E8%BF%90%E8%A1%8C%E6%97%B6%E8%84%91%E5%9B%BE%E6%A2%B3%E7%90%86</id><content type="html" xml:base="http://localhost:4000/bigdata/2019/02/17/Flink%E8%BF%90%E8%A1%8C%E6%97%B6%E8%84%91%E5%9B%BE%E6%A2%B3%E7%90%86/">&lt;blockquote&gt;
+&lt;p&gt;至此，本篇内容完成。&lt;/p&gt;</content><author><name>叶子  ( ˘ ³˘)♥</name></author><category term="Flink" /><summary type="html">本文主要关于Flink中Checkpoint和Savepoint相关概念，基于Flink1.7.1。 最近在遇到了一些state相关的问题，因此就重新学习和整理了一下Flink里的Checkpoint和Savepoint相关知识，此篇文章基本上就是对于官网文章的整理和翻译，当作一篇笔记来记录一下～ 基础概念一览-Checkpoint和Savepoint的区别 对于Flink容错保障中，Checkpoint和Savepoint是两个关键的概念，注意区分和应用。 使用场景 Checkpoint仅用于恢复意外失败的作业（走flink的job默认恢复机制）。 SavePoint用于用户计划的、手动的备份和恢复（代码版本更新、更改并行度、jog graph、2个程序同时运行red/blue deployment）。 保留时间 Checkpoint默认情况下是作业终止会被删除可配置保留）；Savepoint作业终止后继续存在。 设计目标 Checkpoint设计目标：轻量级创建；快速恢复。 SavePoint：生成和恢复成本更高，关注可移植性和对先前提到的作业更改的支持。 维护 Checkpoint由flink自动维护（ created, owned, and released by Flink），Savepoint需用户维护（ created, owned, and released by user）。 其他 存储的数据格式与state backend密切相关；使用RocksDB state backend，Checkpoint支持增量存储（轻量）；Savepoint是全量Snapshot。 Checkpoint Checkpoint配置例子 val env: StreamExecutionEnvironment = if (mode == &quot;local&quot;) { StreamExecutionEnvironment.createLocalEnvironment() } else { StreamExecutionEnvironment.getExecutionEnvironment } var stateBackend: RocksDBStateBackend = new RocksDBStateBackend(checkpointDir, false) val rocksdbConf = new Configuration rocksdbConf.setString(RocksDBOptions.TIMER_SERVICE_FACTORY, RocksDBStateBackend.PriorityQueueStateType.ROCKSDB.toString) stateBackend.setPredefinedOptions(PredefinedOptions.SPINNING_DISK_OPTIMIZED_HIGH_MEM) stateBackend = stateBackend.configure(rocksdbConf) env.setStateBackend(stateBackend) env.enableCheckpointing(triggerInterval * 1000) env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.AT_LEAST_ONCE) env.getCheckpointConfig.enableExternalizedCheckpoints(ExternalizedCheckpointCleanup.DELETE_ON_CANCELLATION) env.getCheckpointConfig.setMinPauseBetweenCheckpoints(3000) env.getCheckpointConfig.setMaxConcurrentCheckpoints(1) 说明: 通过env.setStateBackend(stateBackend)，设置使用的state backend。 通过env.enableCheckpointing开启checkpoint并设置时间间隔为triggerInterval * 1000。 通过ExternalizedCheckpointCleanup配置checkpoints在job取消的时候是否清除：ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION表示一旦Flink处理程序被cancel后，会保留Checkpoint数据，以便后续需要的话根据实际需要恢复到指定的Checkpoint处理，需要手动清除checkpoint。ExternalizedCheckpointCleanup.DELETE_ON_CANCELLATION表示默认的，当job停止后删除checkpoint数据。 其他配置: 默认情况下，如果设置了Checkpoint选项，则Flink只保留最近成功生成的1个Checkpoint，由于Flink的job恢复机制只需要使用最新一个有效的checkpoint，因此在新的checkpoint生成后就可以安全移除其余旧的checkpoint了，当Flink程序失败时，可以从最近的这个Checkpoint来进行恢复。 如果需要保留多个Checkpoint，需要在Flink的配置文件conf/flink-conf.yaml中，添加如下配置，指定最多需要保存Checkpoint的个数，这样在HDFS的相应文件夹下面会产生多个checkpoint文件： state.checkpoints.num-retained: 20 从checkpoint恢复 checkpoint由元数据文件、额外的数据文件（与state backend相关）组成。在保留checkpoint的情况下，使用命令: $ bin/flink run -s :checkpointMetaDataPath [:runArgs] 从checkpoint的元数据文件进行数据恢复，注意若元数据文件中信息不够，那么jobmanager就需要使用相关的数据文件来恢复作业。 例如：bin/flink run -s hdfs://checkpoint目录/JobID/chk-21(checkpint点)/_metadata 其他运行命令，成功启动的job对应的Checkpoint编号会从该次运行基于的编号继续连续生成：chk-22、chk-23、chk-24等。 SavePoint avepoint使用Flink的Checkpoint机制创建流作业的全量（非增量）状态快照，包含Streaming程序的状态，并且将checkpoint数据和元数据写出到外部文件系统。 算子UID Flink程序中包含两种状态数据，一种是用户定义的状态（User-defined State），他们是基于Flink的Transformation函数来创建或者修改得到的状态数据；另一种是系统状态（System State），他们是指作为Operator计算一部分的数据Buffer等状态数据，比如在使用Window Function时，在Window内部缓存Streaming数据记录。为了能够在创建Savepoint过程中，唯一识别对应的Operator的状态数据，Flink提供了API来为程序中每个Operator设置ID，这样可以在后续更新/升级程序的时候，可以在Savepoint数据中基于Operator ID来与对应的状态信息进行匹配，从而实现恢复。 当然，如果我们不指定Operator ID，Flink也会我们自动生成对应的Operator状态ID。自动生成的ID依赖于程序的结构，并且非常容易受到程序变化的影响。因此，强烈推荐手动指定ID。手动为每个Operator设置ID，即使未来Flink应用程序可能会改动很大，比如替换原来的Operator实现、增加新的Operator、删除Operator等等，至少我们有可能与Savepoint中存储的Operator状态对应上。另外，保存的Savepoint状态数据，毕竟是基于当时程序及其内存数据结构生成的，所以如果未来Flink程序改动比较大，尤其是对应的需要操作的内存数据结构都变化了，可能根本就无法从原来旧的Savepoint正确地恢复。 官网设置例子： DataStream&amp;lt;String&amp;gt; stream = env. // Stateful source (e.g. Kafka) with ID .addSource(new StatefulSource()) .uid(&quot;source-id&quot;) // ID for the source operator .shuffle() // Stateful mapper with ID .map(new StatefulMapper()) .uid(&quot;mapper-id&quot;) // ID for the mapper // Stateless printing sink .print(); // Auto-generated ID Savepoint state 可以将savepoint想象成为保存了每个有状态的算子的“算子ID-&amp;gt;状态”映射的集合。 Operator ID | State ————+———————— source-id | State of StatefulSource mapper-id | State of StatefulMapper 在上述示例中，print结果表是无状态的，因此不是savepoint状态的一部分。默认情况下，我们试图将savepoint的每条数据，都映射到新的程序中。 Savepoint操作 可以通过命令行操作Savepoint，Flink版本&amp;gt;=1.2.0可以使用 webui 从savepoint恢复作业 。 创建一个Savepoint 创建一个Savepoint，需要指定对应Savepoint基础目录，此job对应的新的savepoint目录将在其内被创建并存储数据和元数据。 有两种方式来指定Savepoint目录: 配置Savepoint的默认路径，在Flink的配置文件conf/flink-conf.yaml中，添加如下配置：state.savepoints.dir:hdfs://hdfscluster/flink-savepoints 在手动执行savepoint命令的时候，指定Savepoint存储目录，命令格式如下所示：bin/flink savepoint :jobId [:targetDirectory] 如果你既不配置默认目标目录，也不指定自定义目标目录，触发savepoint将失败。 注意： 目标目录位置必须可以被JobManager和TaskManager访问，比如位于分布式文件系统中。 例子： 例如，正在运行的Flink Job对应的ID为，使用默认state.savepoints.dir配置指定的Savepoint目录，执行如下命令:bin/flink savepoint 40be7c0160b73041dbceafc6256cb37d,可以看到，在目录hdfs://hdfscluster/flink-savepoints/savepoint-40be7c-8201276a3c10下面生成了ID为40be7c0160b73041dbceafc6256cb37d的Job的Savepoint数据。 为正在运行的Flink Job指定一个目录存储Savepoint数据，执行如下命令:bin/flink savepoint 40be7c0160b73041dbceafc6256cb37d hdfs://hdfscluster/tmp/flink/savepoints,可以看到，在目录 hdfs://hdfscluster/tmp/flink/savepoints/savepoint-40be7c-c19253t1b376下面生成了ID为40be7c0160b73041dbceafc6256cb37d的Job的Savepoint数据。 YARN环境中触发Savepoint $ bin/flink savepoint :jobId [:targetDirectory] -yid :yarnAppId 这将为ID为:yarnAppId的YARN应用中，为ID为:jobId的作业触发一份savepoint，并返回savepoint的路径。 取消作业时触发savepoint $ bin/flink cancel -s [:targetDirectory] :jobId 这将为ID为:jobId的作业自动触发一份savepoint，并取消作业。此外，你可以指定目标目录用于保存savepoint。此目录需要可以被JobManager和TaskManager访问。 savepoint目录结构 以FsStateBackend或RocksDBStateBackend为例： # Savepoint target directory # savepoint目标目录 /savepoints/ # Savepoint directory # savepoint目录 /savepoints/savepoint-:shortjobid-:savepointid/ # Savepoint file contains the checkpoint meta data # savepoint元数据文件 /savepoints/savepoint-:shortjobid-:savepointid/_metadata # Savepoint state # savepoint状态 /savepoints/savepoint-:shortjobid-:savepointid/... 注意： 虽然看起来savepoint可能被移动，但是由于_metadata文件中的绝对路径，目前这是不可能的。如果你使用MemoryStateBackend，元数据和savepoint状态将被存储于_metadata文件。因为它是自完备的，你可以移动此文件并从任何位置恢复。 例子： hdfs dfs -ls /flink-1.5.3/flink-savepoints/savepoint-11bbc5-bd967f90709b Found 5 items -rw-r--r-- 3 hadoop supergroup 4935 2018-09-02 01:21 /flink-1.5.3/flink-savepoints/savepoint-11bbc5-bd967f90709b/50231e5f-1d05-435f-b288-06d5946407d6 -rw-r--r-- 3 hadoop supergroup 4599 2018-09-02 01:21 /flink-1.5.3/flink-savepoints/savepoint-11bbc5-bd967f90709b/7a025ad8-207c-47b6-9cab-c13938939159 -rw-r--r-- 3 hadoop supergroup 4976 2018-09-02 01:21 /flink-1.5.3/flink-savepoints/savepoint-11bbc5-bd967f90709b/_metadata -rw-r--r-- 3 hadoop supergroup 4348 2018-09-02 01:21 /flink-1.5.3/flink-savepoints/savepoint-11bbc5-bd967f90709b/bd9b0849-aad2-4dd4-a5e0-89297718a13c -rw-r--r-- 3 hadoop supergroup 4724 2018-09-02 01:21 /flink-1.5.3/flink-savepoints/savepoint-11bbc5-bd967f90709b/be8c1370-d10c-476f-bfe1-dd0c0e7d498a 如上面列出的HDFS路径中，11bbc5是Flink Job ID字符串前6个字符，后面bd967f90709b是随机生成的字符串，然后savepoint-11bbc5-bd967f90709b作为存储此次Savepoint数据的根目录，最后savepoint-11bbc5-bd967f90709b目录下面_metadata文件包含了Savepoint的元数据信息，其中序列化包含了savepoint-11bbc5-bd967f90709b目录下面其它文件的路径，这些文件内容都是序列化的状态信息。 从savepoint恢复 $ bin/flink run -s :savepointPath [:runArgs] 这将提交作业并从指定的savepoint目录恢复作业。你可以指定savepoint的目录或_metadata 文件路径。 允许不恢复状态-Allowing Non-Restored State 默认情况下，恢复操作将试图将savepoint中所有状态条目映射到你计划恢复的程序中。如果你删除了一个算子，通过–allowNonRestoredState(简写：-n)参数，将允许忽略某个不能映射到新程序的状态： $ bin/flink run -s :savepointPath -n [:runArgs] 删除savepoint $ bin/flink savepoint -d :savepointPath 这将删除存储于:savepointPath的savepoint。 注意，同样可以通过常规的文件系统操作手动的删除savepoint，而不影响其他的savepoint或checkpoint（回想下每个savepoint都是自完备的）。在FLink 1.2版本之前，执行以上savepoint命令曾是一个更繁琐的任务。 Savepoint FAQ 是否需要为我作业中的所有算子都分配ID？ 根据经验，是的。严格来说，在作业中通过uid方法仅仅为那些有状态的算子分配ID更高效。savepoint仅仅包含这些算子的状态，而无状态算子则不是savepoint的一部分。 在实践中，推荐为所有算子分配ID，因为某些Flink的内置算子如窗口同样是有状态的，但是哪些算子实际上是有状态的、哪些是没有状态的却并不明显。如果你非常确定某个算子是无状态的，你可以省略uid方法。 如果在我的作业中增加一个需要状态的新算子将会发生什么？ 当你在作业中增加一个新算子，它将被初始化为无任何状态。savepoint包含每个有状态算子的状态。无状态算子不是savepoint的一部分。新算子表现为类似于无状态算子。 如果从作业中删除一个有状态算子将会发生什么？ 默认情况下，从savepoint恢复时作业时，将试图匹配savepoint中所有operatorid和state条目。如果你的新作业将某个有状态的算子删除了，那么从savepoint恢复作业会失败。 你可以通过使用–allowNonRestoredState (简写：-n)参数运行命令来允许这种情况下对作业恢复状态。 $ bin/flink run -s :savepointPath -n [:runArgs] 如果在我的作业中重排序（reorder）有状态的算子将会发生什么？ 如果你为这些算子分配了ID，它们将正常的被恢复。 如果你没有分配ID，在重排序后，有状态算子自动生成的ID很可能改变。这将可能导致你无法从之前的savepoint中恢复。 如果在我的作业中增加、删除或重排序无状态的算子将会发生什么？ 如果你为有状态算子分配了ID，在savepoint恢复时无状态算子将不受影响。 如果你没有分配ID，在重排序后，这些有状态算子自动生成的ID很可能改变。这将可能导致你无法从之前的savepoint中恢复。 在恢复时当我改变程序的并发时将会发生什么？ 如果savepoint是在Flink 1.2.0及以上版本触发的，并且没有使用deprecated state API如Checkpointed，你可以指定新的并发并从savepoint恢复程序。 如果作业要从低于flink 1.2.0版本触发的savepoint中恢复，或使用了已经deprecated APIs，则在改并发之前，必须将作业和savepoint迁移到Flink 1.2.0及以上版本。 更新详见Upgrading Applications and Flink Versions。 我可以在稳定存储上移动保存点文件吗？ 这个问题的快速答案目前是“否”，因为元数据文件出于技术原因将稳定存储中的文件作为绝对路径引用。详细回答答案是：如果出于某种原因必须移动文件，有两种可能的解决方法。首先，更简单但可能更危险，您可以使用编辑器在元数据文件中查找旧路径，并将其替换为新路径。其次，可以使用 class SavepointV2Serializer作为以编程方式读取、操作和用新路径重写元数据文件的起点。 本文参考: flink使用checkpoint等知识 flink官网以及相关官网翻译 至此，本篇内容完成。</summary></entry><entry><title type="html">Flink分布式运行时知识梳理脑图</title><link href="http://localhost:4000/bigdata/2019/02/17/Flink%E8%BF%90%E8%A1%8C%E6%97%B6%E8%84%91%E5%9B%BE%E6%A2%B3%E7%90%86/" rel="alternate" type="text/html" title="Flink分布式运行时知识梳理脑图" /><published>2019-02-17T00:00:00+08:00</published><updated>2019-02-17T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2019/02/17/Flink%E8%BF%90%E8%A1%8C%E6%97%B6%E8%84%91%E5%9B%BE%E6%A2%B3%E7%90%86</id><content type="html" xml:base="http://localhost:4000/bigdata/2019/02/17/Flink%E8%BF%90%E8%A1%8C%E6%97%B6%E8%84%91%E5%9B%BE%E6%A2%B3%E7%90%86/">&lt;blockquote&gt;
   &lt;p&gt;最近在重新整理学习flink官网内容，并在学习过程中将内容总结成脑图，是叶子自己最近一点一点整理绘制哒，转载请贴此文链接谢谢啦～图片以
 svg形式插入文章，可拖动显示完整，后续如有更改会持续更新。&lt;/p&gt;
 &lt;/blockquote&gt;
@@ -3255,130 +3472,4 @@ xx-xxxxx-events-61-20180903134301.txt
 
 &lt;p&gt;至此，本篇内容完成。&lt;br /&gt;
 本文由2018-07-02开始建立文档，于2018-07-28整理完成，几乎历时一个月，期间断断续续抽时间整理成文，很有收获。&lt;br /&gt;
-2018-09-03更新6补充需求2。&lt;/p&gt;</content><author><name>叶子  ( ˘ ³˘)♥</name></author><category term="Spark" /><category term="HDFS" /><summary type="html">之前的Spark实时流处理的数据处理程序，要求把数据从kafka接收之后，分2路分别写入kafka和hdfs，写入kafka的部分之前已经有过总结，现在回过头来把之前的写入HDFS的地方重新总结一下，整个过程从头到尾有一个写入方式的优化，不过时间有点长啦，尽量描述完整( ˘ ³˘)♥。 注意: 本文中使用的版本是spark2.2.1和2.6.0-cdh5.11.0</summary></entry><entry><title type="html">Kerberos具体实践3-Kerberos与ZK的整合操作</title><link href="http://localhost:4000/bigdata/2018/06/29/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B53-Kerberos%E4%B8%8EZK%E7%9A%84%E6%95%B4%E5%90%88%E6%93%8D%E4%BD%9C/" rel="alternate" type="text/html" title="Kerberos具体实践3-Kerberos与ZK的整合操作" /><published>2018-06-29T00:00:00+08:00</published><updated>2018-06-29T00:00:00+08:00</updated><id>http://localhost:4000/bigdata/2018/06/29/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B53-Kerberos%E4%B8%8EZK%E7%9A%84%E6%95%B4%E5%90%88%E6%93%8D%E4%BD%9C</id><content type="html" xml:base="http://localhost:4000/bigdata/2018/06/29/Kerberos%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B53-Kerberos%E4%B8%8EZK%E7%9A%84%E6%95%B4%E5%90%88%E6%93%8D%E4%BD%9C/">&lt;blockquote&gt;
-  &lt;p&gt;本文主要关于Kerberos的简单应用。因为工作测试需要，自己装了一套集群进行了Kerberos的部署，并且与HDFS、ZK进行整合，然后将操作过程进行了整理，以便后续再查看。本文主要涉及到其与ZK的整合操做，此文为2018-06-28文章Kerberos具体实践2的后续。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h1 id=&quot;zookeeper整合kerberos&quot;&gt;Zookeeper整合Kerberos&lt;/h1&gt;
-&lt;p&gt;关于zookeeper上配置Kerberos，参考&lt;a href=&quot;https://yq.aliyun.com/articles/25626&quot;&gt;zookeeper配置Kerberos认证&lt;/a&gt;。&lt;/p&gt;
-&lt;h2 id=&quot;zookeeper-server配置&quot;&gt;Zookeeper Server配置&lt;/h2&gt;
-&lt;p&gt;若hdfs配置过程中需要配置zookeeper与Kerberos结合，则目前先需要配置server即可。&lt;/p&gt;
-&lt;h3 id=&quot;创建认证规则并生成keytabzookeeper-server&quot;&gt;创建认证规则并生成keytab（zookeeper-server）&lt;/h3&gt;
-&lt;p&gt;zk整合Kerberos需要先创建启动zk用户的认证规则以及keytab，由于本次操作中，zk和hadoop均使用hadoop用户启动，则在本次操作中，不必再需要去创建新的认证规则和keytab，直接使用原来的hdfs.keytab即可。&lt;/p&gt;
-
-&lt;p&gt;补充：&lt;br /&gt;
-若有创建需要（如需要使用zookeeper用户启动zk服务），可再继续再次参考下述操作（其实同hdfs的操作）。&lt;br /&gt;
-在node1节点，即KDC server节点上执行下面命令，在KCD server上（这里是 node1）创建zookeeper principal：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kadmin.local -q &quot;addprinc -randkey zookeeper/node1@HADOOP.COM&quot;   
-kadmin.local -q &quot;addprinc -randkey zookeeper/node2@HADOOP.COM&quot;  
-kadmin.local -q &quot;addprinc -randkey zookeeper/node3@HADOOP.COM&quot;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;执行如下命令，在当前目录中创建keytab，名为zookeeper.keytab：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kadmin.local -q &quot;xst  -k zookeeper.keytab  zookeeper/node1@HADOOP.COM &quot;
-kadmin.local -q &quot;xst  -k zookeeper.keytab  zookeeper/node2@HADOOP.COM &quot;
-kadmin.local -q &quot;xst  -k zookeeper.keytab  zookeeper/node3@HADOOP.COM &quot;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;h3 id=&quot;部署keytabzookeeper-server&quot;&gt;部署Keytab（zookeeper-server）&lt;/h3&gt;
-&lt;p&gt;拷贝node1上生成的keytab(新创建的就是zookeeper.keytab)文件到其他节点的某一目录上（如/opt/zookeeper/conf，为了在zk配置文件种找到keytab），并为其设置属主和权限400（如chown zookeeper:hadoop zookeeper.keytab ;chmod 400 *.keytab），同HDFS配置过程中的操作。&lt;br /&gt;
-此次测试中，启动zk和启动hdfs的用户都是hadoop，并且在进行hdfs配置kerberos的过程中，已经将hdfs.keytab复制到其他节点的/opt/hadoop_krb5/conf/hdfs.keytab目录下了，并且也设置了权限所以此次我不再进行操作。&lt;/p&gt;
-&lt;h3 id=&quot;修改zookeeper配置文件zookeeper-server&quot;&gt;修改zookeeper配置文件（zookeeper-server）&lt;/h3&gt;
-&lt;p&gt;在node1节点上修改/opt/zookeeper-3.4.8/conf/（zookeeper安装目录下的conf）zoo.cfg文件，添加下面内容：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;authProvider.1=org.apache.zookeeper.server.auth.SASLAuthenticationProvider
-jaasLoginRenew=3600000
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;将修改的上面文件同步到其他节点：node2、node3：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ scp /opt/zookeeper-3.4.8/conf/zoo.cfg node2:/opt/zookeeper-3.4.8/conf/zoo.cfg
-$ scp /opt/zookeeper-3.4.8/conf/zoo.cfg node3:/opt/zookeeper-3.4.8/conf/zoo.cfg
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;h3 id=&quot;创建jaas文件zookeeper-server&quot;&gt;创建jaas文件（zookeeper-server）&lt;/h3&gt;
-&lt;p&gt;在node1的配置文件目录/opt/zookeeper-3.4.8/conf/（zookeeper安装目录下的conf）创建 jaas.conf文件，内容如下：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Server {
-  com.sun.security.auth.module.Krb5LoginModule required
-  useKeyTab=true
-  keyTab=&quot;/opt/hadoop_krb5/conf/hdfs.keytab&quot;【上述操作创建出的keytab，因为本次操作中zk用hadoop用户启动的，和hdfs一样，则没用重新生产keytab，和hdfs的用一个】
-  storeKey=true
-  useTicketCache=false【这里有踩过的一个小坑：如果krb5.conf 去掉了default_ccache_name = KEYRING:persistent:%{uid}，则一定用false，要不然zk起不来】
-  principal=&quot;hadoop/node1@HADOOP.COM&quot;;
-};
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;其中，keytab填写真实的keytab的绝对路径，principal填写对应的认证的用户和机器名称。需要在 node2和node3节点也创建该文件，注意每个节点的principal有所不同。&lt;/p&gt;
-&lt;h3 id=&quot;创建javaenv文件zookeeper-server&quot;&gt;创建java.env文件（zookeeper-server）&lt;/h3&gt;
-&lt;p&gt;在node1的配置文件目录/opt/zookeeper-3.4.8/conf/（zookeeper安装目录下的conf）创建 java.env文件，内容如下：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;export JVMFLAGS=&quot;-Djava.security.auth.login.config=/opt/zookeeper-3.4.8/conf/jaas.conf&quot;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;并将该文件同步到其他节点：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ scp /opt/zookeeper-3.4.8/conf/java.env node2:/opt/zookeeper-3.4.8/conf/java.env
-$ scp /opt/zookeeper-3.4.8/conf/java.env node3:/opt/zookeeper-3.4.8/conf/java.env
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;以上Zookeeper-server配置完毕。&lt;/p&gt;
-&lt;h3 id=&quot;重新启动zookeeper&quot;&gt;重新启动zookeeper&lt;/h3&gt;
-&lt;p&gt;启动方式和平常无异，如成功使用安全方式启动，日志中看到如下日志：&lt;br /&gt;
-2017-09-18 10:23:30,067 … - successfully logged in.&lt;/p&gt;
-
-&lt;h2 id=&quot;zookeeper-client配置未测试&quot;&gt;Zookeeper Client配置（未测试）&lt;/h2&gt;
-&lt;h3 id=&quot;创建认证规则生成keytab&quot;&gt;创建认证规则生成keytab&lt;/h3&gt;
-&lt;p&gt;在node1节点，即KDC server节点上执行下面命令：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ cd /var/kerberos/krb5kdc/
-kadmin.local -q &quot;addprinc -randkey zkcli/node1@HADOOP.COM &quot;
-kadmin.local -q &quot;addprinc -randkey zkcli/node2@HADOOP.COM&quot;
-kadmin.local -q &quot;addprinc -randkey zkcli/node3@HADOOP.COM&quot;
-
-kadmin.local -q &quot;xst  -k zkcli.keytab  zkcli/node1@HADOOP.COM&quot;
-kadmin.local -q &quot;xst  -k zkcli.keytab  zkcli/node2@HADOOP.COM &quot;
-kadmin.local -q &quot;xst  -k zkcli.keytab  zkcli/node3@HADOOP.COM &quot;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;拷贝 zkcli.keytab文件到其他节点的zk配置目录：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ scp zkcli.keytab node1:/etc/zookeeper/conf
-$ scp zkcli.keytab node2:/etc/zookeeper/conf
-$ scp zkcli.keytab node3:/etc/zookeeper/conf
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;并设置属主和权限，分别在node1、node2、node3 上执行：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ ssh node1 &quot;cd /etc/zookeeper/conf/;chown zookeeper:hadoop zkcli.keytab ;chmod 400 *.keytab&quot;
-$ ssh node2 &quot;cd /etc/zookeeper/conf/;chown zookeeper:hadoop zkcli.keytab ;chmod 400 *.keytab&quot;
-$ ssh node3 &quot;cd /etc/zookeeper/conf/;chown zookeeper:hadoop zkcli.keytab ;chmod 400 *.keytab&quot;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;h3 id=&quot;创建jaas配置文件&quot;&gt;创建jaas配置文件&lt;/h3&gt;
-&lt;p&gt;在node1的zk配置文件目录创建 client-jaas.conf 文件，内容如下：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Client {
-  com.sun.security.auth.module.Krb5LoginModule required
-  useKeyTab=true
-  keyTab=&quot;/etc/zookeeper/conf/zkcli.keytab&quot;
-  storeKey=true
-  useTicketCache=false
-  principal=&quot;zkcli@HADOOP.COM&quot;;
-};
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;同步到其他client节点：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ scp client-jaas.conf node2:/etc/zookeeper/conf
-$ scp client-jaas.conf node3:/etc/zookeeper/conf
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;h3 id=&quot;创建javaenv文件&quot;&gt;创建java.env文件&lt;/h3&gt;
-&lt;p&gt;然后，在zk安装目录conf目录创建或者修改java.env，内容如下：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;export CLIENT_JVMFLAGS=&quot;-Djava.security.auth.login.config=/etc/zookeeper/conf/client-jaas.conf&quot;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;blockquote&gt;
-  &lt;p&gt;如果，zookeeper-client 和 zookeeper-server 安装在同一个节点上，则 java.env 中的 java.security.auth.login.config 参数会被覆盖，这一点从 zookeeper-client 命令启动日志可以看出来。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;并将该文件同步到其他节点：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ scp /etc/zookeeper/conf/java.env node2:/etc/zookeeper/conf/java.env
-$ scp /etc/zookeeper/conf/java.env node3:/etc/zookeeper/conf/java.env
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;h3 id=&quot;启动并验证&quot;&gt;启动并验证&lt;/h3&gt;
-&lt;p&gt;启动客户端：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ zookeeper-client -server node1:2181
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;创建一个znode 节点：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;k: node1:2181(CONNECTED) 0] create /znode1 sasl:zkcli@HADOOP.COM:cdwra
-    Created /znode1
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;验证该节点是否创建以及其 ACL：&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[zk: node1:2181(CONNECTED) 1] getAcl /znode1
-    'world,'anyone
-    : cdrwa
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;以上为ZK整合Kerberos操作部分。&lt;/p&gt;
-
-&lt;hr /&gt;
-&lt;p&gt;至此，本篇内容完成。&lt;br /&gt;
-以上，此文章是关于ZK结合Kerberos的部署等内容，下篇将补充说明主从KDC的搭建。&lt;/p&gt;</content><author><name>叶子  ( ˘ ³˘)♥</name></author><category term="Kerberos" /><summary type="html">本文主要关于Kerberos的简单应用。因为工作测试需要，自己装了一套集群进行了Kerberos的部署，并且与HDFS、ZK进行整合，然后将操作过程进行了整理，以便后续再查看。本文主要涉及到其与ZK的整合操做，此文为2018-06-28文章Kerberos具体实践2的后续。 Zookeeper整合Kerberos 关于zookeeper上配置Kerberos，参考zookeeper配置Kerberos认证。 Zookeeper Server配置 若hdfs配置过程中需要配置zookeeper与Kerberos结合，则目前先需要配置server即可。 创建认证规则并生成keytab（zookeeper-server） zk整合Kerberos需要先创建启动zk用户的认证规则以及keytab，由于本次操作中，zk和hadoop均使用hadoop用户启动，则在本次操作中，不必再需要去创建新的认证规则和keytab，直接使用原来的hdfs.keytab即可。 补充： 若有创建需要（如需要使用zookeeper用户启动zk服务），可再继续再次参考下述操作（其实同hdfs的操作）。 在node1节点，即KDC server节点上执行下面命令，在KCD server上（这里是 node1）创建zookeeper principal： kadmin.local -q &quot;addprinc -randkey zookeeper/node1@HADOOP.COM&quot; kadmin.local -q &quot;addprinc -randkey zookeeper/node2@HADOOP.COM&quot; kadmin.local -q &quot;addprinc -randkey zookeeper/node3@HADOOP.COM&quot; 执行如下命令，在当前目录中创建keytab，名为zookeeper.keytab： kadmin.local -q &quot;xst -k zookeeper.keytab zookeeper/node1@HADOOP.COM &quot; kadmin.local -q &quot;xst -k zookeeper.keytab zookeeper/node2@HADOOP.COM &quot; kadmin.local -q &quot;xst -k zookeeper.keytab zookeeper/node3@HADOOP.COM &quot; 部署Keytab（zookeeper-server） 拷贝node1上生成的keytab(新创建的就是zookeeper.keytab)文件到其他节点的某一目录上（如/opt/zookeeper/conf，为了在zk配置文件种找到keytab），并为其设置属主和权限400（如chown zookeeper:hadoop zookeeper.keytab ;chmod 400 *.keytab），同HDFS配置过程中的操作。 此次测试中，启动zk和启动hdfs的用户都是hadoop，并且在进行hdfs配置kerberos的过程中，已经将hdfs.keytab复制到其他节点的/opt/hadoop_krb5/conf/hdfs.keytab目录下了，并且也设置了权限所以此次我不再进行操作。 修改zookeeper配置文件（zookeeper-server） 在node1节点上修改/opt/zookeeper-3.4.8/conf/（zookeeper安装目录下的conf）zoo.cfg文件，添加下面内容： authProvider.1=org.apache.zookeeper.server.auth.SASLAuthenticationProvider jaasLoginRenew=3600000 将修改的上面文件同步到其他节点：node2、node3： $ scp /opt/zookeeper-3.4.8/conf/zoo.cfg node2:/opt/zookeeper-3.4.8/conf/zoo.cfg $ scp /opt/zookeeper-3.4.8/conf/zoo.cfg node3:/opt/zookeeper-3.4.8/conf/zoo.cfg 创建jaas文件（zookeeper-server） 在node1的配置文件目录/opt/zookeeper-3.4.8/conf/（zookeeper安装目录下的conf）创建 jaas.conf文件，内容如下： Server { com.sun.security.auth.module.Krb5LoginModule required useKeyTab=true keyTab=&quot;/opt/hadoop_krb5/conf/hdfs.keytab&quot;【上述操作创建出的keytab，因为本次操作中zk用hadoop用户启动的，和hdfs一样，则没用重新生产keytab，和hdfs的用一个】 storeKey=true useTicketCache=false【这里有踩过的一个小坑：如果krb5.conf 去掉了default_ccache_name = KEYRING:persistent:%{uid}，则一定用false，要不然zk起不来】 principal=&quot;hadoop/node1@HADOOP.COM&quot;; }; 其中，keytab填写真实的keytab的绝对路径，principal填写对应的认证的用户和机器名称。需要在 node2和node3节点也创建该文件，注意每个节点的principal有所不同。 创建java.env文件（zookeeper-server） 在node1的配置文件目录/opt/zookeeper-3.4.8/conf/（zookeeper安装目录下的conf）创建 java.env文件，内容如下： export JVMFLAGS=&quot;-Djava.security.auth.login.config=/opt/zookeeper-3.4.8/conf/jaas.conf&quot; 并将该文件同步到其他节点： $ scp /opt/zookeeper-3.4.8/conf/java.env node2:/opt/zookeeper-3.4.8/conf/java.env $ scp /opt/zookeeper-3.4.8/conf/java.env node3:/opt/zookeeper-3.4.8/conf/java.env 以上Zookeeper-server配置完毕。 重新启动zookeeper 启动方式和平常无异，如成功使用安全方式启动，日志中看到如下日志： 2017-09-18 10:23:30,067 … - successfully logged in.</summary></entry></feed>
+2018-09-03更新6补充需求2。&lt;/p&gt;</content><author><name>叶子  ( ˘ ³˘)♥</name></author><category term="Spark" /><category term="HDFS" /><summary type="html">之前的Spark实时流处理的数据处理程序，要求把数据从kafka接收之后，分2路分别写入kafka和hdfs，写入kafka的部分之前已经有过总结，现在回过头来把之前的写入HDFS的地方重新总结一下，整个过程从头到尾有一个写入方式的优化，不过时间有点长啦，尽量描述完整( ˘ ³˘)♥。 注意: 本文中使用的版本是spark2.2.1和2.6.0-cdh5.11.0</summary></entry></feed>

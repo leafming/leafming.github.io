@@ -11,6 +11,7 @@ tags:
 ---
 > 本文主要关于Flink中Checkpoint和Savepoint相关概念，基于Flink1.7.1。  
   
+最近在遇到了一些state相关的问题，因此就重新学习和整理了一下Flink里的Checkpoint和Savepoint相关知识，此篇文章基本上就是对于官网文章的整理和翻译，当作一篇笔记来记录一下～  
 # 基础概念一览-Checkpoint和Savepoint的区别  
 对于Flink容错保障中，Checkpoint和Savepoint是两个关键的概念，注意区分和应用。  
 ### 使用场景  
