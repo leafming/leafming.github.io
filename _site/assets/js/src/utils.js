@@ -1,4 +1,12 @@
+
 /* global NexT: true */
+
+HTMLElement.prototype.wrap = function(wrapper) {
+  this.parentNode.insertBefore(wrapper, this);
+  this.parentNode.removeChild(this);
+  wrapper.appendChild(this);
+};
+
 
 NexT.utils = NexT.$u = {
   /**
@@ -78,6 +86,14 @@ NexT.utils = NexT.$u = {
 
     $top.on('click', function () {
       $('body').velocity('scroll');
+    });
+  },
+
+  wrapTableWithBox: function() {
+    document.querySelectorAll('table').forEach(element => {
+      const box = document.createElement('div');
+      box.className = 'table-container';
+      element.wrap(box);
     });
   },
 

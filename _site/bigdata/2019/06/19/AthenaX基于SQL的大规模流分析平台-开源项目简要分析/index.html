@@ -475,7 +475,7 @@
 <ul>
   <li>Streaming SQL<br />
 production-ready流处理分析，支持Filtering, projecting和combining操作。<br />
-支持基于processing time和event time的GroupWindow聚合。<br />
+支持基于processing time和event time的<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.8/dev/table/sql.html#group-windows">GroupWindow</a>聚合。<br />
 支持定制化SQL：用户定义函数（UDF）、用户定义聚合函数（UDAF）和用户定义表函数（UDTF-测试）。</li>
   <li>高效的执行过程<br />
 为了满足Uber业务的规模化要求，AthenaX 对 SQL 查询进行了编译与优化，并将其交付至分布式流应用程序当中以确保仅利用 8 套 YARN 容器即可实现每秒数百万次的消息处理操作。</li>
@@ -745,8 +745,8 @@ sink provider：sink的扩展接口。</p>
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/bigdata/2019/05/16/%E8%AE%B0%E4%B8%80%E6%AC%A1FlinkCheckpoint%E8%B6%85%E6%97%B6%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5%E8%BF%87%E7%A8%8B/" rel="prev" title="记一次Flink Checkpoint超时问题排查">
-                记一次Flink Checkpoint超时问题排查 <i class="fa fa-chevron-right"></i>
+              <a href="/bigdata/2019/06/10/Flink%E9%AB%98%E5%8F%AF%E7%94%A8%E4%BF%9D%E9%9A%9C%E6%96%B9%E6%A1%88%E6%8E%A2%E7%A9%B6/" rel="prev" title="Flink高可用保障方案探究">
+                Flink高可用保障方案探究 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -827,7 +827,7 @@ sink provider：sink的扩展接口。</p>
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">19</span>
+                <span class="site-state-item-count">20</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -887,8 +887,30 @@ sink provider：sink的扩展接口。</p>
 
         
         
+          <div class="cc-license motion-element" itemprop="license">
+            <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+              <img src="/assets/images/cc-by-nc-sa.svg" alt="Creative Commons" />
+            </a>
+          </div>
+        
 
         
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                
+                
+                <li class="links-of-blogroll-item">
+                  <a href="https://www.boyandebate.club/" title="576’sBlog" target="_blank">576’sBlog</a>
+                </li>
+              
+            </ul>
+          </div>
         
 
         
@@ -938,7 +960,7 @@ sink provider：sink的扩展接口。</p>
   
   
   &copy; 
-  <span itemprop="copyrightYear">2019</span>
+  <span itemprop="copyrightYear">2020</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

@@ -28,7 +28,7 @@ $(document).ready(function () {
   CONFIG.fancybox && NexT.utils.wrapImageWithFancyBox();
   NexT.utils.embeddedVideoTransformer();
   NexT.utils.addActiveClassToMenuItem();
-
+NexT.utils.wrapTableWithBox();
 
   // Define Motion Sequence.
   NexT.motion.integrator

@@ -21,7 +21,7 @@ tags:
 # AthenaX特点  
 - Streaming SQL  
 production-ready流处理分析，支持Filtering, projecting和combining操作。  
-支持基于processing time和event time的GroupWindow聚合。  
+支持基于processing time和event time的[GroupWindow](https://ci.apache.org/projects/flink/flink-docs-release-1.8/dev/table/sql.html#group-windows)聚合。  
 支持定制化SQL：用户定义函数（UDF）、用户定义聚合函数（UDAF）和用户定义表函数（UDTF-测试）。  
 - 高效的执行过程  
 为了满足Uber业务的规模化要求，AthenaX 对 SQL 查询进行了编译与优化，并将其交付至分布式流应用程序当中以确保仅利用 8 套 YARN 容器即可实现每秒数百万次的消息处理操作。  
