@@ -5,5 +5,22 @@
 加了
 {{"如有问题，请发送邮件至leafming@foxmail.com联系我，谢谢～"}}
 
-#2./_data/languages/zh-Hans.yml
+2./_data/languages/zh-Hans.yml
 #更改license_content，更改了版权内容
+
+3.更改了table 自适应
+/Users/yeziming/GitHub/leafming.github.io/_sass/_common/scaffolding/tables.scss
+前  table-layout: fixed;
+后  table-layout: auto;
+增加.table-container {
+  -webkit-overflow-scrolling: touch;
+  overflow: auto;
+}
+/Users/yeziming/GitHub/leafming.github.io/_site/assets/js/src/bootstrap.js
+增加NexT.utils.wrapTableWithBox();
+/Users/yeziming/GitHub/leafming.github.io/_site/assets/js/src/utils.js
+增加通用方法 HTMLElement.prototype.wrap
+增加给table外面套个div  wrapTableWithBox
+/Users/yeziming/GitHub/leafming.github.io/_site/assets/css/main.css
+增加 .table-container { -webkit-overflow-scrolling: touch; overflow: auto; }
+

@@ -344,7 +344,7 @@
   
   
 
-  <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
+  <article class="post post-type-  post-sticky" itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://localhost:4000/bigdata/2019/06/10/Flink%E9%AB%98%E5%8F%AF%E7%94%A8%E4%BF%9D%E9%9A%9C%E6%96%B9%E6%A1%88%E6%8E%A2%E7%A9%B6/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -471,7 +471,7 @@
 </blockquote>
 
 <p>最近在学习使用Flink，并且也在研究Flink的高可用保障机制，现把最近的学习成果总结一下，精心原创整理出来，转载请注明。<br />
-（心路补充：现在都2020年了，这个文章到底拖了这么久才上传。flink1.9已经不同了，目前主要看体现在task故障恢复策略，有机会再看看。）</p>
+（心路补充：本文写于2019-06-11，现在都2020年了，这个文章到底拖了这么久才上传。flink1.9已经不同了，目前主要看体现在task故障恢复策略，有机会再看看。）</p>
 
 <h1 id="概述">概述</h1>
 <p>我们使用Flink多用于流处理，对于流处理程序最重要的就是保证上线运行程序的稳定性。为了保障程序的稳定运行，所以针对制造了各种异常来探究其对Flink的影响以及如何保障。（感谢领导给我这个学习的机会！！）不过因为我对Flink使用还不深入，还没有特殊的稳定保障机制，因此并没有使用成熟的混沌工具测试，直接手动kill的各种进程营造的异常环境，对于“网络延迟”等异常环境并没有测试到，以后有机会使用工具再整体测试一下。本次测试Flink Job提交模式为“Run a single Flink job on YARN”，并且flink版本基于Flink1.7.1版本。<br />
@@ -936,8 +936,8 @@ Flink Jobmanager Crash由yarn重启后, yarn上appID无变化，Jobmanager的con
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/bigdata/2019/05/16/%E8%AE%B0%E4%B8%80%E6%AC%A1FlinkCheckpoint%E8%B6%85%E6%97%B6%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5%E8%BF%87%E7%A8%8B/" rel="prev" title="记一次Flink Checkpoint超时问题排查">
-                记一次Flink Checkpoint超时问题排查 <i class="fa fa-chevron-right"></i>
+              <a href="/bigdata/2019/06/08/Filebeat-%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E6%91%98%E5%BD%95/" rel="prev" title="Filebeat-配置文件摘录">
+                Filebeat-配置文件摘录 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -1018,7 +1018,7 @@ Flink Jobmanager Crash由yarn重启后, yarn上appID无变化，Jobmanager的con
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">20</span>
+                <span class="site-state-item-count">21</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -1040,7 +1040,7 @@ Flink Jobmanager Crash由yarn重启后, yarn上appID无变化，Jobmanager的con
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/">
-                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-count">11</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
